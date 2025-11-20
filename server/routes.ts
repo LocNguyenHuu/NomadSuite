@@ -178,6 +178,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json(invoice);
   });
 
+  app.patch("/api/invoices/:id", requireAuth, async (req, res) => {
+    const invoiceId = parseInt(req.params.id);
+    const existingInvoice = await storage.getInvoice(invoiceId);
+    
+    if (!existingInvoice || existingInvoice.userId !== req.user!.id) {
+      return res.status(404).send("Invoice not found");
+    }
+
+    // Validate and restrict updatable fields
+    const allowedUpdates = insertInvoiceSchema.partial().omit({ 
+      userId: true, 
+      clientId: true 
+    });
+    const parsed = allowedUpdates.parse(req.body);
+
+    const oldStatus = existingInvoice.status;
+    const updatedInvoice = await storage.updateInvoice(invoiceId, parsed);
+    
+    // Create system note if status changed
+    if (parsed.status && parsed.status !== oldStatus) {
+      const statusMessages: Record<string, string> = {
+        'Draft': 'drafted',
+        'Sent': 'sent to client',
+        'Paid': 'marked as paid',
+        'Overdue': 'marked as overdue'
+      };
+      
+      const message = statusMessages[parsed.status] || 'status updated';
+      
+      await storage.createClientNote({
+        clientId: existingInvoice.clientId,
+        userId: req.user!.id,
+        content: `Invoice #${existingInvoice.invoiceNumber} ${message}`,
+        type: 'System',
+        date: new Date()
+      });
+    }
+    
+    res.json(updatedInvoice);
+  });
+
   // Trips
   app.get("/api/trips", requireAuth, async (req, res) => {
     const trips = await storage.getTrips(req.user!.id);

@@ -30,6 +30,11 @@ export default function Dashboard() {
   const pendingInvoices = invoices.filter(i => i.status === 'Sent' || i.status === 'Overdue').length;
   const totalRevenue = invoices.reduce((acc, curr) => acc + (curr.status === 'Paid' ? curr.amount : 0), 0);
   
+  // Overdue invoices metrics
+  const overdueInvoices = invoices.filter(i => i.status === 'Overdue').length;
+  const clientsWithOverdueInvoices = new Set(invoices.filter(i => i.status === 'Overdue').map(i => i.clientId)).size;
+  const overduePercentage = clients.length > 0 ? Math.round((clientsWithOverdueInvoices / clients.length) * 100) : 0;
+  
   // Clients by Country (Top 5)
   const clientsByCountry = clients.reduce((acc, client) => {
     acc[client.country] = (acc[client.country] || 0) + 1;
@@ -60,7 +65,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <StatCard 
             title="Total Revenue" 
             value={`$${totalRevenue.toLocaleString()}`} 
@@ -72,6 +77,13 @@ export default function Dashboard() {
             value={activeClients.toString()} 
             icon={Users} 
             desc={`${leadClients} leads in pipeline`}
+          />
+          <StatCard 
+            title="Overdue Invoices" 
+            value={overdueInvoices.toString()} 
+            icon={AlertTriangle} 
+            desc={`${overduePercentage}% of clients affected`}
+            alert={overdueInvoices > 0}
           />
           <StatCard 
             title="Completed Jobs" 

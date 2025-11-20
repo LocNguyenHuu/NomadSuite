@@ -44,6 +44,7 @@ export default function Clients() {
   
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [countryFilter, setCountryFilter] = useState<string>('all');
   const [open, setOpen] = useState(false);
   const [location, setLocation] = useLocation();
   const { register, handleSubmit, reset } = useForm<InsertClient>();
@@ -61,12 +62,16 @@ export default function Clients() {
 
   const actionOverdueCount = clients.filter(c => c.nextActionDate && new Date(c.nextActionDate) < new Date()).length;
 
+  // Get unique countries for filter (filter out empty/undefined values)
+  const uniqueCountries = Array.from(new Set(clients.map(c => c.country).filter(Boolean))).sort();
+
   const filteredClients = clients.filter(c => {
     const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || 
                           c.email.toLowerCase().includes(search.toLowerCase()) ||
-                          c.country.toLowerCase().includes(search.toLowerCase());
+                          (c.country || '').toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesCountry = countryFilter === 'all' || c.country === countryFilter;
+    return matchesSearch && matchesStatus && matchesCountry;
   });
 
   const onSubmit = (data: any) => {
@@ -196,6 +201,17 @@ export default function Clients() {
                         <SelectItem value="Proposal">Proposal</SelectItem>
                         <SelectItem value="Active">Active</SelectItem>
                         <SelectItem value="Completed">Completed</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Select value={countryFilter} onValueChange={setCountryFilter}>
+                    <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Countries</SelectItem>
+                        {uniqueCountries.map(country => (
+                            <SelectItem key={country} value={country}>{country}</SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
             </div>

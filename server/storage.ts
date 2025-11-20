@@ -35,7 +35,9 @@ export interface IStorage {
   
   // Invoices
   getInvoices(userId: number): Promise<Invoice[]>;
+  getInvoice(id: number): Promise<Invoice | undefined>;
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
+  updateInvoice(id: number, invoice: Partial<InsertInvoice>): Promise<Invoice>;
   
   // Trips
   getTrips(userId: number): Promise<Trip[]>;
@@ -124,10 +126,28 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(invoices).where(eq(invoices.userId, userId));
   }
 
+  async getInvoice(id: number): Promise<Invoice | undefined> {
+    const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id));
+    return invoice || undefined;
+  }
+
   async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
     // Cast to any to avoid complex type mismatch with jsonb array and drizzle inference
     const [newInvoice] = await db.insert(invoices).values(invoice as any).returning();
     return newInvoice;
+  }
+
+  async updateInvoice(id: number, invoiceUpdate: Partial<InsertInvoice>): Promise<Invoice> {
+    const [updatedInvoice] = await db
+      .update(invoices)
+      .set(invoiceUpdate as any)
+      .where(eq(invoices.id, id))
+      .returning();
+    
+    if (!updatedInvoice) {
+      throw new Error("Invoice not found");
+    }
+    return updatedInvoice;
   }
 
   async getTrips(userId: number): Promise<Trip[]> {
