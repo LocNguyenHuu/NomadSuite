@@ -16,11 +16,11 @@ interface Invoice {
   clientId: number;
   amount: number;
   currency: string;
-  language?: string;
-  country?: string;
-  customerVatId?: string;
-  reverseCharge?: boolean;
-  exchangeRate?: string;
+  language?: string | null;
+  country?: string | null;
+  customerVatId?: string | null;
+  reverseCharge?: boolean | null;
+  exchangeRate?: string | null;
 }
 
 interface Client {
