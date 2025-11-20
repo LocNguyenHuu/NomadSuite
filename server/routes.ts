@@ -14,6 +14,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       name: true,
       homeCountry: true,
       currentCountry: true,
+      businessName: true,
+      businessAddress: true,
+      vatId: true,
+      taxRegime: true,
     });
 
     const parsed = updateSchema.parse(req.body);
