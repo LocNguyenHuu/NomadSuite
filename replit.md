@@ -2,9 +2,7 @@
 
 ## Overview
 
-NomadSuite is a full-stack web application designed for freelancers and digital nomads who need to manage their business operations while maintaining compliance with international travel and tax regulations. The platform combines CRM functionality, invoicing, travel tracking, visa management, and document storage in a single workspace-based application.
-
-The application targets solo freelancers and small teams who work remotely across multiple countries and need to track client relationships, revenue, travel days for tax residency purposes, visa expiration dates, and important documents.
+NomadSuite is a full-stack web application for freelancers and digital nomads, designed to manage business operations while ensuring compliance with international travel and tax regulations. It integrates CRM, invoicing, travel tracking, visa management, and document storage into a single workspace, targeting remote professionals who need to manage client relationships, revenue, tax residency, visa deadlines, and critical documents across multiple countries.
 
 ## User Preferences
 
@@ -12,214 +10,112 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Frontend Architecture
+### Frontend
 
-**Framework**: React with TypeScript using Vite as the build tool and development server.
+**Framework**: React with TypeScript (Vite).
+**UI**: Shadcn UI (Radix UI, Tailwind CSS) with custom theming and fonts.
+**Routing**: Wouter for client-side routing, including protected and role-based access.
+**State Management**: TanStack Query for server state; React Context for authentication.
+**Form Handling**: React Hook Form with Zod for validation.
+**Key Design Patterns**: Custom hooks for data fetching, protected/admin route wrappers, shared `AppLayout` for consistent navigation.
 
-**UI Framework**: Shadcn UI component library (new-york style) built on Radix UI primitives with Tailwind CSS for styling. The design system uses CSS variables for theming and supports custom fonts (Inter, Outfit, JetBrains Mono).
+### Backend
 
-**Routing**: Wouter for lightweight client-side routing with support for protected routes and role-based access control.
+**Framework**: Express.js (Node.js, TypeScript).
+**Authentication**: Passport.js with Local Strategy; `express-session` using PostgreSQL for session storage. Scrypt for password hashing.
+**API Design**: RESTful API (`/api/`) with custom authentication (`requireAuth`) and authorization (`requireAdmin`) middleware.
+**Key Design Decisions**: Session-based authentication over JWT, trust proxy enabled, abstract storage layer for database operations.
 
-**State Management**: TanStack Query (React Query) for server state management with custom query client configuration. Authentication state is managed through a React Context provider.
+### Data
 
-**Form Handling**: React Hook Form with Zod schema validation for type-safe form submissions.
-
-**Key Design Patterns**:
-- Custom hooks pattern for data fetching (useClients, useInvoices, useTrips, useDocuments)
-- Protected route wrappers that check authentication status before rendering
-- Admin route wrappers that verify admin role before granting access
-- Shared layout component (AppLayout) with responsive sidebar navigation
-
-### Backend Architecture
-
-**Framework**: Express.js running on Node.js with TypeScript.
-
-**Authentication**: Passport.js with Local Strategy for username/password authentication. Sessions are managed using express-session with PostgreSQL session storage (connect-pg-simple).
-
-**Password Security**: Scrypt-based password hashing with random salts for secure credential storage.
-
-**API Design**: RESTful API endpoints organized by resource type (clients, invoices, trips, documents, users, workspace). All API routes are prefixed with `/api/`.
-
-**Middleware**: Custom authentication middleware (requireAuth, requireAdmin) applied to protected routes. Request logging middleware for API calls with JSON response capture.
-
-**Key Design Decisions**:
-- Session-based authentication chosen over JWT for simpler implementation and better security for web applications
-- Trust proxy setting enabled for deployment behind reverse proxies
-- Custom storage abstraction layer (IStorage interface) for database operations
-
-### Data Architecture
-
-**ORM**: Drizzle ORM for type-safe database queries and schema management.
-
-**Database**: PostgreSQL (via Neon serverless driver with WebSocket support).
-
-**Schema Design**:
-- Multi-tenant workspace model where users belong to workspaces
-- Role-based access control with 'admin' and 'user' roles
-- Relational data model with foreign key constraints
-- Timestamp tracking for all entities (createdAt fields)
-
-**Core Entities**:
-- **Workspaces**: Top-level tenant isolation with settings (currency, tax country, subscription plan)
-- **Users**: Authentication credentials, profile data, workspace membership, role assignment, business information (VAT ID, business name, business address, tax regime)
-- **Clients**: CRM contacts with status pipeline (Lead → Proposal → Active → Completed), interaction tracking, and action reminders
-- **Invoices**: Billing records with JSON items, status tracking, client associations, and multi-country compliance fields (language, exchangeRate, country, customerVatId, reverseCharge, complianceChecked, templateVersion)
-- **Jurisdiction Rules**: Country-specific invoice requirements including supported languages, VAT rules, tax rates, reverse charge support, archiving years, and compliance notes
-- **Trips**: Travel log entries with country, entry/exit dates for residency calculations
-- **Documents**: File metadata storage with type categorization and expiry tracking
-- **Client Notes**: Timeline of interactions and notes associated with clients
-
-**Schema Validation**: Drizzle-Zod integration for runtime validation of insert operations.
+**ORM**: Drizzle ORM.
+**Database**: PostgreSQL (Neon serverless driver).
+**Schema Design**: Multi-tenant workspace model, role-based access control, relational model with foreign keys, and timestamp tracking.
+**Core Entities**: Workspaces, Users, Clients (CRM with pipeline), Invoices (multi-country compliance, JSON items), Jurisdiction Rules (country-specific invoice requirements), Trips (travel log), Documents (metadata), Client Notes.
+**Validation**: Drizzle-Zod for runtime insert validation.
 
 ### Authentication & Authorization
 
-**Authentication Flow**:
-1. User submits credentials via login form
-2. Passport Local Strategy verifies username and password
-3. Scrypt comparison validates password against stored hash
-4. Successful authentication creates server-side session
-5. Session cookie persists user authentication state
-
-**Authorization Levels**:
-- **Public**: Landing page, login, register
-- **Authenticated**: All `/app/*` routes require valid session
-- **Admin Only**: User management, workspace settings, admin dashboard
-
-**Security Considerations**:
-- Passwords never stored in plain text
-- Timing-safe comparison prevents timing attacks
-- Session secrets configurable via environment variables
-- Trust proxy enabled for secure cookie transmission
+**Flow**: User credentials -> Passport verification -> Scrypt password validation -> Server-side session creation -> Session cookie for persistence.
+**Levels**: Public, Authenticated (`/app/*`), Admin Only (user management, workspace settings).
+**Security**: Hashed passwords, timing-safe comparisons, environment variable session secrets, trust proxy.
 
 ### API Structure
 
-**Resource Endpoints**:
-- `/api/user` - Current user profile management (includes business/tax information)
-- `/api/users` - User listing and role management (admin only)
-- `/api/workspace` - Workspace settings (admin only)
-- `/api/clients` - Client CRM operations
-- `/api/clients/:id/notes` - Client interaction notes
-- `/api/invoices` - Invoice management with multi-country compliance
-- `/api/jurisdictions` - Jurisdiction rules for all countries
-- `/api/jurisdictions/:country` - Country-specific invoice requirements
-- `/api/trips` - Travel log entries
-- `/api/documents` - Document vault operations
-- `/api/admin/*` - Admin analytics and statistics
-
-**Authentication Endpoints**:
-- `/api/register` - New user registration
-- `/api/login` - Session creation
-- `/api/logout` - Session termination
-
-**Error Handling**: Consistent error responses with appropriate HTTP status codes. Failed requests throw errors with status code and message.
+**Resource Endpoints**: `/api/user`, `/api/users`, `/api/workspace`, `/api/clients`, `/api/clients/:id/notes`, `/api/invoices`, `/api/jurisdictions`, `/api/jurisdictions/:country`, `/api/trips`, `/api/documents`, `/api/admin/*`.
+**Authentication Endpoints**: `/api/register`, `/api/login`, `/api/logout`.
+**Error Handling**: Consistent HTTP status codes and messages.
 
 ### Frontend Routing Strategy
 
-**Public Routes**: Landing page (`/`), authentication pages (`/login`, `/register`)
+**Public Routes**: Landing, login, register.
+**Protected Routes**: All app routes requiring authentication.
+**Admin Routes**: Protected routes requiring admin role.
+**Layout**: `AppLayout` for consistent UI across application routes.
 
-**Protected Routes**: All app routes wrapped in ProtectedRoute component that redirects to login if unauthenticated
+### Key Features
 
-**Admin Routes**: Subset of protected routes (AdminRoute component) that verify admin role and redirect to dashboard if unauthorized
+**Multi-Country Invoice Compliance**: Supports country-specific invoice requirements (e.g., Germany, France, UK, Canada, US) with dynamic form validation, compliance hints, multi-currency, and multi-language support.
+**Invoice PDF Export and Email**: Server-side PDF generation using PDFKit with multi-country compliance. Emailing functionality via Resend, including PDF attachments and automatic status updates.
 
-**Layout Strategy**: App routes render within AppLayout component providing consistent navigation, sidebar, and user menu
+### Notable Design Decisions
+
+- No dedicated file storage service (placeholder URLs for documents).
+- Resend for email integration (requires `RESEND_API_KEY`).
+- No payment processing integration yet.
+- PostgreSQL for session storage.
+- Neon serverless PostgreSQL for database.
+- Invoice amounts stored as integers for multi-currency flexibility.
+- Server-side PDF generation for control over layout and compliance.
 
 ## External Dependencies
 
-### Core Framework Dependencies
-- **Vite**: Modern build tool and development server with HMR support
-- **React**: UI library with hooks-based component architecture
-- **Express**: Web application framework for Node.js backend
-- **TypeScript**: Static typing for both frontend and backend code
+### Core Frameworks
+- **Vite**: Build tool.
+- **React**: UI library.
+- **Express**: Backend framework.
+- **TypeScript**: Language.
 
 ### Database & ORM
-- **@neondatabase/serverless**: Serverless PostgreSQL driver with WebSocket support for Neon database
-- **drizzle-orm**: TypeScript ORM for type-safe database queries
-- **drizzle-kit**: CLI tools for schema migrations and database management
-- **ws**: WebSocket library required by Neon serverless driver
+- **@neondatabase/serverless**: Serverless PostgreSQL driver.
+- **drizzle-orm**, **drizzle-kit**: ORM and CLI tools.
+- **ws**: WebSocket library.
 
 ### Authentication
-- **passport**: Authentication middleware for Node.js
-- **passport-local**: Username and password authentication strategy
-- **express-session**: Server-side session management
-- **connect-pg-simple**: PostgreSQL session store for express-session
+- **passport**, **passport-local**: Authentication middleware.
+- **express-session**, **connect-pg-simple**: Session management and PostgreSQL store.
 
 ### UI Component Libraries
-- **@radix-ui/react-***: Headless UI component primitives (accordion, dialog, dropdown, select, tabs, toast, etc.)
-- **@shadcn/ui**: Pre-styled components built on Radix UI
-- **lucide-react**: Icon library
-- **tailwindcss**: Utility-first CSS framework
-- **class-variance-authority**: Utility for managing component variants
-- **clsx** & **tailwind-merge**: Class name utilities
+- **@radix-ui/react-***: Headless UI.
+- **@shadcn/ui**: Pre-styled components.
+- **lucide-react**: Icons.
+- **tailwindcss**: CSS framework.
+- **class-variance-authority**, **clsx**, **tailwind-merge**: Styling utilities.
 
 ### Form & Validation
-- **react-hook-form**: Performant form state management
-- **@hookform/resolvers**: Validation resolver integrations
-- **zod**: TypeScript-first schema validation
-- **drizzle-zod**: Zod schema generation from Drizzle schemas
+- **react-hook-form**: Form state.
+- **@hookform/resolvers**: Validation integration.
+- **zod**, **drizzle-zod**: Schema validation.
 
 ### Data Fetching & State
-- **@tanstack/react-query**: Server state management with caching and synchronization
-- **wouter**: Minimal routing library for React
+- **@tanstack/react-query**: Server state management.
+- **wouter**: Routing.
 
 ### Date & Time
-- **date-fns**: Modern date utility library for calculations and formatting
+- **date-fns**: Date utility library.
 
 ### Development Tools
-- **tsx**: TypeScript execution for Node.js development
-- **esbuild**: Fast JavaScript bundler for production builds
-- **@replit/vite-plugin-***: Replit-specific development plugins (error overlay, cartographer, dev banner)
+- **tsx**: TypeScript execution.
+- **esbuild**: JavaScript bundler.
+- **@replit/vite-plugin-***: Replit-specific plugins.
 
 ### Styling
-- **postcss**: CSS transformation tool
-- **autoprefixer**: Automatic vendor prefix addition
-- **@tailwindcss/vite**: Tailwind CSS Vite plugin
+- **postcss**, **autoprefixer**: CSS processing.
+- **@tailwindcss/vite**: Tailwind CSS Vite plugin.
 
 ### Charts & Visualization
-- **recharts**: Composable charting library for React (used on dashboard)
-
-### File Handling
-- **embla-carousel-react**: Carousel/slider component (if needed for galleries)
+- **recharts**: Charting library.
 
 ### Other Utilities
-- **cmdk**: Command menu component
-- **nanoid**: Unique ID generation
-- **sonner**: Toast notification system
-
-## Key Features
-
-### Multi-Country Invoice Compliance (November 2025)
-
-The platform now supports country-specific invoice requirements for digital nomads operating across multiple jurisdictions. This feature ensures invoices meet local tax and legal requirements.
-
-**Implementation Details**:
-- **Jurisdiction Rules Table**: Stores country-specific requirements including supported languages, default currency, VAT requirements, reverse charge support, archiving years, default tax rates, and compliance notes
-- **Pre-seeded Countries**: Germany (DE), France (FR), United Kingdom (GB), Canada (CA), United States (US)
-- **Invoice Multi-Country Fields**: Each invoice stores country, language, exchange rate, customer VAT ID, reverse charge flag, compliance checked flag, and template version
-- **User Business Information**: Users can save business name, business address, VAT ID, and tax regime (e.g., "standard", "kleinunternehmer") required for invoice generation
-- **Dynamic Form Validation**: Invoice creation form adapts based on selected country's jurisdiction rules, showing/hiding VAT ID fields, reverse charge options, and language selection
-- **Compliance Hints**: Real-time warnings and guidance displayed during invoice creation based on jurisdiction requirements
-- **Multi-Currency Support**: Invoices can be created in USD, EUR, GBP, or CAD with exchange rate tracking
-- **Multi-Language Support**: Invoices can be generated in English, German, or French depending on jurisdiction
-
-**User Experience Flow**:
-1. User configures business information in Settings (VAT ID, business address, tax regime)
-2. When creating invoice, system auto-detects client's country and loads jurisdiction rules
-3. Form dynamically shows/hides fields based on country requirements
-4. Real-time compliance hints guide user through mandatory fields
-5. Invoice is marked as compliance-checked when all requirements met
-6. Invoice list displays country, language, and compliance status for each invoice
-
-**Technical Architecture**:
-- Jurisdiction rules loaded via React Query from `/api/jurisdictions/:country`
-- Form validation adapts dynamically using React Hook Form and Controller pattern
-- Invoice amounts stored as integers (not cents) for flexibility across currencies
-- Reverse charge calculation logic for intra-EU B2B transactions
-- Template versioning support for future invoice format changes
-
-### Notable Design Decisions
-- **No dedicated file storage service**: Document fileUrl currently uses placeholder URLs; real implementation would require S3, Cloudflare R2, or similar
-- **No email service integration**: User invitations and notifications not yet implemented
-- **No payment processing**: Subscription plans defined but billing integration pending
-- **Session storage in PostgreSQL**: Chosen for simplicity and data locality; could migrate to Redis for scale
-- **Neon serverless PostgreSQL**: Selected for ease of provisioning and serverless architecture compatibility
-- **Invoice amounts as integers**: Stored as whole currency units rather than cents for multi-currency flexibility
+- **nanoid**: Unique ID generation.
+- **sonner**: Toast notifications.

@@ -180,6 +180,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/invoices", requireAuth, async (req, res) => {
     const parsed = insertInvoiceSchema.parse({ ...req.body, userId: req.user!.id });
+    
+    // Verify client belongs to user
+    const client = await storage.getClient(parsed.clientId);
+    if (!client || client.userId !== req.user!.id) {
+      return res.status(403).send("Cannot create invoice for client that doesn't belong to you");
+    }
+    
     const invoice = await storage.createInvoice(parsed);
     res.status(201).json(invoice);
   });
@@ -235,7 +242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     const client = await storage.getClient(invoice.clientId);
-    if (!client) {
+    if (!client || client.userId !== req.user!.id) {
       return res.status(404).send("Client not found");
     }
 
@@ -265,7 +272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     const client = await storage.getClient(invoice.clientId);
-    if (!client) {
+    if (!client || client.userId !== req.user!.id) {
       return res.status(404).send("Client not found");
     }
 
