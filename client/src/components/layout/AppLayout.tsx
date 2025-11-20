@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { 
   LayoutDashboard, 
-  Users, 
+  Users as UsersIcon, 
   FileText, 
   Plane, 
   FileCheck, 
@@ -10,7 +10,8 @@ import {
   LogOut,
   Menu,
   Globe,
-  Shield
+  Shield,
+  Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -23,11 +24,15 @@ const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => v
   
   const navItems = [
     { href: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { href: '/app/clients', icon: Users, label: 'Clients' },
+    { href: '/app/clients', icon: UsersIcon, label: 'Clients' },
     { href: '/app/invoices', icon: FileText, label: 'Invoices' },
     { href: '/app/travel', icon: Plane, label: 'Travel Log' },
     { href: '/app/documents', icon: FileCheck, label: 'Documents' },
-    ...(user?.role === 'admin' ? [{ href: '/app/admin', icon: Shield, label: 'Admin' }] : []),
+    ...(user?.role === 'admin' ? [
+      { href: '/app/admin', icon: Shield, label: 'Admin Dashboard' },
+      { href: '/app/users', icon: UsersIcon, label: 'Team Members' },
+      { href: '/app/workspace', icon: Building2, label: 'Workspace' },
+    ] : []),
     { href: '/app/settings', icon: Settings, label: 'Settings' },
   ];
 
