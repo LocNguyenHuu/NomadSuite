@@ -131,7 +131,7 @@ async function seedTestData() {
   const [admin] = await db.insert(users).values({
     workspaceId: workspace1.id,
     username: 'admin',
-    password: await hashPassword('password'),
+    password: await hashPassword('123123'),
     name: 'Alex Admin',
     email: 'alex@nomadsuite.com',
     homeCountry: 'DE',
@@ -146,7 +146,7 @@ async function seedTestData() {
   const [user1] = await db.insert(users).values({
     workspaceId: workspace1.id,
     username: 'sarah',
-    password: await hashPassword('password'),
+    password: await hashPassword('123123'),
     name: 'Sarah Designer',
     email: 'sarah@nomadsuite.com',
     homeCountry: 'US',
@@ -161,7 +161,7 @@ async function seedTestData() {
   const [user2] = await db.insert(users).values({
     workspaceId: workspace2.id,
     username: 'marco',
-    password: await hashPassword('password'),
+    password: await hashPassword('123123'),
     name: 'Marco Developer',
     email: 'marco@nomadsuite.com',
     homeCountry: 'IT',
@@ -176,7 +176,7 @@ async function seedTestData() {
   const [user3] = await db.insert(users).values({
     workspaceId: workspace2.id,
     username: 'emma',
-    password: await hashPassword('password'),
+    password: await hashPassword('123123'),
     name: 'Emma Consultant',
     email: 'emma@nomadsuite.com',
     homeCountry: 'GB',
@@ -191,7 +191,7 @@ async function seedTestData() {
   const [user4] = await db.insert(users).values({
     workspaceId: workspace3.id,
     username: 'lisa',
-    password: await hashPassword('password'),
+    password: await hashPassword('123123'),
     name: 'Lisa Writer',
     email: 'lisa@nomadsuite.com',
     homeCountry: 'CA',
@@ -471,11 +471,11 @@ async function seedTestData() {
   console.log(`   • ${allUsers.length * 5} trips`);
   console.log(`   • ${allUsers.length * 4} documents`);
   console.log('\n🔑 Test Credentials:');
-  console.log('   • admin / password (Admin - Workspace 1)');
-  console.log('   • sarah / password (User - Workspace 1)');
-  console.log('   • marco / password (Admin - Workspace 2)');
-  console.log('   • emma / password (User - Workspace 2)');
-  console.log('   • lisa / password (User - Workspace 3)');
+  console.log('   • admin / 123123 (Admin - Workspace 1)');
+  console.log('   • sarah / 123123 (User - Workspace 1)');
+  console.log('   • marco / 123123 (Admin - Workspace 2)');
+  console.log('   • emma / 123123 (User - Workspace 2)');
+  console.log('   • lisa / 123123 (User - Workspace 3)');
 }
 
 seedTestData()

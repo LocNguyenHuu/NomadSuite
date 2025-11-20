@@ -12,7 +12,7 @@ Preferred communication style: Simple, everyday language.
 
 **Comprehensive Test Data Seeding**: The `server/seed-test-data.ts` script populates the database with realistic test data across all tables:
 
-**Test Users** (all passwords: `password`):
+**Test Users** (all passwords: `123123`):
 - `admin` - Alex Admin (Admin, Workspace 1, DE-based freelancer)
 - `sarah` - Sarah Designer (User, Workspace 1, US-based designer in PT)
 - `marco` - Marco Developer (Admin, Workspace 2, IT-based developer in ES)
