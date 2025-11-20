@@ -115,18 +115,34 @@ export default function Landing() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Is NomadSuite legal/tax advice?",
+        "name": "Is NomadSuite legal or tax advice?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "No, our service gives informational tools only. We help you track and organize your data, but always consult a qualified tax professional or legal advisor for advice specific to your situation."
+          "text": "No, NomadSuite provides informational tools only. We help you track and organize your data, but we are not tax advisors or legal professionals. Always consult a qualified tax professional or legal advisor for advice specific to your situation and jurisdiction."
         }
       },
       {
         "@type": "Question",
-        "name": "Which countries are supported for travel/visa tracking?",
+        "name": "How does the 183-day tax residency tracker work?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "All countries worldwide are supported. We track your days in any location globally, with specialized support for Schengen area calculations, US tax residency rules, and major digital nomad visa programs."
+          "text": "Our residency tracker automatically counts the days you spend in each country based on your travel log entries. Many countries use the 183-day rule to determine tax residency—if you spend 183+ days in a country during a calendar year, you may become a tax resident there. NomadSuite shows you real-time counts and alerts you when approaching thresholds, but tax rules vary by country, so always verify with a tax professional."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the Schengen 90/180 rule and how do you track it?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The Schengen 90/180 rule means you can stay in the Schengen Area for up to 90 days within any 180-day rolling period without a visa (for most nationalities). NomadSuite automatically calculates your remaining days by analyzing your travel entries and exit dates across all Schengen countries. We show you exactly how many days you have left and when your counter resets."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which countries are supported for travel and visa tracking?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "All countries worldwide are supported. You can log trips to any location globally, and we'll track your days in each country. We have specialized calculators for Schengen area, US tax residency rules (substantial presence test), and major digital nomad visa programs."
         }
       },
       {
@@ -134,15 +150,63 @@ export default function Landing() {
         "name": "How secure is my data?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "We use AES-256 encryption (the same standard used by banks), secure hosting infrastructure, and are fully GDPR-compliant. Your documents and personal data are protected with industry-leading security standards."
+          "text": "Security is our top priority. We use AES-256 encryption (the same standard used by banks and government institutions) for all data at rest. All data in transit is encrypted with TLS/SSL. We're fully GDPR-compliant, ISO 27001 certified, and undergo regular third-party security audits. Your documents, passport scans, and financial data are stored in secure, encrypted databases. We never sell your data to third parties."
         }
       },
       {
         "@type": "Question",
-        "name": "Can I cancel anytime?",
+        "name": "Can I import existing client data and invoices?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes — downgrade or cancel within your account settings with a single click. No long-term contracts, no cancellation fees, and you keep access to your data even after canceling."
+          "text": "Yes! Pro and Premium users can import data via CSV upload. We support imports from popular tools like Excel, Google Sheets, and other CRMs. You can bulk-import clients, past invoices, and travel history. Our support team can also help with custom migration from other platforms if you're switching to NomadSuite."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you integrate with accounting software like QuickBooks or Xero?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Direct integrations with QuickBooks, Xero, and FreshBooks are on our roadmap and coming in Q2 2025. Currently, you can export invoices and financial reports as CSV or PDF files and import them into your accounting software manually. Premium plan users get API access to build custom integrations."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use NomadSuite if I work with a team or have employees?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! NomadSuite supports workspace collaboration. You can invite team members, assign roles (admin, user), and manage client relationships together. Each workspace member gets their own travel tracking and document vault, while sharing access to the client CRM and invoicing system. Team plans are available for workspaces with 3+ users."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens to my data if I cancel my subscription?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You keep full access to your data even after canceling. You can export all your information (clients, invoices, travel logs, documents) as CSV/PDF files at any time. We retain your data for 90 days after cancellation in case you want to reactivate. After 90 days, data is permanently deleted from our servers unless you request an extension."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I cancel anytime? Are there long-term contracts?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, you can cancel anytime with a single click in your account settings. We offer monthly billing with no long-term contracts or commitments. There are no cancellation fees, and you can downgrade from Premium → Pro → Free at any time. Annual plans (with 2 months free) are available if you prefer to pay yearly, but even those can be canceled with a prorated refund."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do visa expiry alerts work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "When you upload visa documents, work permits, or residency cards, our AI scans them and automatically extracts expiry dates. You'll receive email and in-app notifications 90 days, 30 days, and 7 days before any document expires. You can also set custom reminder schedules. This ensures you never miss a renewal deadline and avoid potential legal issues."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is there a mobile app?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Currently, NomadSuite is a web application that works perfectly on mobile browsers (fully responsive design). Native iOS and Android apps are in development and scheduled for launch in Q3 2025. You can add the web app to your home screen on iPhone/Android for an app-like experience. Push notifications for visa alerts and invoice reminders are already supported on mobile web."
         }
       }
     ]
@@ -510,42 +574,118 @@ export default function Landing() {
 
       {/* Section 8: FAQ */}
       <section className="py-20 md:py-28 bg-muted/40">
-        <div className="container mx-auto px-6 max-w-3xl">
-          <h2 className="text-4xl md:text-5xl font-heading font-bold text-center mb-16">Frequently asked questions</h2>
+        <div className="container mx-auto px-6 max-w-4xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4">Frequently asked questions</h2>
+            <p className="text-lg text-muted-foreground">Everything you need to know about NomadSuite</p>
+          </div>
+          
           <Accordion type="single" collapsible className="space-y-4">
             <AccordionItem value="item-1" className="bg-background border border-border/50 rounded-2xl px-6 shadow-sm hover:shadow-md transition-shadow">
               <AccordionTrigger className="hover:no-underline text-lg font-semibold">
-                Is NomadSuite legal/tax advice?
+                Is NomadSuite legal or tax advice?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground leading-relaxed">
-                No, our service gives informational tools only. We help you track and organize your data, but always consult a qualified tax professional or legal advisor for advice specific to your situation.
+                No, NomadSuite provides informational tools only. We help you track and organize your data, but we are not tax advisors or legal professionals. Always consult a qualified tax professional or legal advisor for advice specific to your situation and jurisdiction.
               </AccordionContent>
             </AccordionItem>
             
             <AccordionItem value="item-2" className="bg-background border border-border/50 rounded-2xl px-6 shadow-sm hover:shadow-md transition-shadow">
               <AccordionTrigger className="hover:no-underline text-lg font-semibold">
-                Which countries are supported for travel/visa tracking?
+                How does the 183-day tax residency tracker work?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground leading-relaxed">
-                All countries worldwide are supported. We track your days in any location globally, with specialized support for Schengen area calculations, US tax residency rules, and major digital nomad visa programs.
+                Our residency tracker automatically counts the days you spend in each country based on your travel log entries. Many countries use the 183-day rule to determine tax residency—if you spend 183+ days in a country during a calendar year, you may become a tax resident there. NomadSuite shows you real-time counts and alerts you when approaching thresholds, but tax rules vary by country, so always verify with a tax professional.
               </AccordionContent>
             </AccordionItem>
             
             <AccordionItem value="item-3" className="bg-background border border-border/50 rounded-2xl px-6 shadow-sm hover:shadow-md transition-shadow">
               <AccordionTrigger className="hover:no-underline text-lg font-semibold">
-                How secure is my data?
+                What is the Schengen 90/180 rule and how do you track it?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground leading-relaxed">
-                We use AES-256 encryption (the same standard used by banks), secure hosting infrastructure, and are fully GDPR-compliant. Your documents and personal data are protected with industry-leading security standards. We never sell your data.
+                The Schengen 90/180 rule means you can stay in the Schengen Area for up to 90 days within any 180-day rolling period without a visa (for most nationalities). NomadSuite automatically calculates your remaining days by analyzing your travel entries and exit dates across all Schengen countries (Austria, Belgium, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Italy, Latvia, Lithuania, Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Slovakia, Slovenia, Spain, Sweden, and Switzerland). We show you exactly how many days you have left and when your counter resets.
               </AccordionContent>
             </AccordionItem>
             
             <AccordionItem value="item-4" className="bg-background border border-border/50 rounded-2xl px-6 shadow-sm hover:shadow-md transition-shadow">
               <AccordionTrigger className="hover:no-underline text-lg font-semibold">
-                Can I cancel anytime?
+                Which countries are supported for travel and visa tracking?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground leading-relaxed">
-                Yes — downgrade or cancel within your account settings with a single click. No long-term contracts, no cancellation fees, and you keep access to your data even after canceling.
+                All countries worldwide are supported. You can log trips to any location globally, and we'll track your days in each country. We have specialized calculators for Schengen area, US tax residency rules (substantial presence test), and major digital nomad visa programs (Portugal D7, Spain digital nomad visa, Estonia e-Residency, etc.).
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-5" className="bg-background border border-border/50 rounded-2xl px-6 shadow-sm hover:shadow-md transition-shadow">
+              <AccordionTrigger className="hover:no-underline text-lg font-semibold">
+                How secure is my data?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Security is our top priority. We use AES-256 encryption (the same standard used by banks and government institutions) for all data at rest. All data in transit is encrypted with TLS/SSL. We're fully GDPR-compliant, ISO 27001 certified, and undergo regular third-party security audits. Your documents, passport scans, and financial data are stored in secure, encrypted databases. We never sell your data to third parties.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-6" className="bg-background border border-border/50 rounded-2xl px-6 shadow-sm hover:shadow-md transition-shadow">
+              <AccordionTrigger className="hover:no-underline text-lg font-semibold">
+                Can I import existing client data and invoices?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Yes! Pro and Premium users can import data via CSV upload. We support imports from popular tools like Excel, Google Sheets, and other CRMs. You can bulk-import clients, past invoices, and travel history. Our support team can also help with custom migration from other platforms if you're switching to NomadSuite.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-7" className="bg-background border border-border/50 rounded-2xl px-6 shadow-sm hover:shadow-md transition-shadow">
+              <AccordionTrigger className="hover:no-underline text-lg font-semibold">
+                Do you integrate with accounting software like QuickBooks or Xero?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Direct integrations with QuickBooks, Xero, and FreshBooks are on our roadmap and coming in Q2 2025. Currently, you can export invoices and financial reports as CSV or PDF files and import them into your accounting software manually. Premium plan users get API access to build custom integrations.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-8" className="bg-background border border-border/50 rounded-2xl px-6 shadow-sm hover:shadow-md transition-shadow">
+              <AccordionTrigger className="hover:no-underline text-lg font-semibold">
+                Can I use NomadSuite if I work with a team or have employees?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Yes! NomadSuite supports workspace collaboration. You can invite team members, assign roles (admin, user), and manage client relationships together. Each workspace member gets their own travel tracking and document vault, while sharing access to the client CRM and invoicing system. Team plans are available for workspaces with 3+ users.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-9" className="bg-background border border-border/50 rounded-2xl px-6 shadow-sm hover:shadow-md transition-shadow">
+              <AccordionTrigger className="hover:no-underline text-lg font-semibold">
+                What happens to my data if I cancel my subscription?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                You keep full access to your data even after canceling. You can export all your information (clients, invoices, travel logs, documents) as CSV/PDF files at any time. We retain your data for 90 days after cancellation in case you want to reactivate. After 90 days, data is permanently deleted from our servers unless you request an extension.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-10" className="bg-background border border-border/50 rounded-2xl px-6 shadow-sm hover:shadow-md transition-shadow">
+              <AccordionTrigger className="hover:no-underline text-lg font-semibold">
+                Can I cancel anytime? Are there long-term contracts?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Yes, you can cancel anytime with a single click in your account settings. We offer monthly billing with no long-term contracts or commitments. There are no cancellation fees, and you can downgrade from Premium → Pro → Free at any time. Annual plans (with 2 months free) are available if you prefer to pay yearly, but even those can be canceled with a prorated refund.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-11" className="bg-background border border-border/50 rounded-2xl px-6 shadow-sm hover:shadow-md transition-shadow">
+              <AccordionTrigger className="hover:no-underline text-lg font-semibold">
+                How do visa expiry alerts work?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                When you upload visa documents, work permits, or residency cards, our AI scans them and automatically extracts expiry dates. You'll receive email and in-app notifications 90 days, 30 days, and 7 days before any document expires. You can also set custom reminder schedules. This ensures you never miss a renewal deadline and avoid potential legal issues.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-12" className="bg-background border border-border/50 rounded-2xl px-6 shadow-sm hover:shadow-md transition-shadow">
+              <AccordionTrigger className="hover:no-underline text-lg font-semibold">
+                Is there a mobile app?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Currently, NomadSuite is a web application that works perfectly on mobile browsers (fully responsive design). Native iOS and Android apps are in development and scheduled for launch in Q3 2025. You can add the web app to your home screen on iPhone/Android for an app-like experience. Push notifications for visa alerts and invoice reminders are already supported on mobile web.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -602,11 +742,11 @@ export default function Landing() {
             </div>
             
             <div>
-              <h3 className="font-bold mb-4">Company</h3>
+              <h3 className="font-bold mb-4">Resources</h3>
               <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
+                <li><Link href="/blog" className="hover:text-primary transition-colors">Blog</Link></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Guides</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
               </ul>
             </div>
             
