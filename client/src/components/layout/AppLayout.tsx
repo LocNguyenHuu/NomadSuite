@@ -9,7 +9,8 @@ import {
   Settings, 
   LogOut,
   Menu,
-  Globe
+  Globe,
+  Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -18,7 +19,7 @@ import { useAuth } from '@/hooks/use-auth';
 
 const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => void }) => {
   const [location] = useLocation();
-  const { logoutMutation } = useAuth();
+  const { user, logoutMutation } = useAuth();
   
   const navItems = [
     { href: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -26,6 +27,7 @@ const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => v
     { href: '/app/invoices', icon: FileText, label: 'Invoices' },
     { href: '/app/travel', icon: Plane, label: 'Travel Log' },
     { href: '/app/documents', icon: FileCheck, label: 'Documents' },
+    ...(user?.role === 'admin' ? [{ href: '/app/admin', icon: Shield, label: 'Admin' }] : []),
     { href: '/app/settings', icon: Settings, label: 'Settings' },
   ];
 

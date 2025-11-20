@@ -110,3 +110,10 @@ export function requireAuth(req: any, res: any, next: any) {
   }
   next();
 }
+
+export function requireAdmin(req: any, res: any, next: any) {
+  if (!req.isAuthenticated() || req.user.role !== 'admin') {
+    return res.status(403).send("Forbidden");
+  }
+  next();
+}

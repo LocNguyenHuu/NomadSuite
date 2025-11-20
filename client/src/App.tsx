@@ -11,8 +11,10 @@ import Invoices from "@/pages/Invoices";
 import Travel from "@/pages/Travel";
 import Documents from "@/pages/Documents";
 import AuthPage from "@/pages/auth-page";
+import AdminDashboard from "@/pages/AdminDashboard";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { AdminRoute } from "@/lib/admin-route";
 
 function Router() {
   return (
@@ -28,6 +30,9 @@ function Router() {
       <ProtectedRoute path="/app/travel" component={Travel} />
       <ProtectedRoute path="/app/documents" component={Documents} />
       <ProtectedRoute path="/app/settings" component={() => <div className="p-8">Settings (Coming Soon)</div>} />
+
+      {/* Admin Routes */}
+      <AdminRoute path="/app/admin" component={AdminDashboard} />
       
       <Route component={NotFound} />
     </Switch>

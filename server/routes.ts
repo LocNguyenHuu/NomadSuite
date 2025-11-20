@@ -1,11 +1,22 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupAuth, requireAuth } from "./auth";
+import { setupAuth, requireAuth, requireAdmin } from "./auth";
 import { storage } from "./storage";
 import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
+
+  // Admin Routes
+  app.get("/api/admin/stats", requireAdmin, async (req, res) => {
+    const stats = await storage.getAdminStats();
+    res.json(stats);
+  });
+
+  app.get("/api/admin/users", requireAdmin, async (req, res) => {
+    const users = await storage.getAllUsers();
+    res.json(users);
+  });
 
   // Clients
   app.get("/api/clients", requireAuth, async (req, res) => {

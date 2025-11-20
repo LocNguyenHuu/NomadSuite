@@ -5,7 +5,7 @@ import {
   type Document, type InsertDocument 
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -32,6 +32,10 @@ export interface IStorage {
   // Documents
   getDocuments(userId: number): Promise<Document[]>;
   createDocument(doc: InsertDocument): Promise<Document>;
+
+  // Admin
+  getAdminStats(): Promise<{ totalUsers: number; totalClients: number; totalInvoices: number; totalTrips: number }>;
+  getAllUsers(): Promise<User[]>;
 
   sessionStore: session.Store;
 }
@@ -96,6 +100,24 @@ export class DatabaseStorage implements IStorage {
   async createDocument(doc: InsertDocument): Promise<Document> {
     const [newDoc] = await db.insert(documents).values(doc).returning();
     return newDoc;
+  }
+
+  async getAdminStats() {
+    const [userCount] = await db.select({ count: count() }).from(users);
+    const [clientCount] = await db.select({ count: count() }).from(clients);
+    const [invoiceCount] = await db.select({ count: count() }).from(invoices);
+    const [tripCount] = await db.select({ count: count() }).from(trips);
+    
+    return {
+      totalUsers: Number(userCount.count),
+      totalClients: Number(clientCount.count),
+      totalInvoices: Number(invoiceCount.count),
+      totalTrips: Number(tripCount.count),
+    };
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users).orderBy(users.id);
   }
 }
 

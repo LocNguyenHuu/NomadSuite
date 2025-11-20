@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   homeCountry: text("home_country").default("USA"),
   currentCountry: text("current_country").default("Japan"),
+  role: text("role").default("user").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
