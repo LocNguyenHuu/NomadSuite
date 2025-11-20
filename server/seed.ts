@@ -22,8 +22,8 @@ async function seed() {
   await db.delete(clients);
   await db.delete(users);
 
-  const hashedPassword = await hashPassword("password123");
-  const adminPassword = await hashPassword("admin123");
+  const hashedPassword = await hashPassword("123123");
+  const adminPassword = await hashPassword("123123");
 
   // Create Users
   const [admin] = await db.insert(users).values({
