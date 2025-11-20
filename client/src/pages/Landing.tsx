@@ -228,6 +228,18 @@ export default function Landing() {
               <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">NomadSuite</span>
             </div>
           </Link>
+          
+          <div className="hidden md:flex items-center gap-6">
+            <Link href="/blog">
+              <span className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer" data-testid="nav-blog">
+                Blog
+              </span>
+            </Link>
+            <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer" data-testid="nav-pricing">
+              Pricing
+            </a>
+          </div>
+          
           <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/login">
               <Button variant="ghost" className="font-medium hover:bg-primary/5 text-sm sm:text-base h-9 sm:h-10 px-3 sm:px-4" data-testid="button-login">Log In</Button>
@@ -753,9 +765,8 @@ export default function Landing() {
             <div>
               <h3 className="font-bold mb-4">Legal</h3>
               <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Cookie Policy</a></li>
+                <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
               </ul>
             </div>
           </div>
