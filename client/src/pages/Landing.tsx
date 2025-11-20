@@ -16,13 +16,16 @@ export default function Landing() {
             <Globe className="h-8 w-8" />
             <span>NomadOps</span>
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost" className="font-medium">Log In</Button>
-            </Link>
-            <Link href="/register">
-              <Button className="font-medium">Get Started</Button>
-            </Link>
+          <div className="w-full flex items-center justify-between">
+            <h1 className="font-heading text-lg font-semibold md:hidden">NomadOps</h1>
+            <div className="ml-auto flex items-center gap-4">
+              <Link href="/login">
+                <Button variant="ghost" className="font-medium">Log In</Button>
+              </Link>
+              <Link href="/register">
+                <Button className="font-medium">Get Started</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </nav>

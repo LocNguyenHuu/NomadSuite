@@ -5,7 +5,7 @@ import {
   type Document, type InsertDocument 
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, count } from "drizzle-orm";
+import { eq, count, or } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -56,7 +56,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db.select().from(users).where(
+      or(
+        eq(users.username, username),
+        eq(users.email, username)
+      )
+    );
     return user || undefined;
   }
 

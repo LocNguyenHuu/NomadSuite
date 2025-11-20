@@ -35,10 +35,10 @@ const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => v
     <div className={`flex h-full flex-col gap-4 bg-sidebar text-sidebar-foreground border-r border-sidebar-border ${className}`}>
       <div className="flex h-16 items-center border-b border-sidebar-border px-6">
         <Link href="/">
-          <a className="flex items-center gap-2 font-heading font-bold text-xl text-primary">
+          <div className="flex items-center gap-2 font-heading font-bold text-xl text-primary cursor-pointer">
             <Globe className="h-6 w-6" />
             <span>NomadOps</span>
-          </a>
+          </div>
         </Link>
       </div>
       <div className="flex-1 overflow-auto py-4 px-3">
@@ -47,8 +47,8 @@ const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => v
             const isActive = location === item.href || location.startsWith(`${item.href}/`);
             return (
               <Link key={item.href} href={item.href}>
-                <a 
-                  className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors 
+                <div 
+                  className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer
                     ${isActive 
                       ? 'bg-sidebar-accent text-sidebar-accent-foreground' 
                       : 'hover:bg-sidebar-accent/50 text-muted-foreground hover:text-foreground'
@@ -57,7 +57,7 @@ const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => v
                 >
                   <item.icon className="h-4 w-4" />
                   {item.label}
-                </a>
+                </div>
               </Link>
             );
           })}

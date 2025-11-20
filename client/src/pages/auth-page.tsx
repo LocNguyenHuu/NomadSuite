@@ -15,8 +15,13 @@ export default function AuthPage() {
   const { loginMutation, registerMutation, user } = useAuth();
   const [, setLocation] = useLocation();
   
+  React.useEffect(() => {
+    if (user) {
+      setLocation('/app/dashboard');
+    }
+  }, [user, setLocation]);
+  
   if (user) {
-    setLocation('/app/dashboard');
     return null;
   }
 
@@ -75,7 +80,7 @@ function LoginForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void, isL
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
+        <Label htmlFor="username">Username or Email</Label>
         <Input id="username" {...register('username', { required: true })} />
       </div>
       <div className="space-y-2">
