@@ -25,6 +25,20 @@ export const clients = pgTable("clients", {
   country: text("country").notNull(),
   status: text("status").notNull(), // 'Lead', 'Proposal', 'Active', 'Completed'
   notes: text("notes"),
+  lastInteractionDate: timestamp("last_interaction_date"),
+  nextActionDate: timestamp("next_action_date"),
+  nextActionDescription: text("next_action_description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Client Notes
+export const clientNotes = pgTable("client_notes", {
+  id: serial("id").primaryKey(),
+  clientId: integer("client_id").notNull().references(() => clients.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  type: text("type").notNull(), // 'Call', 'Email', 'Meeting', 'Note', 'System'
+  date: timestamp("date").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -69,11 +83,18 @@ export const usersRelations = relations(users, ({ many }) => ({
   invoices: many(invoices),
   trips: many(trips),
   documents: many(documents),
+  clientNotes: many(clientNotes),
 }));
 
 export const clientsRelations = relations(clients, ({ one, many }) => ({
   user: one(users, { fields: [clients.userId], references: [users.id] }),
   invoices: many(invoices),
+  notes: many(clientNotes),
+}));
+
+export const clientNotesRelations = relations(clientNotes, ({ one }) => ({
+  client: one(clients, { fields: [clientNotes.clientId], references: [clients.id] }),
+  user: one(users, { fields: [clientNotes.userId], references: [users.id] }),
 }));
 
 export const invoicesRelations = relations(invoices, ({ one }) => ({
@@ -91,16 +112,36 @@ export const documentsRelations = relations(documents, ({ one }) => ({
 
 // Zod Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
-export const insertClientSchema = createInsertSchema(clients).omit({ id: true, createdAt: true });
-export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, issuedAt: true });
-export const insertTripSchema = createInsertSchema(trips).omit({ id: true });
-export const insertDocumentSchema = createInsertSchema(documents).omit({ id: true, createdAt: true });
+
+export const insertClientSchema = createInsertSchema(clients, {
+  lastInteractionDate: z.coerce.date().optional(),
+  nextActionDate: z.coerce.date().optional(),
+}).omit({ id: true, createdAt: true });
+
+export const insertClientNoteSchema = createInsertSchema(clientNotes, {
+  date: z.coerce.date().optional(),
+}).omit({ id: true, createdAt: true });
+
+export const insertInvoiceSchema = createInsertSchema(invoices, {
+  dueDate: z.coerce.date(),
+}).omit({ id: true, issuedAt: true });
+
+export const insertTripSchema = createInsertSchema(trips, {
+  entryDate: z.coerce.date(),
+  exitDate: z.coerce.date().optional(),
+}).omit({ id: true });
+
+export const insertDocumentSchema = createInsertSchema(documents, {
+  expiryDate: z.coerce.date().optional(),
+}).omit({ id: true, createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
+export type ClientNote = typeof clientNotes.$inferSelect;
+export type InsertClientNote = z.infer<typeof insertClientNoteSchema>;
 export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 export type Trip = typeof trips.$inferSelect;

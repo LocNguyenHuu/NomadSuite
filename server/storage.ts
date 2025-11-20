@@ -1,11 +1,11 @@
 import { 
-  users, clients, invoices, trips, documents,
+  users, clients, invoices, trips, documents, clientNotes,
   type User, type InsertUser, type Client, type InsertClient,
   type Invoice, type InsertInvoice, type Trip, type InsertTrip,
-  type Document, type InsertDocument 
+  type Document, type InsertDocument, type ClientNote, type InsertClientNote
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, count, or } from "drizzle-orm";
+import { eq, count, or, desc } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -18,8 +18,14 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
 
   // Clients
+  getClient(id: number): Promise<Client | undefined>;
   getClients(userId: number): Promise<Client[]>;
   createClient(client: InsertClient): Promise<Client>;
+  updateClient(id: number, client: Partial<InsertClient>): Promise<Client>;
+  
+  // Client Notes
+  getClientNotes(clientId: number): Promise<ClientNote[]>;
+  createClientNote(note: InsertClientNote): Promise<ClientNote>;
   
   // Invoices
   getInvoices(userId: number): Promise<Invoice[]>;
@@ -71,6 +77,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getClient(id: number): Promise<Client | undefined> {
+    const [client] = await db.select().from(clients).where(eq(clients.id, id));
+    return client || undefined;
+  }
+
   async getClients(userId: number): Promise<Client[]> {
     return db.select().from(clients).where(eq(clients.userId, userId));
   }
@@ -78,6 +89,28 @@ export class DatabaseStorage implements IStorage {
   async createClient(client: InsertClient): Promise<Client> {
     const [newClient] = await db.insert(clients).values(client).returning();
     return newClient;
+  }
+
+  async updateClient(id: number, clientUpdate: Partial<InsertClient>): Promise<Client> {
+    const [updatedClient] = await db
+      .update(clients)
+      .set(clientUpdate)
+      .where(eq(clients.id, id))
+      .returning();
+    
+    if (!updatedClient) {
+      throw new Error("Client not found");
+    }
+    return updatedClient;
+  }
+
+  async getClientNotes(clientId: number): Promise<ClientNote[]> {
+    return db.select().from(clientNotes).where(eq(clientNotes.clientId, clientId)).orderBy(desc(clientNotes.date));
+  }
+
+  async createClientNote(note: InsertClientNote): Promise<ClientNote> {
+    const [newNote] = await db.insert(clientNotes).values(note).returning();
+    return newNote;
   }
 
   async getInvoices(userId: number): Promise<Invoice[]> {

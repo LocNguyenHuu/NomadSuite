@@ -25,9 +25,27 @@ export default function Dashboard() {
   const { trips } = useTrips();
 
   const activeClients = clients.filter(c => c.status === 'Active').length;
+  const leadClients = clients.filter(c => c.status === 'Lead').length;
+  const completedClients = clients.filter(c => c.status === 'Completed').length;
   const pendingInvoices = invoices.filter(i => i.status === 'Sent' || i.status === 'Overdue').length;
   const totalRevenue = invoices.reduce((acc, curr) => acc + (curr.status === 'Paid' ? curr.amount : 0), 0);
   
+  // Clients by Country (Top 5)
+  const clientsByCountry = clients.reduce((acc, client) => {
+    acc[client.country] = (acc[client.country] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  
+  const topCountries = Object.entries(clientsByCountry)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5);
+
+  // Upcoming Actions
+  const upcomingActions = clients
+    .filter(c => c.nextActionDate)
+    .sort((a, b) => new Date(a.nextActionDate!).getTime() - new Date(b.nextActionDate!).getTime())
+    .slice(0, 5);
+
   // Calculate days in current country
   const currentTrip = trips.find(t => !t.exitDate);
   const daysInCountry = currentTrip ? differenceInDays(new Date(), new Date(currentTrip.entryDate)) : 0;
@@ -53,14 +71,13 @@ export default function Dashboard() {
             title="Active Clients" 
             value={activeClients.toString()} 
             icon={Users} 
-            desc="2 new leads this week"
+            desc={`${leadClients} leads in pipeline`}
           />
           <StatCard 
-            title="Pending Invoices" 
-            value={pendingInvoices.toString()} 
-            icon={AlertTriangle} 
-            desc="Requires attention"
-            alert={pendingInvoices > 0}
+            title="Completed Jobs" 
+            value={completedClients.toString()} 
+            icon={FileText} 
+            desc="Successful engagements"
           />
           <StatCard 
             title="Days in Country" 
@@ -116,31 +133,65 @@ export default function Dashboard() {
             </CardContent>
           </Card>
           
-          <Card className="col-span-3 shadow-sm border-border/50">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-8">
-                {[
-                  { title: 'Invoice #1023 Paid', time: '2 hours ago', icon: DollarSign, color: 'text-green-500' },
-                  { title: 'New Client Proposal', time: 'Yesterday', icon: FileText, color: 'text-blue-500' },
-                  { title: 'Visa Expiry Warning', time: '2 days ago', icon: AlertTriangle, color: 'text-orange-500' },
-                  { title: 'Trip to Vietnam Added', time: '1 week ago', icon: Calendar, color: 'text-purple-500' },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center">
-                    <div className={`mr-4 flex h-9 w-9 items-center justify-center rounded-full border bg-background ${item.color}`}>
-                      <item.icon className="h-4 w-4" />
+          <div className="col-span-3 space-y-4">
+            <Card className="shadow-sm border-border/50">
+                <CardHeader>
+                <CardTitle>Upcoming Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                <div className="space-y-4">
+                    {upcomingActions.map((client) => (
+                    <div key={client.id} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                        <div className={`flex h-8 w-8 items-center justify-center rounded-full ${new Date(client.nextActionDate!) < new Date() ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>
+                            <Calendar className="h-4 w-4" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium leading-none">{client.nextActionDescription || "Follow up"}</p>
+                            <p className="text-xs text-muted-foreground">{client.name}</p>
+                        </div>
+                        </div>
+                        <div className="text-right">
+                            <span className={`text-xs font-medium ${new Date(client.nextActionDate!) < new Date() ? 'text-red-600' : 'text-muted-foreground'}`}>
+                                {new Date(client.nextActionDate!) < new Date() ? 'Overdue' : differenceInDays(new Date(client.nextActionDate!), new Date()) + ' days'}
+                            </span>
+                        </div>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium leading-none">{item.title}</p>
-                      <p className="text-xs text-muted-foreground">{item.time}</p>
+                    ))}
+                    {upcomingActions.length === 0 && (
+                    <div className="text-center text-muted-foreground py-4">No upcoming actions.</div>
+                    )}
+                </div>
+                </CardContent>
+            </Card>
+
+            <Card className="shadow-sm border-border/50">
+                <CardHeader>
+                <CardTitle>Clients by Country</CardTitle>
+                </CardHeader>
+                <CardContent>
+                <div className="space-y-4">
+                    {topCountries.map(([country, count], i) => (
+                    <div key={country} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+                            {i + 1}
+                        </div>
+                        <span className="font-medium">{country}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                        <span className="font-bold">{count}</span>
+                        <span className="text-xs text-muted-foreground">clients</span>
+                        </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                    ))}
+                    {topCountries.length === 0 && (
+                    <div className="text-center text-muted-foreground py-4">No clients yet.</div>
+                    )}
+                </div>
+                </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </AppLayout>

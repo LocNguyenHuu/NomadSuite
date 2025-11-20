@@ -1,0 +1,160 @@
+Great — focusing on the CRM module for NomadSuite, here is a clear and detailed set of feature specifications from the Product Owner (PO) perspective. These features emphasise the unique selling point (freelancer + nomad-business + travel/residency context) and are scoped for web app MVP.
+
+⸻
+
+📋 CRM Module – Feature Specifications
+
+A. Client / Contact Management
+
+Description: Manage client information with ease, tailored to freelancers.
+Features:
+	•	Client List View
+	•	Fields: Name, Email, Country (ISO), Status (Lead / Proposal / Active / Completed), Last Interaction Date, Notes.
+	•	Search, sort by name/country/status.
+	•	Paginated view for scalability.
+	•	Client Profile / Detail Page
+	•	Header: Client name & country flag.
+	•	Tabs or sections:
+	•	Contact Info (email, country, phone optional)
+	•	Notes (free-text log of interactions)
+	•	Timeline: list of related items (invoices, trips/logged work, documents, projects)
+	•	Status and next action (e.g., “Send proposal”, “Follow-up in 7 days”)
+	•	Add / Edit Client
+	•	Form with fields above + status dropdown + notes.
+	•	On creation: default status = Lead.
+	•	On edit: ability to change status, country, update notes.
+	•	Limit on Free Tier
+	•	For Freemium users: limit to e.g., 5 active clients. When exceeding, prompt upgrade.
+	•	Bulk actions (for later)
+	•	Select multiple clients → change status / delete / export (later phase).
+
+B. Pipeline / Workflow Tracking
+
+Description: Visualise stage of each client engagement, helping freelancers track opportunities.
+Features:
+	•	Kanban Board View (or simple drag-drop list)
+	•	Columns = Lead → Proposal → Active → Completed.
+	•	Each card = a client (or client engagement).
+	•	Drag & drop to move between stages.
+	•	Card content
+	•	Client name, country flag, status, due date of next action, small badge: “Invoice overdue” if relevant.
+	•	Next Action Field
+	•	On client profile: Next Action Date + Description (e.g., “Send follow-up email”, “Invoice #102 due”).
+	•	Notifications / Highlights
+	•	On dashboard and board: highlight cards with overdue tasks or upcoming next actions within e.g., 3 days.
+	•	Default workflow
+	•	For MVP: fixed four stages; allow customisation later.
+
+C. Notes & Interaction Logging
+
+Description: Capture communication and history so freelancers don’t lose context.
+Features:
+	•	Notes section on client profile
+	•	Free-text entry + date + optional tag (e.g., “Call”, “Email”, “Meeting”)
+	•	Displayed in chronological order; most recent top.
+	•	Activity Log
+	•	System-generated entries for: Invoice created, Travel logged involving this client, Document uploaded for this client.
+	•	Visible in timeline with appropriate icons.
+	•	Search within notes
+	•	Keyword search across notes for a client.
+
+D. Integration with Other Modules (CRM + Invoicing + Travel)
+
+Description: Seamless ties between CRM and other modules within NomadSuite.
+Features:
+	•	From client profile:
+	•	Button “Create Invoice” → pre-fill client details + link to this client ID.
+	•	Button “Add Trip / Travel Log” → allows user to log relevant travel (if travel is client-related) or mark client engagement location.
+	•	Button “Upload Document” → for contracts, proposals, etc., linked to this client.
+	•	Status dependency
+	•	When invoice is overdue for this client, client card shows “Overdue Invoice” indicator.
+	•	When next action is overdue, card shows “Action Due”.
+	•	Country relevance
+	•	Client’s country stored → invoice tax logic uses this to determine VAT or cross-border rules (aligns with your invoice module).
+
+E. Search, Filters & Views
+
+Description: Enable freelancers to quickly find clients, filter by status and country.
+Features:
+	•	Search bar: by client name, email, country.
+	•	Filters:
+	•	Status (Lead, Proposal, Active, Completed)
+	•	Country (multi-select)
+	•	Overdue invoices only
+	•	Next action due within X days
+	•	Sort by: Name (A→Z), Last Interaction Date (most recent), Country.
+	•	Toggle between List View and Board View (pipeline) [MVP: list + board].
+
+F. Analytics & Dashboard Metrics (basic for CRM)
+
+Description: Provide quick metrics so freelancers can gauge their client pipeline and business health.
+Features (MVP basic):
+	•	At Dashboard:
+	•	Number of Active clients.
+	•	Number of Leads.
+	•	Number of Completed engagements.
+	•	Clients by Country (top 5 list).
+	•	On CRM page: summary KPIs:
+	•	Conversion rate (Leads → Active) – simple calculation.
+	•	Average days in “Proposal” stage (optional for MVP).
+	•	Clients with Overdue invoices (%).
+	•	Clients with Next Action overdue.
+
+G. Onboarding & Setup for CRM
+
+Description: Smooth onboarding to get users into CRM in <2 minutes.
+Features:
+	•	First-use wizard (after account creation) includes:
+	•	“Add your first client” step: minimal fields.
+	•	“Set your default currency / tax country” (from user profile).
+	•	“View pipeline board tour” pop-up.
+	•	Inline tooltips / help icons: “What is a pipeline?”, “What does status mean?”
+	•	Default sample client(s) may be optionally created for trial (demo mode) to show board.
+
+H. Permissions & Security (MVP simplified)
+
+Description: Ensure client data is secure and user specific.
+Features:
+	•	Only logged-in user sees their own clients (multi-tenant single user per workspace for MVP).
+	•	Data access: CRUD operations only by owner.
+	•	Audit log (simple): track when a client record is created/edited (timestamp, user).
+	•	Encryption at rest for client data (in infrastructure spec).
+	•	GDPR-compliant disclaimers and privacy link in footer of app.
+
+⸻
+
+🎯 CRM Module – MVP Scope (What we include now vs later)
+
+In Scope – MVP:
+	•	Client list + detail + add/edit/delete.
+	•	Pipeline board with four default stages.
+	•	Notes log + simple activity entries.
+	•	Basic integration: “Create Invoice” button linking to invoice module.
+	•	Search + filters in list view.
+	•	Dashboard CRM metrics: active clients + leads + completed.
+	•	Onboarding wizard for first client.
+	•	Data permissions: single-user workspace.
+
+Out of Scope – MVP (for later releases):
+	•	Multi-user/teams support.
+	•	Custom pipeline stages.
+	•	Deep analytics (forecasting, revenue prediction).
+	•	Email integration / client communication inbox.
+	•	Proposal/contract generation inside CRM.
+	•	Complex automations (like auto follow-up emails).
+	•	Bulk client imports from CSV.
+	•	Client portal (allowing clients to login).
+	•	External integrations (Zapier, Gmail sync).
+
+⸻
+
+✅ Business Value & Unique Selling Point (USP) for CRM in NomadSuite
+	•	Freelancer-first CRM: Not heavy, not enterprise; built for solo or small teams in nomad lifestyle.
+	•	Integrated with travel/residency logic: Unique to NomadSuite – clients + travel track together, so you manage business and mobility in one place.
+	•	Quick setup & low overhead: Onboarding in < 2 minutes. No complex CRM learning curve like Salesforce.
+	•	Action-oriented workflow: Pipeline, next actions, overdue indicators – reduce admin friction and help nomads stay on top while moving.
+	•	Business + Life unity: The CRM isn’t just for clients – it’s part of your life as a nomad. Linking travel, invoices, residency enriches client data.
+
+⸻
+
+If you like, I can now generate the UI wireframes for each CRM screen (Client List, Client Detail, Pipeline Board, Onboarding Wizard) in a format you can use in Figma or Replit.

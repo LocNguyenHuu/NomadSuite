@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, requireAuth, requireAdmin } from "./auth";
 import { storage } from "./storage";
-import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema, insertUserSchema } from "@shared/schema";
+import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema, insertUserSchema, insertClientNoteSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -42,6 +42,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const parsed = insertClientSchema.parse({ ...req.body, userId: req.user!.id });
     const client = await storage.createClient(parsed);
     res.status(201).json(client);
+  });
+
+  app.get("/api/clients/:id", requireAuth, async (req, res) => {
+    const clientId = parseInt(req.params.id);
+    const client = await storage.getClient(clientId);
+    
+    if (!client || client.userId !== req.user!.id) {
+      return res.status(404).send("Client not found");
+    }
+    res.json(client);
+  });
+
+  app.patch("/api/clients/:id", requireAuth, async (req, res) => {
+    const clientId = parseInt(req.params.id);
+    const existingClient = await storage.getClient(clientId);
+    
+    if (!existingClient || existingClient.userId !== req.user!.id) {
+      return res.status(404).send("Client not found");
+    }
+
+    // Prevent updating userId
+    const parsed = insertClientSchema.partial().omit({ userId: true }).parse(req.body);
+    const client = await storage.updateClient(clientId, parsed);
+    res.json(client);
+  });
+
+  app.get("/api/clients/:id/notes", requireAuth, async (req, res) => {
+    const clientId = parseInt(req.params.id);
+    const existingClient = await storage.getClient(clientId);
+    
+    if (!existingClient || existingClient.userId !== req.user!.id) {
+      return res.status(404).send("Client not found");
+    }
+
+    const notes = await storage.getClientNotes(clientId);
+    res.json(notes);
+  });
+
+  app.post("/api/clients/:id/notes", requireAuth, async (req, res) => {
+    const clientId = parseInt(req.params.id);
+    const existingClient = await storage.getClient(clientId);
+    
+    if (!existingClient || existingClient.userId !== req.user!.id) {
+      return res.status(404).send("Client not found");
+    }
+
+    const parsed = insertClientNoteSchema.parse({ 
+      ...req.body, 
+      clientId, 
+      userId: req.user!.id 
+    });
+    const note = await storage.createClientNote(parsed);
+    res.status(201).json(note);
   });
 
   // Invoices

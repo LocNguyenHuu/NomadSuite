@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
 import Clients from "@/pages/Clients";
+import ClientDetail from "@/pages/ClientDetail";
 import Invoices from "@/pages/Invoices";
 import Travel from "@/pages/Travel";
 import Documents from "@/pages/Documents";
@@ -27,6 +28,7 @@ function Router() {
       {/* App Routes */}
       <ProtectedRoute path="/app/dashboard" component={Dashboard} />
       <ProtectedRoute path="/app/clients" component={Clients} />
+      <ProtectedRoute path="/app/clients/:id" component={ClientDetail} />
       <ProtectedRoute path="/app/invoices" component={Invoices} />
       <ProtectedRoute path="/app/travel" component={Travel} />
       <ProtectedRoute path="/app/documents" component={Documents} />

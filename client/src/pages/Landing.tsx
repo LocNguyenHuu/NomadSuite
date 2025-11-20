@@ -14,10 +14,10 @@ export default function Landing() {
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-heading font-bold text-2xl text-primary">
             <Globe className="h-8 w-8" />
-            <span>NomadOps</span>
+            <span>NomadSuite</span>
           </div>
           <div className="w-full flex items-center justify-between">
-            <h1 className="font-heading text-lg font-semibold md:hidden">NomadOps</h1>
+            <h1 className="font-heading text-lg font-semibold md:hidden">NomadSuite</h1>
             <div className="ml-auto flex items-center gap-4">
               <Link href="/login">
                 <Button variant="ghost" className="font-medium">Log In</Button>
@@ -92,7 +92,7 @@ export default function Landing() {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
               <h2 className="text-4xl font-heading font-bold leading-tight">
-                Meet <span className="text-primary">NomadOps</span> — the OS for your freedom.
+                Meet <span className="text-primary">NomadSuite</span> — the OS for your freedom.
               </h2>
               <p className="text-lg text-muted-foreground">
                 Everything you need in one place: clients, projects, travel logs, visa alerts, invoices. Designed specifically for freelancers who live and work anywhere.
@@ -198,7 +198,7 @@ export default function Landing() {
                 ))}
              </div>
           </div>
-          <h2 className="text-2xl font-heading font-bold mb-8">"Since I started using NomadOps I finally know how many days I’ve spent in Europe — peace of mind!"</h2>
+          <h2 className="text-2xl font-heading font-bold mb-8">"Since I started using NomadSuite I finally know how many days I’ve spent in Europe — peace of mind!"</h2>
           <p className="font-bold text-primary">— Jane D., Digital Nomad</p>
           <div className="flex flex-wrap justify-center gap-8 mt-12 text-muted-foreground font-medium">
              <span>Used by freelancers from 30+ countries</span>
@@ -253,7 +253,7 @@ export default function Landing() {
           <Accordion type="single" collapsible>
             <AccordionItem value="item-1">
               <AccordionTrigger>Is this tool legal/tax advice?</AccordionTrigger>
-              <AccordionContent>No, NomadOps provides informational tools only. Always consult a qualified professional for legal and tax advice.</AccordionContent>
+              <AccordionContent>No, NomadSuite provides informational tools only. Always consult a qualified professional for legal and tax advice.</AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-2">
               <AccordionTrigger>What happens if I have clients in different countries?</AccordionTrigger>
@@ -280,7 +280,7 @@ export default function Landing() {
           </p>
           <Link href="/register">
             <Button size="lg" variant="secondary" className="h-14 px-10 text-lg rounded-full shadow-2xl">
-              Try NomadOps Free
+              Try NomadSuite Free
             </Button>
           </Link>
         </div>
@@ -291,9 +291,9 @@ export default function Landing() {
         <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2 font-heading font-bold text-xl text-primary">
             <Globe className="h-6 w-6" />
-            <span>NomadOps</span>
+            <span>NomadSuite</span>
           </div>
-          <p className="text-sm text-muted-foreground">© 2024 NomadOps Inc. Built for the world.</p>
+          <p className="text-sm text-muted-foreground">© 2024 NomadSuite Inc. Built for the world.</p>
         </div>
       </footer>
     </div>

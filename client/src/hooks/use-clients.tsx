@@ -19,9 +19,20 @@ export function useClients() {
     },
   });
 
+  const updateClientMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertClient> }) => {
+      const res = await apiRequest('PATCH', `/api/clients/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/clients'] });
+    },
+  });
+
   return {
     clients: clients || [],
     isLoading,
     createClient: createClientMutation.mutate,
+    updateClient: updateClientMutation.mutate,
   };
 }

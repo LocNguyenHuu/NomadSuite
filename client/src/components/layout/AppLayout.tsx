@@ -37,7 +37,7 @@ const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => v
         <Link href="/">
           <div className="flex items-center gap-2 font-heading font-bold text-xl text-primary cursor-pointer">
             <Globe className="h-6 w-6" />
-            <span>NomadOps</span>
+            <span>NomadSuite</span>
           </div>
         </Link>
       </div>
@@ -100,7 +100,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <span className="sr-only">Toggle Menu</span>
           </Button>
           <div className="w-full flex items-center justify-between">
-            <h1 className="font-heading text-lg font-semibold md:hidden">NomadOps</h1>
+            <h1 className="font-heading text-lg font-semibold md:hidden">NomadSuite</h1>
             <div className="ml-auto flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <div className="text-right hidden sm:block">
