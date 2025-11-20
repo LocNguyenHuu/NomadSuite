@@ -248,8 +248,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const user = req.user!;
     
+    // Apply query parameter overrides
+    const invoiceWithOverrides = {
+      ...invoice,
+      language: req.query.language as string || invoice.language,
+      currency: req.query.currency as string || invoice.currency,
+      customerVatId: req.query.customerVatId as string || invoice.customerVatId,
+      reverseCharge: req.query.reverseCharge === 'true' || invoice.reverseCharge,
+      exchangeRate: req.query.exchangeRate as string || invoice.exchangeRate,
+    };
+    
     try {
-      const doc = generateInvoicePDF({ invoice, client, user });
+      const doc = generateInvoicePDF({ invoice: invoiceWithOverrides, client, user });
       
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`);
@@ -284,8 +294,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
 
+    // Apply request body overrides
+    const invoiceWithOverrides = {
+      ...invoice,
+      language: req.body.language || invoice.language,
+      currency: req.body.currency || invoice.currency,
+      customerVatId: req.body.customerVatId || invoice.customerVatId,
+      reverseCharge: req.body.reverseCharge !== undefined ? req.body.reverseCharge : invoice.reverseCharge,
+      exchangeRate: req.body.exchangeRate || invoice.exchangeRate,
+    };
+
     const { recipientEmail } = req.body;
-    const result = await emailService.sendInvoiceEmail(invoice, client, user, recipientEmail);
+    const result = await emailService.sendInvoiceEmail(invoiceWithOverrides, client, user, recipientEmail);
     
     if (!result.success) {
       return res.status(500).json({ error: result.error });

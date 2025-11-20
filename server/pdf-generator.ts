@@ -114,7 +114,7 @@ export function generateInvoicePDF(data: InvoicePDFData): PDFKit.PDFDocument {
       yPosition,
       { width: 500, align: 'left' }
     );
-    yPosition += 30;
+    yPosition += 25;
   }
   
   if (user.taxRegime === 'kleinunternehmer') {
@@ -124,7 +124,7 @@ export function generateInvoicePDF(data: InvoicePDFData): PDFKit.PDFDocument {
       yPosition,
       { width: 500, align: 'left' }
     );
-    yPosition += 30;
+    yPosition += 25;
   }
   
   if (invoice.exchangeRate && invoice.exchangeRate !== '1.0' && invoice.exchangeRate !== '1') {
@@ -134,11 +134,11 @@ export function generateInvoicePDF(data: InvoicePDFData): PDFKit.PDFDocument {
       yPosition,
       { width: 500, align: 'left' }
     );
-    yPosition += 30;
+    yPosition += 25;
   }
   
-  // Payment terms at bottom
-  yPosition = 700;
+  // Payment terms - positioned dynamically below compliance notes
+  yPosition += 30;
   doc.fontSize(8).fillColor('gray');
   doc.text(
     'Payment Terms: Payment is due by the due date shown above. Please reference the invoice number on your payment.',
@@ -147,12 +147,12 @@ export function generateInvoicePDF(data: InvoicePDFData): PDFKit.PDFDocument {
     { width: 500, align: 'center' }
   );
   
-  // Footer
+  // Footer - positioned at bottom of page
   doc.fontSize(8);
   doc.text(
     `Invoice generated on ${new Date().toLocaleDateString()} by NomadSuite`,
     50,
-    750,
+    720,
     { align: 'center', width: 500 }
   );
   

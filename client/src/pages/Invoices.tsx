@@ -31,6 +31,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { InvoiceExportDialog } from '@/components/InvoiceExportDialog';
 
 export default function Invoices() {
   const { invoices, createInvoice } = useInvoices();
@@ -39,7 +40,8 @@ export default function Invoices() {
   const [open, setOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [selectedCountry, setSelectedCountry] = useState<string>('');
-  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportMode, setExportMode] = useState<'pdf' | 'email'>('pdf');
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
   
   const { data: jurisdictions = [] } = useQuery<JurisdictionRule[]>({ 
@@ -65,34 +67,6 @@ export default function Invoices() {
     return clients.find(c => c.id === id)?.name || 'Unknown Client';
   };
 
-  const sendEmailMutation = useMutation({
-    mutationFn: async ({ invoiceId, recipientEmail }: { invoiceId: number; recipientEmail?: string }) => {
-      const res = await apiRequest('POST', `/api/invoices/${invoiceId}/email`, { recipientEmail });
-      return res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Invoice sent",
-        description: "The invoice has been emailed successfully.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
-      setEmailDialogOpen(false);
-      setSelectedInvoiceId(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Email failed",
-        description: error.message || "Failed to send invoice email. Check if RESEND_API_KEY is configured.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleSendEmail = () => {
-    if (selectedInvoiceId) {
-      sendEmailMutation.mutate({ invoiceId: selectedInvoiceId });
-    }
-  };
 
   const onSubmit = (data: any) => {
     createInvoice({ 
@@ -317,7 +291,9 @@ export default function Invoices() {
                         size="icon" 
                         className="opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => {
-                          window.open(`/api/invoices/${invoice.id}/pdf`, '_blank');
+                          setSelectedInvoiceId(invoice.id);
+                          setExportMode('pdf');
+                          setExportDialogOpen(true);
                         }}
                         data-testid={`button-download-invoice-${invoice.id}`}
                       >
@@ -329,7 +305,8 @@ export default function Invoices() {
                         className="opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => {
                           setSelectedInvoiceId(invoice.id);
-                          setEmailDialogOpen(true);
+                          setExportMode('email');
+                          setExportDialogOpen(true);
                         }}
                         data-testid={`button-email-invoice-${invoice.id}`}
                       >
@@ -351,49 +328,14 @@ export default function Invoices() {
         </div>
       </div>
 
-      {/* Email Dialog */}
-      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Send Invoice via Email</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                The invoice will be sent as a PDF attachment to the client's email address on file.
-                Make sure you have configured your RESEND_API_KEY in environment variables.
-              </AlertDescription>
-            </Alert>
-            {selectedInvoiceId && (
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  Invoice: <span className="font-medium text-foreground">
-                    {invoices.find(inv => inv.id === selectedInvoiceId)?.invoiceNumber}
-                  </span>
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Client: <span className="font-medium text-foreground">
-                    {getClientName(invoices.find(inv => inv.id === selectedInvoiceId)?.clientId || 0)}
-                  </span>
-                </p>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEmailDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSendEmail}
-              disabled={sendEmailMutation.isPending}
-              data-testid="button-confirm-send-email"
-            >
-              {sendEmailMutation.isPending ? 'Sending...' : 'Send Email'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Export Dialog */}
+      <InvoiceExportDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        invoice={invoices.find(inv => inv.id === selectedInvoiceId) || null}
+        client={clients.find(c => c.id === invoices.find(inv => inv.id === selectedInvoiceId)?.clientId) || null}
+        mode={exportMode}
+      />
     </AppLayout>
   );
 }
