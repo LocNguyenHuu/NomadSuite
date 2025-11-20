@@ -1,38 +1,101 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { 
+  users, clients, invoices, trips, documents,
+  type User, type InsertUser, type Client, type InsertClient,
+  type Invoice, type InsertInvoice, type Trip, type InsertTrip,
+  type Document, type InsertDocument 
+} from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
-// modify the interface with any CRUD methods
-// you might need
+const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
+  getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+
+  // Clients
+  getClients(userId: number): Promise<Client[]>;
+  createClient(client: InsertClient): Promise<Client>;
+  
+  // Invoices
+  getInvoices(userId: number): Promise<Invoice[]>;
+  createInvoice(invoice: InsertInvoice): Promise<Invoice>;
+  
+  // Trips
+  getTrips(userId: number): Promise<Trip[]>;
+  createTrip(trip: InsertTrip): Promise<Trip>;
+  
+  // Documents
+  getDocuments(userId: number): Promise<Document[]>;
+  createDocument(doc: InsertDocument): Promise<Document>;
+
+  sessionStore: session.Store;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
 
   constructor() {
-    this.users = new Map();
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true,
+    });
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
+  }
+
+  async getClients(userId: number): Promise<Client[]> {
+    return db.select().from(clients).where(eq(clients.userId, userId));
+  }
+
+  async createClient(client: InsertClient): Promise<Client> {
+    const [newClient] = await db.insert(clients).values(client).returning();
+    return newClient;
+  }
+
+  async getInvoices(userId: number): Promise<Invoice[]> {
+    return db.select().from(invoices).where(eq(invoices.userId, userId));
+  }
+
+  async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
+    const [newInvoice] = await db.insert(invoices).values(invoice).returning();
+    return newInvoice;
+  }
+
+  async getTrips(userId: number): Promise<Trip[]> {
+    return db.select().from(trips).where(eq(trips.userId, userId));
+  }
+
+  async createTrip(trip: InsertTrip): Promise<Trip> {
+    const [newTrip] = await db.insert(trips).values(trip).returning();
+    return newTrip;
+  }
+
+  async getDocuments(userId: number): Promise<Document[]> {
+    return db.select().from(documents).where(eq(documents.userId, userId));
+  }
+
+  async createDocument(doc: InsertDocument): Promise<Document> {
+    const [newDoc] = await db.insert(documents).values(doc).returning();
+    return newDoc;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
