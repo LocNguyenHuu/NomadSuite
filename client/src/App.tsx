@@ -11,6 +11,7 @@ import Invoices from "@/pages/Invoices";
 import Travel from "@/pages/Travel";
 import Documents from "@/pages/Documents";
 import AuthPage from "@/pages/auth-page";
+import Settings from "@/pages/Settings";
 import AdminDashboard from "@/pages/AdminDashboard";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -29,7 +30,7 @@ function Router() {
       <ProtectedRoute path="/app/invoices" component={Invoices} />
       <ProtectedRoute path="/app/travel" component={Travel} />
       <ProtectedRoute path="/app/documents" component={Documents} />
-      <ProtectedRoute path="/app/settings" component={() => <div className="p-8">Settings (Coming Soon)</div>} />
+      <ProtectedRoute path="/app/settings" component={Settings} />
 
       {/* Admin Routes */}
       <AdminRoute path="/app/admin" component={AdminDashboard} />

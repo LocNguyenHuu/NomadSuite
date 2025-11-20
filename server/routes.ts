@@ -2,10 +2,24 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, requireAuth, requireAdmin } from "./auth";
 import { storage } from "./storage";
-import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema } from "@shared/schema";
+import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema, insertUserSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
+
+  // User Settings
+  app.patch("/api/user", requireAuth, async (req, res) => {
+    // Allow updating specific fields, ignore others like role/id/password/email
+    const updateSchema = insertUserSchema.partial().pick({
+      name: true,
+      homeCountry: true,
+      currentCountry: true,
+    });
+
+    const parsed = updateSchema.parse(req.body);
+    const user = await storage.updateUser(req.user!.id, parsed);
+    res.json(user);
+  });
 
   // Admin Routes
   app.get("/api/admin/stats", requireAdmin, async (req, res) => {

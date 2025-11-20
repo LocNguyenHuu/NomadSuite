@@ -36,6 +36,7 @@ export interface IStorage {
   // Admin
   getAdminStats(): Promise<{ totalUsers: number; totalClients: number; totalInvoices: number; totalTrips: number }>;
   getAllUsers(): Promise<User[]>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
 
   sessionStore: session.Store;
 }
@@ -123,6 +124,20 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return db.select().from(users).orderBy(users.id);
+  }
+
+  async updateUser(id: number, userUpdate: Partial<InsertUser>): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(userUpdate)
+      .where(eq(users.id, id))
+      .returning();
+    
+    if (!updatedUser) {
+      throw new Error("User not found");
+    }
+    
+    return updatedUser;
   }
 }
 
