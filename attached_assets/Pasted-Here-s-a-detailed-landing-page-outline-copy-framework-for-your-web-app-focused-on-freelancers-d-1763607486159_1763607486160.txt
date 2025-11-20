@@ -1,0 +1,128 @@
+Here’s a detailed landing-page outline + copy framework for your web-app (focused on freelancers & digital nomads) that showcases all your features and builds trust. You can hand this to the designer/developer to create the page.
+
+⸻
+
+✅ Landing Page Structure
+	1.	Hero Section
+	2.	Problem & Pain Points
+	3.	Solution + Key Features
+	4.	How It Works / Workflow
+	5.	Benefits / Why It Matters
+	6.	Feature Deep-Dives (modular)
+	7.	Social Proof / Trust Signals
+	8.	Pricing Preview
+	9.	FAQ
+	10.	Final CTA
+
+⸻
+
+🎯 Copy & Elements for Each Section
+
+1. Hero Section
+
+Headline:
+
+“Run your freelance business and your global lifestyle — simplified.”
+Sub-headline:
+“CRM, invoicing, travel residency & visa tracking all in one web-app built for nomads.”
+Call to Action Button:
+“Get Started Free”
+Visual:
+
+	•	Screenshot of dashboard (client list + travel tracker)
+	•	Maybe a nomad working at beach + laptop
+
+2. Problem & Pain Points
+
+Intro text:
+
+“You’re a freelancer or digital nomad. Generic CRMs are too bulky. Tracking days abroad, visas and tax status is confusing. You waste time, miss deadlines, and risk compliance issues.”
+Bullets:
+
+	•	“Too many CRMs built for large sales teams, not solo operators.”
+	•	“Keeping track of where you’re tax resident, visas expiring, flights logged is impossible.”
+	•	“Billing clients across borders, handling different currencies & tax rules = stress.”
+
+3. Solution + Key Features
+
+Text:
+
+“Meet NomadOps — the web app designed for freelancers who live and work anywhere. Everything you need in one place: clients, projects, travel logs, visa alerts, invoices.”
+Features summary (icons + short lines):
+
+	•	Lightweight CRM & client pipeline
+	•	Invoicing + payments (multi-currency, auto tax logic)
+	•	Travel log & residency calculator (183-day rule + Schengen 90/180)
+	•	Visa & permit tracker with alerts
+	•	Secure document vault + AI metadata extraction
+	•	Mobile-responsive — work anywhere
+
+4. How It Works / Workflow
+
+Steps:
+	1.	Sign up in <2 minutes → profile wizard sets your nationality, currency, location.
+	2.	Add clients & projects — create invoices in minutes.
+	3.	Log your travel & days abroad — see your residency status.
+	4.	Upload visas & permits — get alerted ahead of deadlines.
+	5.	Dashboard shows your business + mobility status in one glance.
+
+5. Benefits / Why It Matters
+	•	“Stay compliant while you roam.”
+	•	“Spend less time on admin, more on work or travel.”
+	•	“Know your tax-residency risk before it becomes a problem.”
+	•	“Bill clients anywhere from one tool.”
+	•	“No bulky CRM, no separate travel spreadsheets.”
+
+6. Feature Deep-Dives
+
+Section A – CRM & Invoicing:
+	•	Screenshot of client list, pipeline board, invoice PDF.
+	•	Description: “Manage your clients, proposals and billing from one place.”
+Section B – Travel & Residency Tracking:
+	•	Screenshot of map or calendar with days counted.
+	•	Description: “Log your trips, see where you stand on 183-day & Schengen rules.”
+Section C – Visa & Document Vault:
+	•	Screenshot of document list, expiry alerts.
+	•	Description: “Upload passports, visas, contracts. AI reads dates, reminders sent automatically.”
+Section D – Mobile & Cloud-Anywhere:
+	•	Visual of app on phone/tablet.
+	•	Description: “Your business and lifestyle move with you.”
+
+7. Social Proof / Trust Signals
+	•	“Used by freelancers from 30+ countries.”
+	•	Logos or icons of travel/freelance communities (if you have early users).
+	•	Testimonials:
+“Since I started using NomadOps I finally know how many days I’ve spent in Europe — peace of mind!” — Jane D., Digital Nomad
+	•	Trust badges:
+	•	“Secure & GDPR-compliant”
+	•	“256-bit encryption for docs”
+	•	“Try free, no credit card”
+
+8. Pricing Preview
+	•	Show 3 tiers (Free, Pro, Premium) with price and key features.
+	•	Clear CTA buttons under each tier: “Start Free”, “Upgrade to Pro”, etc.
+	•	Note: “Cancel anytime.”
+
+9. FAQ
+
+Sample questions:
+	•	“Is this tool legal/tax advice?” → answer: “No, informational only.”
+	•	“What happens if I have clients in different countries?”
+	•	“How secure is my data?”
+	•	“What happens when I change country mid-year?”
+	•	“Do you integrate with X / bank / Stripe?” (for now; you can say “Coming soon”).
+
+10. Final CTA
+	•	“Try NomadOps Free” button again.
+	•	Subtext: “Get started in under 2 minutes. No credit card required.”
+	•	Possibly link: “See full feature list” or “Contact us”.
+
+⸻
+
+📐 Trust & Conversion Best Practices
+	•	Use a clear UVP (headline + sub-headline) at the top.  ￼
+	•	Show real product screenshots, not just generic images.  ￼
+	•	Keep layout clean, minimize distractions, one main CTA.  ￼
+	•	Provide strong social proof and security statements to build trust.
+	•	Optimize for mobile (nomads often use phones).
+	•	Use simple, benefit-focused language (avoid heavy jargon).

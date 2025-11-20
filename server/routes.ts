@@ -1,19 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupAuth } from "./auth";
+import { setupAuth, requireAuth } from "./auth";
 import { storage } from "./storage";
 import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
-
-  // Middleware to check if user is authenticated
-  const requireAuth = (req: any, res: any, next: any) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Unauthorized");
-    }
-    next();
-  };
 
   // Clients
   app.get("/api/clients", requireAuth, async (req, res) => {

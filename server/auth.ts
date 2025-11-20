@@ -103,3 +103,10 @@ export function setupAuth(app: Express) {
     res.json(req.user);
   });
 }
+
+export function requireAuth(req: any, res: any, next: any) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).send("Unauthorized");
+  }
+  next();
+}
