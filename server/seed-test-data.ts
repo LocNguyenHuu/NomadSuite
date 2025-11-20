@@ -1,297 +1,481 @@
 import { db } from './db';
-import { clients, invoices, trips } from '@shared/schema';
+import { workspaces, users, clients, clientNotes, invoices, trips, documents, jurisdictionRules } from '@shared/schema';
+import { scrypt, randomBytes } from 'crypto';
+import { promisify } from 'util';
+
+const scryptAsync = promisify(scrypt);
+
+async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(16).toString('hex');
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString('hex')}.${salt}`;
+}
 
 async function seedTestData() {
-  console.log('Seeding test data for dashboard...');
+  console.log('🌱 Starting comprehensive test data seeding...\n');
   
-  // Get the first user (admin) to assign test data to
-  const users = await db.query.users.findMany({ limit: 1 });
-  if (users.length === 0) {
-    console.log('No users found. Please create a user first.');
-    return;
-  }
+  // Clear existing data (optional - comment out if you want to keep existing data)
+  console.log('🧹 Clearing existing data...');
+  await db.delete(documents);
+  await db.delete(trips);
+  await db.delete(clientNotes);
+  await db.delete(invoices);
+  await db.delete(clients);
+  await db.delete(users);
+  await db.delete(workspaces);
+  console.log('✓ Cleared existing data\n');
   
-  const userId = users[0].id;
-  const workspaceId = users[0].workspaceId!;
-  console.log(`Using user ID: ${userId}, workspace ID: ${workspaceId}`);
-  
-  // Seed diverse clients from different countries
-  const testClients = [
+  // Seed Jurisdiction Rules
+  console.log('📋 Seeding jurisdiction rules...');
+  const jurisdictionData = [
     {
-      userId,
-      name: 'TechStart GmbH',
-      email: 'contact@techstart.de',
       country: 'DE',
-      status: 'active',
-      nextActionDate: new Date('2025-12-01'),
-      nextActionNote: 'Quarterly review meeting'
+      countryName: 'Germany',
+      supportedLanguages: ['de', 'en'],
+      defaultLanguage: 'de',
+      defaultCurrency: 'EUR',
+      requiresVatId: true,
+      requiresCustomerVatId: true,
+      supportsReverseCharge: true,
+      archivingYears: 10,
+      taxRate: '19',
+      languageNote: 'Invoices must be in German or English',
+      complianceNotes: 'German invoices must include VAT ID, archiving for 10 years'
     },
     {
-      userId,
-      name: 'Innovation Labs SARL',
-      email: 'hello@innovationlabs.fr',
       country: 'FR',
-      status: 'active',
-      nextActionDate: new Date('2025-11-28'),
-      nextActionNote: 'Project proposal discussion'
+      countryName: 'France',
+      supportedLanguages: ['fr', 'en'],
+      defaultLanguage: 'fr',
+      defaultCurrency: 'EUR',
+      requiresVatId: true,
+      requiresCustomerVatId: true,
+      supportsReverseCharge: true,
+      archivingYears: 6,
+      taxRate: '20',
+      languageNote: 'Invoices should be in French',
+      complianceNotes: 'French invoices require VAT ID for B2B transactions'
     },
     {
-      userId,
-      name: 'Digital Solutions Ltd',
-      email: 'info@digitalsolutions.co.uk',
       country: 'GB',
-      status: 'lead',
-      nextActionDate: new Date('2025-11-25'),
-      nextActionNote: 'Follow up on initial inquiry'
+      countryName: 'United Kingdom',
+      supportedLanguages: ['en'],
+      defaultLanguage: 'en',
+      defaultCurrency: 'GBP',
+      requiresVatId: true,
+      requiresCustomerVatId: false,
+      supportsReverseCharge: false,
+      archivingYears: 6,
+      taxRate: '20',
+      complianceNotes: 'UK invoices must comply with HMRC requirements'
     },
     {
-      userId,
-      name: 'Maple Tech Inc',
-      email: 'team@mapletech.ca',
+      country: 'US',
+      countryName: 'United States',
+      supportedLanguages: ['en'],
+      defaultLanguage: 'en',
+      defaultCurrency: 'USD',
+      requiresVatId: false,
+      requiresCustomerVatId: false,
+      supportsReverseCharge: false,
+      archivingYears: 7,
+      complianceNotes: 'US invoices follow standard commercial invoice format'
+    },
+    {
       country: 'CA',
-      status: 'proposal',
-      nextActionDate: new Date('2025-11-30'),
-      nextActionNote: 'Send updated proposal'
-    },
-    {
-      userId,
-      name: 'Pacific Ventures LLC',
-      email: 'contact@pacificventures.com',
-      country: 'US',
-      status: 'active',
-      nextActionDate: new Date('2025-12-05'),
-      nextActionNote: 'Monthly sync call'
-    },
-    {
-      userId,
-      name: 'Nordic Design Studio',
-      email: 'hello@nordicdesign.no',
-      country: 'NO',
-      status: 'active',
-      nextActionDate: new Date('2025-12-10'),
-      nextActionNote: 'Review design deliverables'
-    },
-    {
-      userId,
-      name: 'Mediterranean Exports',
-      email: 'sales@medexports.es',
-      country: 'ES',
-      status: 'lead',
-      nextActionDate: new Date('2025-11-27'),
-      nextActionNote: 'Initial discovery call'
-    },
-    {
-      userId,
-      name: 'Singapore Digital',
-      email: 'business@sgdigital.sg',
-      country: 'SG',
-      status: 'completed',
-      nextActionDate: null,
-      nextActionNote: null
+      countryName: 'Canada',
+      supportedLanguages: ['en', 'fr'],
+      defaultLanguage: 'en',
+      defaultCurrency: 'CAD',
+      requiresVatId: false,
+      requiresCustomerVatId: false,
+      supportsReverseCharge: false,
+      archivingYears: 7,
+      taxRate: '5',
+      complianceNotes: 'GST/HST must be specified for Canadian transactions'
     }
   ];
   
-  console.log('Creating clients...');
-  const createdClients = [];
-  for (const client of testClients) {
-    const [created] = await db.insert(clients).values(client).returning();
-    createdClients.push(created);
-    console.log(`✓ Created client: ${created.name}`);
+  for (const rule of jurisdictionData) {
+    await db.insert(jurisdictionRules).values(rule).onConflictDoNothing();
   }
+  console.log(`✓ Seeded ${jurisdictionData.length} jurisdiction rules\n`);
   
-  // Seed diverse invoices with different statuses and amounts
-  console.log('Creating invoices...');
-  const testInvoices = [
-    {
-      userId,
-      clientId: createdClients[0].id,
-      invoiceNumber: 'INV-2025-001',
-      amount: 5950,
-      dueDate: new Date('2025-10-31'),
-      status: 'paid',
-      items: [
-        { description: 'Web Development - October', amount: 5950 }
-      ],
-      currency: 'EUR',
-      country: 'DE',
-      language: 'de',
-      exchangeRate: '1.0',
-      complianceChecked: true
-    },
-    {
-      userId,
-      clientId: createdClients[1].id,
-      invoiceNumber: 'INV-2025-002',
-      amount: 7200,
-      dueDate: new Date('2025-11-15'),
-      status: 'paid',
-      items: [
-        { description: 'Consulting Services (40 hours @ €150/hr)', amount: 7200 }
-      ],
-      currency: 'EUR',
-      country: 'FR',
-      language: 'fr',
-      exchangeRate: '1.0',
-      reverseCharge: true,
-      complianceChecked: true
-    },
-    {
-      userId,
-      clientId: createdClients[2].id,
-      invoiceNumber: 'INV-2025-003',
-      amount: 5400,
-      dueDate: new Date('2025-11-30'),
-      status: 'sent',
-      items: [
-        { description: 'UI/UX Design Services', amount: 5400 }
-      ],
-      currency: 'GBP',
-      country: 'GB',
-      language: 'en',
-      exchangeRate: '1.27',
-      complianceChecked: true
-    },
-    {
-      userId,
-      clientId: createdClients[3].id,
-      invoiceNumber: 'INV-2025-004',
-      amount: 8400,
-      dueDate: new Date('2025-11-20'),
-      status: 'overdue',
-      items: [
-        { description: 'Mobile App Development', amount: 8400 }
-      ],
-      currency: 'CAD',
-      country: 'CA',
-      language: 'en',
-      exchangeRate: '0.73',
-      complianceChecked: true
-    },
-    {
-      userId,
-      clientId: createdClients[4].id,
-      invoiceNumber: 'INV-2025-005',
-      amount: 7200,
-      dueDate: new Date('2025-12-15'),
-      status: 'draft',
-      items: [
-        { description: 'API Integration (60 hours @ $120/hr)', amount: 7200 }
-      ],
-      currency: 'USD',
-      country: 'US',
-      language: 'en',
-      exchangeRate: '1.0',
-      complianceChecked: true
-    },
-    {
-      userId,
-      clientId: createdClients[0].id,
-      invoiceNumber: 'INV-2025-006',
-      amount: 4760,
-      dueDate: new Date('2025-12-18'),
-      status: 'sent',
-      items: [
-        { description: 'Monthly Retainer - November', amount: 4760 }
-      ],
-      currency: 'EUR',
-      country: 'DE',
-      language: 'de',
-      exchangeRate: '1.0',
-      complianceChecked: true
-    },
-    {
-      userId,
-      clientId: createdClients[5].id,
-      invoiceNumber: 'INV-2025-007',
-      amount: 4375,
-      dueDate: new Date('2025-09-30'),
-      status: 'paid',
-      items: [
-        { description: 'Brand Identity Design', amount: 4375 }
-      ],
-      currency: 'EUR',
-      country: 'NO',
-      language: 'en',
-      exchangeRate: '0.09',
-      complianceChecked: false
-    },
-    {
-      userId,
-      clientId: createdClients[4].id,
-      invoiceNumber: 'INV-2025-008',
-      amount: 12000,
-      dueDate: new Date('2025-09-15'),
-      status: 'paid',
-      items: [
-        { description: 'E-commerce Platform Development', amount: 12000 }
-      ],
-      currency: 'USD',
-      country: 'US',
-      language: 'en',
-      exchangeRate: '1.0',
-      complianceChecked: true
+  // Create Workspaces
+  console.log('🏢 Creating workspaces...');
+  const [workspace1] = await db.insert(workspaces).values({
+    name: 'Freelancer Pro Workspace',
+    defaultCurrency: 'EUR',
+    defaultTaxCountry: 'DE',
+    plan: 'pro'
+  }).returning();
+  
+  const [workspace2] = await db.insert(workspaces).values({
+    name: 'Digital Nomad Studio',
+    defaultCurrency: 'USD',
+    defaultTaxCountry: 'US',
+    plan: 'premium'
+  }).returning();
+  
+  const [workspace3] = await db.insert(workspaces).values({
+    name: 'Startup Workspace',
+    defaultCurrency: 'GBP',
+    defaultTaxCountry: 'GB',
+    plan: 'free'
+  }).returning();
+  
+  console.log(`✓ Created 3 workspaces\n`);
+  
+  // Create Users with different roles
+  console.log('👥 Creating users...');
+  const [admin] = await db.insert(users).values({
+    workspaceId: workspace1.id,
+    username: 'admin',
+    password: await hashPassword('password'),
+    name: 'Alex Admin',
+    email: 'alex@nomadsuite.com',
+    homeCountry: 'DE',
+    currentCountry: 'DE',
+    role: 'admin',
+    businessName: 'Freelance Consulting GmbH',
+    businessAddress: 'Friedrichstraße 123, 10117 Berlin, Germany',
+    vatId: 'DE123456789',
+    taxRegime: 'standard'
+  }).returning();
+  
+  const [user1] = await db.insert(users).values({
+    workspaceId: workspace1.id,
+    username: 'sarah',
+    password: await hashPassword('password'),
+    name: 'Sarah Designer',
+    email: 'sarah@nomadsuite.com',
+    homeCountry: 'US',
+    currentCountry: 'PT',
+    role: 'user',
+    businessName: 'Sarah Smith Design',
+    businessAddress: '123 Main St, San Francisco, CA 94105, USA',
+    vatId: null,
+    taxRegime: 'standard'
+  }).returning();
+  
+  const [user2] = await db.insert(users).values({
+    workspaceId: workspace2.id,
+    username: 'marco',
+    password: await hashPassword('password'),
+    name: 'Marco Developer',
+    email: 'marco@nomadsuite.com',
+    homeCountry: 'IT',
+    currentCountry: 'ES',
+    role: 'admin',
+    businessName: 'Marco Rossi Tech',
+    businessAddress: 'Via Roma 45, 00100 Roma, Italy',
+    vatId: 'IT98765432101',
+    taxRegime: 'standard'
+  }).returning();
+  
+  const [user3] = await db.insert(users).values({
+    workspaceId: workspace2.id,
+    username: 'emma',
+    password: await hashPassword('password'),
+    name: 'Emma Consultant',
+    email: 'emma@nomadsuite.com',
+    homeCountry: 'GB',
+    currentCountry: 'TH',
+    role: 'user',
+    businessName: 'Emma Jones Consulting',
+    businessAddress: '10 Downing Street, London SW1A 2AA, UK',
+    vatId: 'GB123456789',
+    taxRegime: 'standard'
+  }).returning();
+  
+  const [user4] = await db.insert(users).values({
+    workspaceId: workspace3.id,
+    username: 'lisa',
+    password: await hashPassword('password'),
+    name: 'Lisa Writer',
+    email: 'lisa@nomadsuite.com',
+    homeCountry: 'CA',
+    currentCountry: 'MX',
+    role: 'user',
+    businessName: 'Lisa Chen Writing Services',
+    businessAddress: '456 Maple Ave, Toronto, ON M5H 2N2, Canada',
+    vatId: null,
+    taxRegime: 'standard'
+  }).returning();
+  
+  const allUsers = [admin, user1, user2, user3, user4];
+  console.log(`✓ Created ${allUsers.length} users (2 admins, 3 regular users)\n`);
+  
+  // Helper function to create data for each user
+  async function seedUserData(user: typeof admin, userIndex: number) {
+    console.log(`📦 Seeding data for ${user.name}...`);
+    
+    // Create Clients
+    const clientsData = [
+      {
+        userId: user.id,
+        name: 'TechStart GmbH',
+        email: 'contact@techstart.de',
+        country: 'DE',
+        status: 'active',
+        notes: 'Long-term client, monthly retainer',
+        lastInteractionDate: new Date('2025-11-15'),
+        nextActionDate: new Date('2025-12-01'),
+        nextActionDescription: 'Quarterly review meeting'
+      },
+      {
+        userId: user.id,
+        name: 'Innovation Labs SARL',
+        email: 'hello@innovationlabs.fr',
+        country: 'FR',
+        status: 'active',
+        notes: 'Project-based work',
+        lastInteractionDate: new Date('2025-11-10'),
+        nextActionDate: new Date('2025-11-28'),
+        nextActionDescription: 'Project proposal discussion'
+      },
+      {
+        userId: user.id,
+        name: 'Digital Solutions Ltd',
+        email: 'info@digitalsolutions.co.uk',
+        country: 'GB',
+        status: 'lead',
+        notes: 'Interested in web development',
+        nextActionDate: new Date('2025-11-25'),
+        nextActionDescription: 'Follow up on initial inquiry'
+      },
+      {
+        userId: user.id,
+        name: 'Pacific Ventures LLC',
+        email: 'contact@pacificventures.com',
+        country: 'US',
+        status: 'proposal',
+        notes: 'Sent proposal last week',
+        nextActionDate: new Date('2025-11-30'),
+        nextActionDescription: 'Follow up on proposal'
+      }
+    ];
+    
+    const createdClients = [];
+    for (const clientData of clientsData) {
+      const [client] = await db.insert(clients).values(clientData).returning();
+      createdClients.push(client);
     }
-  ];
-  
-  for (const invoice of testInvoices) {
-    await db.insert(invoices).values(invoice);
-    console.log(`✓ Created invoice: ${invoice.invoiceNumber} - ${invoice.status}`);
-  }
-  
-  // Seed trips for travel tracking
-  console.log('Creating trips...');
-  const testTrips = [
-    {
-      userId,
-      country: 'DE',
-      entryDate: new Date('2025-01-15'),
-      exitDate: new Date('2025-03-20'),
-      purpose: 'Client meetings and coworking'
-    },
-    {
-      userId,
-      country: 'FR',
-      entryDate: new Date('2025-03-21'),
-      exitDate: new Date('2025-05-10'),
-      purpose: 'Working remotely from Paris'
-    },
-    {
-      userId,
-      country: 'ES',
-      entryDate: new Date('2025-05-11'),
-      exitDate: new Date('2025-07-01'),
-      purpose: 'Summer work in Barcelona'
-    },
-    {
-      userId,
-      country: 'PT',
-      entryDate: new Date('2025-07-02'),
-      exitDate: new Date('2025-09-15'),
-      purpose: 'Digital nomad base in Lisbon'
-    },
-    {
-      userId,
-      country: 'GB',
-      entryDate: new Date('2025-09-16'),
-      exitDate: new Date('2025-10-31'),
-      purpose: 'Client project in London'
-    },
-    {
-      userId,
-      country: 'DE',
-      entryDate: new Date('2025-11-01'),
-      exitDate: null,
-      purpose: 'Current location - Berlin hub'
+    console.log(`  ✓ Created ${createdClients.length} clients`);
+    
+    // Create Client Notes
+    const notesData = [
+      {
+        clientId: createdClients[0].id,
+        userId: user.id,
+        content: 'Initial meeting went very well. They are interested in a 6-month contract.',
+        type: 'Meeting',
+        date: new Date('2025-10-15')
+      },
+      {
+        clientId: createdClients[0].id,
+        userId: user.id,
+        content: 'Sent project proposal via email',
+        type: 'Email',
+        date: new Date('2025-10-20')
+      },
+      {
+        clientId: createdClients[1].id,
+        userId: user.id,
+        content: 'Phone call to discuss project scope and timeline',
+        type: 'Call',
+        date: new Date('2025-11-05')
+      },
+      {
+        clientId: createdClients[2].id,
+        userId: user.id,
+        content: 'First contact - warm lead from referral',
+        type: 'Note',
+        date: new Date('2025-11-18')
+      }
+    ];
+    
+    for (const note of notesData) {
+      await db.insert(clientNotes).values(note);
     }
-  ];
-  
-  for (const trip of testTrips) {
-    await db.insert(trips).values(trip);
-    console.log(`✓ Created trip: ${trip.country} (${trip.entryDate.toISOString().split('T')[0]} - ${trip.exitDate?.toISOString().split('T')[0] || 'ongoing'})`);
+    console.log(`  ✓ Created ${notesData.length} client notes`);
+    
+    // Create Invoices
+    const invoicesData = [
+      {
+        userId: user.id,
+        clientId: createdClients[0].id,
+        invoiceNumber: `INV-${userIndex + 1}-2025-001`,
+        amount: 5950,
+        currency: 'EUR',
+        status: 'paid',
+        dueDate: new Date('2025-10-31'),
+        items: [
+          { description: 'Web Development - October', amount: 5950 }
+        ],
+        country: 'DE',
+        language: 'de',
+        exchangeRate: '1.0',
+        complianceChecked: true
+      },
+      {
+        userId: user.id,
+        clientId: createdClients[1].id,
+        invoiceNumber: `INV-${userIndex + 1}-2025-002`,
+        amount: 7200,
+        currency: 'EUR',
+        status: 'sent',
+        dueDate: new Date('2025-11-30'),
+        items: [
+          { description: 'Consulting Services (48 hours @ €150/hr)', amount: 7200 }
+        ],
+        country: 'FR',
+        language: 'fr',
+        exchangeRate: '1.0',
+        reverseCharge: true,
+        customerVatId: 'FR12345678901',
+        complianceChecked: true
+      },
+      {
+        userId: user.id,
+        clientId: createdClients[2].id,
+        invoiceNumber: `INV-${userIndex + 1}-2025-003`,
+        amount: 4500,
+        currency: 'GBP',
+        status: 'draft',
+        dueDate: new Date('2025-12-15'),
+        items: [
+          { description: 'UI/UX Design Services', amount: 4500 }
+        ],
+        country: 'GB',
+        language: 'en',
+        exchangeRate: '1.27',
+        complianceChecked: false
+      },
+      {
+        userId: user.id,
+        clientId: createdClients[0].id,
+        invoiceNumber: `INV-${userIndex + 1}-2025-004`,
+        amount: 3200,
+        currency: 'EUR',
+        status: 'overdue',
+        dueDate: new Date('2025-11-10'),
+        items: [
+          { description: 'Monthly Retainer - November', amount: 3200 }
+        ],
+        country: 'DE',
+        language: 'de',
+        exchangeRate: '1.0',
+        complianceChecked: true
+      }
+    ];
+    
+    for (const invoice of invoicesData) {
+      await db.insert(invoices).values(invoice);
+    }
+    console.log(`  ✓ Created ${invoicesData.length} invoices`);
+    
+    // Create Trips
+    const tripsData = [
+      {
+        userId: user.id,
+        country: 'DE',
+        entryDate: new Date('2025-01-15'),
+        exitDate: new Date('2025-03-20'),
+        notes: 'Client meetings and coworking in Berlin'
+      },
+      {
+        userId: user.id,
+        country: 'FR',
+        entryDate: new Date('2025-03-21'),
+        exitDate: new Date('2025-05-10'),
+        notes: 'Working remotely from Paris'
+      },
+      {
+        userId: user.id,
+        country: 'ES',
+        entryDate: new Date('2025-05-11'),
+        exitDate: new Date('2025-07-01'),
+        notes: 'Summer work in Barcelona'
+      },
+      {
+        userId: user.id,
+        country: 'PT',
+        entryDate: new Date('2025-07-02'),
+        exitDate: new Date('2025-09-15'),
+        notes: 'Digital nomad base in Lisbon'
+      },
+      {
+        userId: user.id,
+        country: user.currentCountry,
+        entryDate: new Date('2025-11-01'),
+        exitDate: null,
+        notes: 'Current location'
+      }
+    ];
+    
+    for (const trip of tripsData) {
+      await db.insert(trips).values(trip);
+    }
+    console.log(`  ✓ Created ${tripsData.length} trips`);
+    
+    // Create Documents
+    const documentsData = [
+      {
+        userId: user.id,
+        name: 'Passport',
+        type: 'Passport',
+        expiryDate: new Date('2030-06-15'),
+        fileUrl: 'https://example.com/documents/passport.pdf'
+      },
+      {
+        userId: user.id,
+        name: 'Schengen Visa',
+        type: 'Visa',
+        expiryDate: new Date('2026-12-31'),
+        fileUrl: 'https://example.com/documents/schengen-visa.pdf'
+      },
+      {
+        userId: user.id,
+        name: 'Client Contract - TechStart',
+        type: 'Contract',
+        expiryDate: new Date('2026-12-31'),
+        fileUrl: 'https://example.com/documents/contract-techstart.pdf'
+      },
+      {
+        userId: user.id,
+        name: 'Tax Certificate',
+        type: 'Other',
+        expiryDate: new Date('2025-12-31'),
+        fileUrl: 'https://example.com/documents/tax-certificate.pdf'
+      }
+    ];
+    
+    for (const doc of documentsData) {
+      await db.insert(documents).values(doc);
+    }
+    console.log(`  ✓ Created ${documentsData.length} documents\n`);
   }
   
-  console.log('\n✓ Test data seeding complete!');
-  console.log(`Created ${createdClients.length} clients, ${testInvoices.length} invoices, and ${testTrips.length} trips`);
+  // Seed data for all users
+  for (let i = 0; i < allUsers.length; i++) {
+    await seedUserData(allUsers[i], i);
+  }
+  
+  console.log('✅ Test data seeding complete!\n');
+  console.log('📊 Summary:');
+  console.log(`   • ${allUsers.length} users (2 admins, 3 regular users)`);
+  console.log(`   • ${allUsers.length * 4} clients`);
+  console.log(`   • ${allUsers.length * 4} client notes`);
+  console.log(`   • ${allUsers.length * 4} invoices`);
+  console.log(`   • ${allUsers.length * 5} trips`);
+  console.log(`   • ${allUsers.length * 4} documents`);
+  console.log('\n🔑 Test Credentials:');
+  console.log('   • admin / password (Admin - Workspace 1)');
+  console.log('   • sarah / password (User - Workspace 1)');
+  console.log('   • marco / password (Admin - Workspace 2)');
+  console.log('   • emma / password (User - Workspace 2)');
+  console.log('   • lisa / password (User - Workspace 3)');
 }
 
 seedTestData()

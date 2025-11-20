@@ -8,6 +8,28 @@ NomadSuite is a full-stack web application for freelancers and digital nomads, d
 
 Preferred communication style: Simple, everyday language.
 
+## Testing
+
+**Comprehensive Test Data Seeding**: The `server/seed-test-data.ts` script populates the database with realistic test data across all tables:
+
+**Test Users** (all passwords: `password`):
+- `admin` - Alex Admin (Admin, Workspace 1, DE-based freelancer)
+- `sarah` - Sarah Designer (User, Workspace 1, US-based designer in PT)
+- `marco` - Marco Developer (Admin, Workspace 2, IT-based developer in ES)
+- `emma` - Emma Consultant (User, Workspace 2, GB-based consultant in TH)
+- `lisa` - Lisa Writer (User, Workspace 3, CA-based writer in MX)
+
+**Data Per User**:
+- 4 clients (different countries and statuses: active, lead, proposal, completed)
+- 4 client notes (meetings, calls, emails, system notes)
+- 4 invoices (various statuses: paid, sent, draft, overdue; multiple currencies)
+- 5 trips (travel history plus current location)
+- 4 documents (passport, visa, contracts, tax certificates)
+
+**Total Test Data**: 5 users, 20 clients, 20 notes, 20 invoices, 25 trips, 20 documents
+
+**Running Seed Script**: `tsx server/seed-test-data.ts` (clears existing data and creates fresh test data)
+
 ## System Architecture
 
 ### Frontend
