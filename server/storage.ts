@@ -1,8 +1,9 @@
 import { 
-  users, clients, invoices, trips, documents, clientNotes,
+  users, clients, invoices, trips, documents, clientNotes, workspaces,
   type User, type InsertUser, type Client, type InsertClient,
   type Invoice, type InsertInvoice, type Trip, type InsertTrip,
-  type Document, type InsertDocument, type ClientNote, type InsertClientNote
+  type Document, type InsertDocument, type ClientNote, type InsertClientNote,
+  type Workspace, type InsertWorkspace
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, count, or, desc } from "drizzle-orm";
@@ -16,6 +17,11 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+
+  // Workspace
+  getWorkspace(id: number): Promise<Workspace | undefined>;
+  updateWorkspace(id: number, workspace: Partial<InsertWorkspace>): Promise<Workspace>;
+  getWorkspaceUsers(workspaceId: number): Promise<User[]>;
 
   // Clients
   getClient(id: number): Promise<Client | undefined>;
@@ -43,6 +49,7 @@ export interface IStorage {
   getAdminStats(): Promise<{ totalUsers: number; totalClients: number; totalInvoices: number; totalTrips: number }>;
   getAllUsers(): Promise<User[]>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
+  deleteUser(id: number): Promise<void>;
 
   sessionStore: session.Store;
 }
@@ -171,6 +178,33 @@ export class DatabaseStorage implements IStorage {
     }
     
     return updatedUser;
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
+  }
+
+  async getWorkspace(id: number): Promise<Workspace | undefined> {
+    const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id));
+    return workspace || undefined;
+  }
+
+  async updateWorkspace(id: number, workspaceUpdate: Partial<InsertWorkspace>): Promise<Workspace> {
+    const [updatedWorkspace] = await db
+      .update(workspaces)
+      .set(workspaceUpdate)
+      .where(eq(workspaces.id, id))
+      .returning();
+    
+    if (!updatedWorkspace) {
+      throw new Error("Workspace not found");
+    }
+    
+    return updatedWorkspace;
+  }
+
+  async getWorkspaceUsers(workspaceId: number): Promise<User[]> {
+    return db.select().from(users).where(eq(users.workspaceId, workspaceId)).orderBy(users.id);
   }
 }
 
