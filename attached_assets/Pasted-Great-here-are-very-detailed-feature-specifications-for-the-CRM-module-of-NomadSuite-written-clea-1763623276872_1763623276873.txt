@@ -1,0 +1,234 @@
+Great — here are very detailed feature specifications for the CRM module of NomadSuite, written clearly so a Replit AI developer can implement them. Each feature has clear fields, flows, UI elements, and backend/API considerations.
+
+⸻
+
+🎯 CRM Module – Feature Specifications
+
+1. Client / Contact Management
+
+Purpose: Allow freelancers/nomads to manage their clients in a simple, tailored way.
+
+1.1 Client List
+	•	UI: Table or card list. Columns:
+	•	Name (clickable)
+	•	Email
+	•	Country (flag or ISO code)
+	•	Status (Lead / Proposal / Active / Completed)
+	•	Last Interaction Date
+	•	Notes summary (preview)
+	•	Actions:
+	•	Add Client button
+	•	Edit Client (pencil icon)
+	•	Delete Client (trash icon)
+	•	Filter by Status, Country
+	•	Search by Name or Email
+	•	Backend / API:
+	•	GET /api/clients → returns list with pagination, filter params
+	•	POST /api/clients → create new client
+	•	PUT /api/clients/{id} → update client
+	•	DELETE /api/clients/{id} → delete client
+	•	Data model fields:
+
+Client {
+  id: String (UUID)
+  userId: String
+  name: String
+  email: String?
+  country: String (ISO)
+  status: Enum('LEAD','PROPOSAL','ACTIVE','COMPLETED')
+  notes: String?
+  lastInteraction: DateTime?
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+
+	•	Business logic:
+	•	On “Add Client”, default status = LEAD.
+	•	On “Edit”, update lastInteraction if notes updated or status changed.
+
+⸻
+
+1.2 Client Detail View
+	•	UI Tabs or sections:
+	•	Info (name, email, country, status, created date)
+	•	Timeline (notes + system entries)
+	•	Invoices (list of invoices for this client)
+	•	Uploads/Documents related to this client
+	•	Action Area: “Create Invoice” button, “Add Note” button
+	•	Backend/API endpoints:
+	•	GET /api/clients/{id} → full client detail
+	•	GET /api/clients/{id}/invoices → list invoices filtered by client
+	•	POST /api/clients/{id}/notes → add note to timeline
+	•	GET /api/clients/{id}/documents → list uploads
+	•	Data model additions:
+
+Note {
+  id: String
+  clientId: String
+  userId: String
+  content: String
+  tag: Enum('CALL','EMAIL','MEETING','OTHER')?
+  createdAt: DateTime
+}
+
+
+	•	Business logic:
+	•	Timeline entries should show newest first.
+	•	When “Create Invoice” is clicked, pre-fill clientId and client details in invoice form.
+
+⸻
+
+2. Pipeline / Workflow Tracking
+
+Purpose: Visual workflow to see where each client stands in your process.
+
+2.1 Pipeline Board
+	•	UI: Kanban-style board (columns: Lead → Proposal → Active → Completed).
+	•	Cards represent clients.
+	•	Cards show: Name, Country flag, Status badge, Next Action date (if exists).
+	•	Drag & drop card to move columns (change status).
+	•	Actions:
+	•	Drag card across columns.
+	•	Click card → open Client Detail.
+	•	Add next-action date in client detail (optional field).
+	•	Backend/API:
+	•	GET /api/clients?sort=status → list clients grouped by status
+	•	PATCH /api/clients/{id} with { status: newStatus } → update status
+	•	PATCH /api/clients/{id} with { nextActionDate: DateTime } → update next action
+	•	Business logic:
+	•	On status change to COMPLETED → automatically set nextActionDate = null.
+	•	If nextActionDate is in past → flagged as overdue in board (UI highlight).
+	•	Limit free tier clients (see licensing module) – if over limit, show “Upgrade” prompt on board.
+
+⸻
+
+3. Notes & Interaction Logging
+
+Purpose: Keep track of communications and activities associated with each client.
+
+3.1 Notes Input
+	•	UI: On Client Detail: “Add Note” button → modal or inline form
+	•	Fields: Tag dropdown (CALL, EMAIL, MEETING, OTHER), Content textarea, Date (auto = now)
+	•	Backend/API:
+	•	POST /api/clients/{id}/notes → create note
+	•	GET /api/clients/{id}/notes → list notes (paginated)
+	•	Business logic:
+	•	On note creation, update client.lastInteraction = now.
+	•	Notes appear in timeline with timestamp and tag.
+
+3.2 System Activity Entries
+	•	UI: In timeline, differentiate between user-notes and system entries (e.g., “Invoice #102 marked paid”, “Trip logged”).
+	•	Backend logic: Whenever relevant event happens (invoice sent/paid, trip logged linked to this client) then create automatic system note in timeline:
+
+Note {
+  id
+  clientId
+  userId
+  content: String (“Invoice #102 marked Paid”)
+  tag: ‘SYSTEM’
+  createdAt: now
+}
+
+
+
+⸻
+
+4. Search, Filter & Views
+
+Purpose: Enable quick retrieval of clients; support different usage styles.
+
+4.1 Search & Filter
+	•	UI: On client list page: search bar, filter dropdowns:
+	•	Filters: Status multi-select, Country multi-select, Overdue invoices (checkbox)
+	•	Sorting: Name A→Z, Last Interaction descending, Country ascending
+	•	Backend/API:
+	•	GET /api/clients?search={q}&status=[…]&country=[…]&overdueInvoices={true/false}&sort={field}_{dir}&page={n}&limit={m}
+	•	Business logic:
+	•	If query param “overdueInvoices=true” then include only clients where any invoice.status = OVERDUE.
+	•	Pagination defaults: page=1, limit=20.
+
+4.2 Toggle List / Board View
+	•	UI toggle button switch between “List View” and “Pipeline View”.
+	•	Backend: Reuse same endpoints for clients but render differently in UI.
+
+⸻
+
+5. Analytics & Dashboard Metrics (CRM-focused)
+
+Purpose: Provide at-a-glance metrics so freelancers track business health.
+
+5.1 Metrics Display
+	•	UI: On Dashboard:
+	•	Active clients
+	•	Leads
+	•	Completed clients
+	•	Bar chart: Clients by Country (top 5)
+	•	Percentage: Clients with Overdue invoices
+	•	Backend/API:
+	•	GET /api/dashboard/metrics → returns object:
+
+{
+  totalActive: number,
+  totalLeads: number,
+  totalCompleted: number,
+  clientsByCountry: [{ country: String, count: number }],
+  clientsOverduePercentage: number
+}
+
+
+	•	Business logic:
+	•	Use cached or precomputed values if needed for performance.
+	•	Update metrics each time relevant data changes (client status change, invoice status change).
+
+⸻
+
+6. Onboarding & Setup for CRM
+
+Purpose: Rapid first-use so users get value quickly.
+
+6.1 Onboarding Wizard
+	•	UI Steps:
+	1.	Welcome message → “Let’s set up your first client”
+	2.	Add first client (name, email, country)
+	3.	Set default currency (from user profile, also editable later)
+	4.	“See your dashboard” confirmation
+	•	Backend/API:
+	•	POST /api/clients → create first client
+	•	Store user.profile.currency if changed
+	•	Business logic:
+	•	After wizard, redirect to client list or dashboard.
+	•	Show “tour” overlay of pipeline board explaining stages.
+
+6.2 Tooltips & Help
+	•	UI: On key screens (pipeline board, invoices, travel) show small “?” icon → tooltip text explaining feature (“Drag card to move status”).
+	•	Backend: Optional, just front-end implementation.
+
+⸻
+
+7. Permissions & Security (RBAC)
+
+Purpose: Ensure Admin vs Normal User roles are honoured.
+
+7.1 User Role Field
+	•	Data model User { id, email, name, role: Enum('ADMIN','USER'), workspaceId }
+	•	Backend/API:
+	•	Middleware to check req.user.role === 'ADMIN' for admin endpoints
+	•	For client/invoice embedding, ensure item.userId === req.user.id (or workspaceId)
+	•	Business logic:
+	•	Normal Users: can create/edit clients, but cannot invite users or change workspace settings.
+	•	Admins: full access to CRM + settings + user management.
+
+⸻
+
+📌 Implementation Notes for Replit AI Developer
+	•	Base URL: /api/clients, /api/invoices, /api/trips, /api/visas, /api/documents etc. Use plural resource names.  ￼
+	•	Use standard HTTP verbs: GET for retrieval, POST for creation, PUT/PATCH for update, DELETE for delete.  ￼
+	•	Status codes: 200 for success, 201 for created, 400 for bad request, 401 for unauthorized, 404 for not found, 500 for server error.
+	•	For pagination, filtering and sorting, use query params (e.g., ?page=1&limit=20&sort=name_asc).
+	•	Use JSON request/response bodies (content-type: application/json).
+	•	Ensure authentication via JWT/session; secure endpoints with HTTPS.
+
+⸻
+
+If you like, I can now generate the matching API-spec in OpenAPI format (YAML/JSON) for the CRM module with all the endpoints, models, request/response schemas.
