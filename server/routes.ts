@@ -4,6 +4,7 @@ import { setupAuth, requireAuth, requireAdmin } from "./auth";
 import { storage } from "./storage";
 import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema, insertUserSchema, insertClientNoteSchema, insertWorkspaceSchema } from "@shared/schema";
 import { generateInvoicePDF } from "./pdf-generator";
+import { emailService } from "./email-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -252,6 +253,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('PDF generation error:', error);
       res.status(500).send("Error generating PDF");
     }
+  });
+
+  // Email Invoice
+  app.post("/api/invoices/:id/email", requireAuth, async (req, res) => {
+    const invoiceId = parseInt(req.params.id);
+    const invoice = await storage.getInvoice(invoiceId);
+    
+    if (!invoice || invoice.userId !== req.user!.id) {
+      return res.status(404).send("Invoice not found");
+    }
+
+    const client = await storage.getClient(invoice.clientId);
+    if (!client) {
+      return res.status(404).send("Client not found");
+    }
+
+    const user = req.user!;
+    
+    if (!emailService.isConfigured()) {
+      return res.status(503).json({ 
+        error: 'Email service not configured. Please add RESEND_API_KEY to your environment.' 
+      });
+    }
+
+    const { recipientEmail } = req.body;
+    const result = await emailService.sendInvoiceEmail(invoice, client, user, recipientEmail);
+    
+    if (!result.success) {
+      return res.status(500).json({ error: result.error });
+    }
+
+    // Update invoice status to 'sent' if it was 'draft'
+    if (invoice.status === 'draft') {
+      await storage.updateInvoice(invoiceId, { status: 'sent' });
+      
+      await storage.createClientNote({
+        clientId: invoice.clientId,
+        userId: req.user!.id,
+        content: `Invoice #${invoice.invoiceNumber} sent via email`,
+        type: 'System',
+        date: new Date()
+      });
+    }
+
+    res.json({ success: true, message: 'Invoice sent successfully' });
   });
 
   // Jurisdiction Rules
