@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { 
@@ -9,12 +9,46 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Download } from 'lucide-react';
-import { useStore } from '@/lib/store';
+import { useInvoices } from '@/hooks/use-invoices';
+import { useClients } from '@/hooks/use-clients';
+import { InsertInvoice } from '@shared/schema';
 import { format } from 'date-fns';
+import { useForm, Controller } from 'react-hook-form';
 
 export default function Invoices() {
-  const { invoices } = useStore();
+  const { invoices, createInvoice } = useInvoices();
+  const { clients } = useClients();
+  const [open, setOpen] = useState(false);
+  const { register, handleSubmit, control, reset } = useForm<InsertInvoice & { clientId: string }>();
+
+  const getClientName = (id: number) => {
+    return clients.find(c => c.id === id)?.name || 'Unknown Client';
+  };
+
+  const onSubmit = (data: any) => {
+    createInvoice({ 
+      ...data, 
+      clientId: parseInt(data.clientId),
+      amount: parseInt(data.amount), // Simple conversion for MVP
+      dueDate: new Date(data.dueDate),
+      status: 'Sent',
+      items: [{ description: 'Consulting Services', amount: parseInt(data.amount) }] // Stub item
+    });
+    setOpen(false);
+    reset();
+  };
 
   return (
     <AppLayout>
@@ -24,9 +58,56 @@ export default function Invoices() {
             <h2 className="text-3xl font-heading font-bold tracking-tight">Invoices</h2>
             <p className="text-muted-foreground">Track payments and outstanding balances.</p>
           </div>
-          <Button className="shadow-lg shadow-primary/20">
-            <Plus className="mr-2 h-4 w-4" /> New Invoice
-          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="shadow-lg shadow-primary/20">
+                <Plus className="mr-2 h-4 w-4" /> New Invoice
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Invoice</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="invoiceNumber">Invoice Number</Label>
+                  <Input id="invoiceNumber" placeholder="INV-001" {...register('invoiceNumber', { required: true })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="clientId">Client</Label>
+                  <Controller
+                    name="clientId"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select client" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clients.map((client) => (
+                            <SelectItem key={client.id} value={client.id.toString()}>
+                              {client.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="amount">Amount</Label>
+                  <Input id="amount" type="number" placeholder="1000" {...register('amount', { required: true })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="dueDate">Due Date</Label>
+                  <Input id="dueDate" type="date" {...register('dueDate', { required: true })} />
+                </div>
+                <DialogFooter>
+                  <Button type="submit">Create Invoice</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
@@ -44,13 +125,13 @@ export default function Invoices() {
             <TableBody>
               {invoices.map((invoice) => (
                 <TableRow key={invoice.id} className="group">
-                  <TableCell className="font-mono font-medium">{invoice.id}</TableCell>
-                  <TableCell>{invoice.clientName}</TableCell>
+                  <TableCell className="font-mono font-medium">{invoice.invoiceNumber}</TableCell>
+                  <TableCell>{getClientName(invoice.clientId)}</TableCell>
                   <TableCell className="font-medium">
                     {invoice.amount.toLocaleString(undefined, { style: 'currency', currency: invoice.currency })}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {format(new Date(invoice.issuedAt), 'MMM d, yyyy')}
+                    {invoice.issuedAt && format(new Date(invoice.issuedAt), 'MMM d, yyyy')}
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={invoice.status} />
@@ -62,6 +143,13 @@ export default function Invoices() {
                   </TableCell>
                 </TableRow>
               ))}
+              {invoices.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                    No invoices found.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>

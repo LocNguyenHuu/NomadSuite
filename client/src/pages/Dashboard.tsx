@@ -1,9 +1,13 @@
 import React from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useStore } from '@/lib/store';
-import { DollarSign, Users, Calendar, AlertTriangle, TrendingUp, FileText } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useClients } from '@/hooks/use-clients';
+import { useInvoices } from '@/hooks/use-invoices';
+import { useTrips } from '@/hooks/use-trips';
+import { DollarSign, Users, Calendar, AlertTriangle, FileText } from 'lucide-react';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { differenceInDays } from 'date-fns';
 
 const data = [
   { name: 'Jan', total: 2500 },
@@ -15,11 +19,18 @@ const data = [
 ];
 
 export default function Dashboard() {
-  const { clients, invoices, user } = useStore();
+  const { user } = useAuth();
+  const { clients } = useClients();
+  const { invoices } = useInvoices();
+  const { trips } = useTrips();
 
   const activeClients = clients.filter(c => c.status === 'Active').length;
   const pendingInvoices = invoices.filter(i => i.status === 'Sent' || i.status === 'Overdue').length;
   const totalRevenue = invoices.reduce((acc, curr) => acc + (curr.status === 'Paid' ? curr.amount : 0), 0);
+  
+  // Calculate days in current country
+  const currentTrip = trips.find(t => !t.exitDate);
+  const daysInCountry = currentTrip ? differenceInDays(new Date(), new Date(currentTrip.entryDate)) : 0;
 
   return (
     <AppLayout>
@@ -27,7 +38,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-heading font-bold tracking-tight">Dashboard</h2>
-            <p className="text-muted-foreground">Welcome back, {user.name}. Here's your overview.</p>
+            <p className="text-muted-foreground">Welcome back, {user?.name}. Here's your overview.</p>
           </div>
         </div>
 
@@ -53,9 +64,9 @@ export default function Dashboard() {
           />
           <StatCard 
             title="Days in Country" 
-            value="42" 
+            value={daysInCountry.toString()} 
             icon={Calendar} 
-            desc="138 days remaining (Japan)"
+            desc={currentTrip ? `${currentTrip.country}` : "Not traveling"}
           />
         </div>
 

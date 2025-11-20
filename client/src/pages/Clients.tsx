@@ -20,7 +20,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Plus, Search, MoreHorizontal, Mail, FileText } from 'lucide-react';
-import { useStore, Client } from '@/lib/store';
+import { useClients } from '@/hooks/use-clients';
+import { InsertClient } from '@shared/schema';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -31,10 +32,10 @@ import {
 import { useForm } from 'react-hook-form';
 
 export default function Clients() {
-  const { clients, addClient } = useStore();
+  const { clients, createClient } = useClients();
   const [search, setSearch] = useState('');
   const [open, setOpen] = useState(false);
-  const { register, handleSubmit, reset } = useForm<Omit<Client, 'id' | 'createdAt'>>();
+  const { register, handleSubmit, reset } = useForm<InsertClient>();
 
   const filteredClients = clients.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -42,7 +43,7 @@ export default function Clients() {
   );
 
   const onSubmit = (data: any) => {
-    addClient({ ...data, status: 'Lead' });
+    createClient({ ...data, status: 'Lead' });
     setOpen(false);
     reset();
   };
@@ -146,6 +147,13 @@ export default function Clients() {
                   </TableCell>
                 </TableRow>
               ))}
+              {filteredClients.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                    No clients found.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>

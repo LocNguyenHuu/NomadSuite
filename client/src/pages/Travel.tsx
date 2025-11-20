@@ -1,13 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useStore } from '@/lib/store';
-import { MapPin, Calendar as CalendarIcon, AlertCircle } from 'lucide-react';
+import { useTrips } from '@/hooks/use-trips';
+import { MapPin, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { useForm } from 'react-hook-form';
+import { InsertTrip } from '@shared/schema';
 
 export default function Travel() {
-  const { trips, user } = useStore();
+  const { trips, createTrip } = useTrips();
+  const [open, setOpen] = useState(false);
+  const { register, handleSubmit, reset } = useForm<InsertTrip>();
   
   // Mock calculation for Schengen
   const schengenUsed = 42;
@@ -19,12 +34,57 @@ export default function Travel() {
   const taxLimit = 183;
   const taxPercent = (taxResidencyUsed / taxLimit) * 100;
 
+  const onSubmit = (data: any) => {
+    createTrip({
+      ...data,
+      entryDate: new Date(data.entryDate),
+      exitDate: data.exitDate ? new Date(data.exitDate) : undefined
+    });
+    setOpen(false);
+    reset();
+  };
+
   return (
     <AppLayout>
       <div className="space-y-8">
-        <div>
-          <h2 className="text-3xl font-heading font-bold tracking-tight">Travel Log</h2>
-          <p className="text-muted-foreground">Monitor your residency status and visa limits.</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-heading font-bold tracking-tight">Travel Log</h2>
+            <p className="text-muted-foreground">Monitor your residency status and visa limits.</p>
+          </div>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="shadow-lg shadow-primary/20">
+                <Plus className="mr-2 h-4 w-4" /> Add Trip
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Log New Trip</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="country">Country</Label>
+                  <Input id="country" placeholder="Japan" {...register('country', { required: true })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="entryDate">Entry Date</Label>
+                  <Input id="entryDate" type="date" {...register('entryDate', { required: true })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="exitDate">Exit Date (Optional)</Label>
+                  <Input id="exitDate" type="date" {...register('exitDate')} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="notes">Notes</Label>
+                  <Input id="notes" placeholder="Vacation..." {...register('notes')} />
+                </div>
+                <DialogFooter>
+                  <Button type="submit">Save Trip</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -69,7 +129,7 @@ export default function Travel() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <h3 className="font-bold text-lg flex items-center gap-2">
                     {trip.country}
-                    {i === 0 && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Current</span>}
+                    {i === 0 && !trip.exitDate && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Current</span>}
                   </h3>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <CalendarIcon className="mr-1 h-3 w-3" />
@@ -89,6 +149,9 @@ export default function Travel() {
               </div>
             </div>
           ))}
+          {trips.length === 0 && (
+             <div className="text-muted-foreground text-sm">No trips logged yet. Start adding your travel history!</div>
+          )}
         </div>
       </div>
     </AppLayout>
