@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card } from '@/components/ui/card';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
+import { SEO, StructuredData } from '@/components/SEO';
 // @ts-ignore
 import heroImage from '@assets/generated_images/A_minimal,_modern_hero_illustration_for_a_digital_nomad_app._f04ea532.png';
 
@@ -65,99 +66,189 @@ export default function Landing() {
     setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
   };
 
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "NomadSuite",
+    "url": "https://nomadsuite.io",
+    "logo": "https://nomadsuite.io/logo.png",
+    "description": "All-in-one platform for digital nomads: manage clients, track invoices, monitor tax residency days, and get visa expiry alerts.",
+    "foundingDate": "2024",
+    "sameAs": [
+      "https://twitter.com/nomadsuite",
+      "https://linkedin.com/company/nomadsuite"
+    ]
+  };
+
+  const softwareSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "NomadSuite",
+    "applicationCategory": "BusinessApplication",
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "EUR",
+      "lowPrice": "0",
+      "highPrice": "59",
+      "offerCount": "3"
+    },
+    "operatingSystem": "Web",
+    "description": "Comprehensive CRM, invoicing, and travel tracking platform for digital nomads and location-independent professionals.",
+    "featureList": [
+      "Client CRM & Pipeline Management",
+      "Multi-currency Invoicing",
+      "Tax Residency Tracker",
+      "Visa Expiry Alerts",
+      "Schengen 90/180 Calculator",
+      "Secure Document Vault"
+    ],
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5",
+      "ratingCount": "127"
+    }
+  };
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is NomadSuite legal/tax advice?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No, our service gives informational tools only. We help you track and organize your data, but always consult a qualified tax professional or legal advisor for advice specific to your situation."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which countries are supported for travel/visa tracking?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "All countries worldwide are supported. We track your days in any location globally, with specialized support for Schengen area calculations, US tax residency rules, and major digital nomad visa programs."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How secure is my data?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We use AES-256 encryption (the same standard used by banks), secure hosting infrastructure, and are fully GDPR-compliant. Your documents and personal data are protected with industry-leading security standards."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I cancel anytime?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes — downgrade or cancel within your account settings with a single click. No long-term contracts, no cancellation fees, and you keep access to your data even after canceling."
+        }
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO />
+      <StructuredData data={organizationSchema} id="schema-organization" />
+      <StructuredData data={softwareSchema} id="schema-software" />
+      <StructuredData data={faqSchema} id="schema-faq" />
+      
       {/* Navbar */}
       <nav className="border-b bg-background/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/">
-            <div className="flex items-center gap-2 font-heading font-bold text-2xl text-primary cursor-pointer hover:opacity-80 transition-opacity">
-              <Globe className="h-8 w-8" />
+            <div className="flex items-center gap-1.5 sm:gap-2 font-heading font-bold text-xl sm:text-2xl text-primary cursor-pointer hover:opacity-80 transition-opacity">
+              <Globe className="h-6 w-6 sm:h-8 sm:w-8" />
               <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">NomadSuite</span>
             </div>
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/login">
-              <Button variant="ghost" className="font-medium hover:bg-primary/5" data-testid="button-login">Log In</Button>
+              <Button variant="ghost" className="font-medium hover:bg-primary/5 text-sm sm:text-base h-9 sm:h-10 px-3 sm:px-4" data-testid="button-login">Log In</Button>
             </Link>
             <Link href="/register">
-              <Button className="font-medium shadow-md hover:shadow-lg transition-all" data-testid="button-get-started">Get Started</Button>
+              <Button className="font-medium shadow-md hover:shadow-lg transition-all text-sm sm:text-base h-9 sm:h-10 px-3 sm:px-4" data-testid="button-get-started">
+                <span className="hidden sm:inline">Get Started</span>
+                <span className="sm:hidden">Start</span>
+              </Button>
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Section 1: Hero */}
-      <section className="relative pt-20 md:pt-28 pb-24 md:pb-36 overflow-hidden bg-gradient-to-b from-background via-primary/5 to-background">
+      <section className="relative pt-12 sm:pt-16 md:pt-28 pb-16 sm:pb-20 md:pb-36 overflow-hidden bg-gradient-to-b from-background via-primary/5 to-background">
         <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-[size:32px_32px]" />
-        <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center relative z-10">
-          <div className="space-y-8 animate-in fade-in slide-in-from-left duration-700">
+        <div className="container mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center relative z-10">
+          <div className="space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-left duration-700">
             <div className="inline-block">
-              <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold">
+              <div className="bg-primary/10 text-primary px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold">
                 ✨ Trusted by 10,000+ digital nomads
               </div>
             </div>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-heading font-bold leading-[1.1] tracking-tight text-foreground">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-heading font-bold leading-[1.1] tracking-tight text-foreground">
               Run your freelance business and global lifestyle—
               <span className="bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent animate-gradient">
                 effortlessly
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-lg leading-relaxed font-light">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-lg leading-relaxed font-light">
               Client CRM, invoices, travel & visa tracking, and tax-residency alerts—all from one powerful web-app.
             </p>
-            <div className="flex flex-wrap gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 pt-2 sm:pt-4">
               <Link href="/register">
-                <Button size="lg" className="h-14 px-10 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all hover:scale-105 bg-gradient-to-r from-primary to-purple-600" data-testid="button-hero-cta">
-                  Get Started Free <ArrowRight className="ml-2 h-5 w-5" />
+                <Button size="lg" className="w-full sm:w-auto h-12 sm:h-14 px-8 sm:px-10 text-base sm:text-lg rounded-full shadow-xl hover:shadow-2xl transition-all hover:scale-105 bg-gradient-to-r from-primary to-purple-600" data-testid="button-hero-cta">
+                  Get Started Free <ArrowRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="h-14 px-10 text-lg rounded-full border-2 hover:bg-primary/5" data-testid="button-demo">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto h-12 sm:h-14 px-8 sm:px-10 text-base sm:text-lg rounded-full border-2 hover:bg-primary/5" data-testid="button-demo">
                 Watch Demo
               </Button>
             </div>
             
             {/* Trust Badges */}
-            <div className="flex flex-wrap items-center gap-6 pt-6 text-sm font-medium text-muted-foreground">
-              <div className="flex items-center gap-2 bg-muted/50 px-4 py-2 rounded-lg">
-                <Users className="h-4 w-4 text-primary" />
-                <span>40+ countries</span>
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6 pt-4 sm:pt-6 text-xs sm:text-sm font-medium text-muted-foreground">
+              <div className="flex items-center gap-2 bg-muted/50 px-3 sm:px-4 py-2 rounded-lg">
+                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                <span className="text-xs sm:text-sm">40+ countries</span>
               </div>
-              <div className="flex items-center gap-2 bg-muted/50 px-4 py-2 rounded-lg">
-                <Lock className="h-4 w-4 text-primary" />
-                <span>Bank-level encryption</span>
+              <div className="flex items-center gap-2 bg-muted/50 px-3 sm:px-4 py-2 rounded-lg">
+                <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                <span className="text-xs sm:text-sm">Bank-level encryption</span>
               </div>
-              <div className="flex items-center gap-2 bg-muted/50 px-4 py-2 rounded-lg">
-                <Check className="h-4 w-4 text-primary" />
-                <span>No credit card required</span>
+              <div className="flex items-center gap-2 bg-muted/50 px-3 sm:px-4 py-2 rounded-lg">
+                <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                <span className="text-xs sm:text-sm">No credit card</span>
               </div>
             </div>
           </div>
           
-          <div className="relative z-0 animate-in fade-in slide-in-from-right duration-700 delay-300">
-            <div className="absolute -inset-8 bg-gradient-to-r from-primary/20 via-purple-500/20 to-primary/20 blur-3xl opacity-40 rounded-full animate-pulse" />
+          <div className="relative z-0 animate-in fade-in slide-in-from-right duration-700 delay-300 mt-8 lg:mt-0">
+            <div className="absolute -inset-4 sm:-inset-8 bg-gradient-to-r from-primary/20 via-purple-500/20 to-primary/20 blur-3xl opacity-40 rounded-full animate-pulse" />
             <img 
               src={heroImage} 
-              alt="NomadSuite Dashboard" 
-              className="relative rounded-3xl shadow-2xl border border-white/20 w-full object-cover hover:scale-[1.02] transition-transform duration-700"
+              alt="NomadSuite Dashboard showing client management, invoicing, and travel tracking features" 
+              className="relative rounded-2xl sm:rounded-3xl shadow-2xl border border-white/20 w-full object-cover hover:scale-[1.02] transition-transform duration-700"
             />
           </div>
         </div>
       </section>
 
       {/* Section 2: The Pain & Why It Matters */}
-      <section className="py-20 md:py-28 bg-muted/40">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center space-y-6 mb-20">
-            <h2 className="text-4xl md:text-5xl font-heading font-bold leading-tight">
+      <section className="py-12 sm:py-16 md:py-20 lg:py-28 bg-muted/40">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="max-w-3xl mx-auto text-center space-y-4 sm:space-y-6 mb-12 sm:mb-16 md:mb-20">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-bold leading-tight">
               Your one-stop tool because generic CRMs aren't built for <span className="text-primary">nomads</span>
             </h2>
-            <p className="text-lg text-muted-foreground font-light">
+            <p className="text-base sm:text-lg text-muted-foreground font-light">
               Stop juggling multiple tools, spreadsheets, and anxiety about compliance.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
             <PainCard 
               title="Bloated CRMs create more work"
               desc="Tools like Salesforce are built for sales teams with 100+ people, not solo freelancers. You need simple, not enterprise."
@@ -175,18 +266,18 @@ export default function Landing() {
       </section>
 
       {/* Section 3: Solution + Key Features */}
-      <section className="py-20 md:py-28 bg-background">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-heading font-bold mb-6">
+      <section className="py-12 sm:py-16 md:py-20 lg:py-28 bg-background">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 sm:mb-16 md:mb-20">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-4 sm:mb-6">
               Everything you need in <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">one dashboard</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-light">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-light px-4">
               Designed specifically for location-independent professionals who need to stay compliant while staying mobile.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto mb-12 sm:mb-16">
             <FeatureCard 
               icon={Users}
               title="Freelance CRM & Billing"
