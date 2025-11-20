@@ -6,7 +6,7 @@ import {
   type Workspace, type InsertWorkspace
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, count, or, desc } from "drizzle-orm";
+import { eq, count, or, desc, inArray } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -46,7 +46,7 @@ export interface IStorage {
   createDocument(doc: InsertDocument): Promise<Document>;
 
   // Admin
-  getAdminStats(): Promise<{ totalUsers: number; totalClients: number; totalInvoices: number; totalTrips: number }>;
+  getAdminStats(workspaceId: number): Promise<{ totalUsers: number; totalClients: number; totalInvoices: number; totalTrips: number }>;
   getAllUsers(): Promise<User[]>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
   deleteUser(id: number): Promise<void>;
@@ -148,11 +148,21 @@ export class DatabaseStorage implements IStorage {
     return newDoc;
   }
 
-  async getAdminStats() {
-    const [userCount] = await db.select({ count: count() }).from(users);
-    const [clientCount] = await db.select({ count: count() }).from(clients);
-    const [invoiceCount] = await db.select({ count: count() }).from(invoices);
-    const [tripCount] = await db.select({ count: count() }).from(trips);
+  async getAdminStats(workspaceId: number) {
+    const [userCount] = await db.select({ count: count() }).from(users).where(eq(users.workspaceId, workspaceId));
+    
+    const workspaceUserIds = await db.select({ id: users.id }).from(users).where(eq(users.workspaceId, workspaceId));
+    const userIds = workspaceUserIds.map(u => u.id);
+    
+    let clientCount = { count: 0 };
+    let invoiceCount = { count: 0 };
+    let tripCount = { count: 0 };
+    
+    if (userIds.length > 0) {
+      [clientCount] = await db.select({ count: count() }).from(clients).where(inArray(clients.userId, userIds));
+      [invoiceCount] = await db.select({ count: count() }).from(invoices).where(inArray(invoices.userId, userIds));
+      [tripCount] = await db.select({ count: count() }).from(trips).where(inArray(trips.userId, userIds));
+    }
     
     return {
       totalUsers: Number(userCount.count),

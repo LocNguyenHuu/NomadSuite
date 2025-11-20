@@ -93,13 +93,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin Routes
   app.get("/api/admin/stats", requireAdmin, async (req, res) => {
-    const stats = await storage.getAdminStats();
+    const workspaceId = req.user!.workspaceId;
+    if (!workspaceId) {
+      return res.status(400).send("User not associated with a workspace");
+    }
+    const stats = await storage.getAdminStats(workspaceId);
     res.json(stats);
-  });
-
-  app.get("/api/admin/users", requireAdmin, async (req, res) => {
-    const users = await storage.getAllUsers();
-    res.json(users);
   });
 
   // Clients
