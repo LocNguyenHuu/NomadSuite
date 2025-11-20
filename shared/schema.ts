@@ -3,16 +3,27 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+// Workspaces
+export const workspaces = pgTable("workspaces", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  defaultCurrency: text("default_currency").default("USD").notNull(),
+  defaultTaxCountry: text("default_tax_country").default("USA"),
+  plan: text("plan").default("free").notNull(), // 'free', 'pro', 'premium'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Users
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
+  workspaceId: integer("workspace_id").references(() => workspaces.id),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
   email: text("email").notNull(),
   homeCountry: text("home_country").default("USA"),
   currentCountry: text("current_country").default("Japan"),
-  role: text("role").default("user").notNull(),
+  role: text("role").default("user").notNull(), // 'admin', 'user'
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -78,7 +89,12 @@ export const documents = pgTable("documents", {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const workspacesRelations = relations(workspaces, ({ many }) => ({
+  users: many(users),
+}));
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+  workspace: one(workspaces, { fields: [users.workspaceId], references: [workspaces.id] }),
   clients: many(clients),
   invoices: many(invoices),
   trips: many(trips),
@@ -111,6 +127,7 @@ export const documentsRelations = relations(documents, ({ one }) => ({
 }));
 
 // Zod Schemas
+export const insertWorkspaceSchema = createInsertSchema(workspaces).omit({ id: true, createdAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 
 export const insertClientSchema = createInsertSchema(clients, {
@@ -136,6 +153,8 @@ export const insertDocumentSchema = createInsertSchema(documents, {
 }).omit({ id: true, createdAt: true });
 
 // Types
+export type Workspace = typeof workspaces.$inferSelect;
+export type InsertWorkspace = z.infer<typeof insertWorkspaceSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Client = typeof clients.$inferSelect;

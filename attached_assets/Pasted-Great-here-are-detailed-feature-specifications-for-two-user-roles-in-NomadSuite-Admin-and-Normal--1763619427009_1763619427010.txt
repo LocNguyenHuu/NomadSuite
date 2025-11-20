@@ -1,0 +1,174 @@
+Great — here are detailed feature specifications for two user roles in NomadSuite: Admin and Normal User. These specs are clear and ready for the Replit AI developer to implement.
+
+⸻
+
+🎭 Roles & Permissions Overview
+
+Roles
+	1.	Admin — Full access within the workspace/account.
+	2.	Normal User — Limited access; sees data and performs actions but cannot change global settings or user-roles.
+
+Basic Role Definitions & Control
+	•	Use Role-Based Access Control (RBAC) so each user has a role.  ￼
+	•	Each action in the system checked against the user’s role and workspace/tenant.
+	•	Data isolation: normal users cannot access Admin-only views or settings.
+	•	Admin role can invite others (if multi-user workspace is supported) and manage role assignments.
+	•	Normal user role is scoped to their workspace and cannot change role assignments or subscription settings.
+
+⸻
+
+📋 Admin Role – Feature Specification
+
+Admin Capabilities
+	1.	User Management
+	•	View list of users in the workspace.
+	•	Add/invite new users (email invite).
+	•	Assign roles (Admin / Normal User).
+	•	Remove users or change their role.
+	•	View user activity (logs: last login, actions) (optional for MVP).
+	2.	Workspace/Subscription Settings
+	•	View subscription plan details (Free, Pro, Premium) — note: actual billing may be external for MVP.
+	•	Upgrade/downgrade plan (link to billing provider).
+	•	Set workspace name / default currency / default tax country.
+	•	Enable/disable features for the workspace (e.g., turn on “Travel Log” module) — basic toggles.
+	3.	Data Access & Overviews
+	•	Access all clients/invoices/trips/documents in the workspace.
+	•	See summary dashboard: total clients, number of users, invoices overdue across users (if multiple).
+	•	Export workspace data (CSV) for migration/backups.
+	4.	Role-Specific Restrictions (what Admin cannot do)
+	•	Admin cannot see other tenants’ data (if multi-tenant SaaS supports multiple tenants).
+	•	Admin cannot change internal system settings (like brand, database schema) for MVP.
+
+UI Screens for Admin
+	•	/app/users — user list & invite modal.
+	•	/app/settings/workspace — workspace settings page.
+	•	/app/settings/subscription — subscription overview/upgrades.
+	•	/app/dashboard — with “Admin summary” panel (users count, workspace usage).
+
+Data Model Additions
+
+Add table User with field role (ENUM: “ADMIN”, “USER”).
+Add workspaceId (or tenantId) if multi-workspace supported.
+Permissions logic: in API endpoints, check request.user.role === “ADMIN” for admin-only endpoints.
+
+⸻
+
+📋 Normal User Role – Feature Specification
+
+Normal User Capabilities
+	1.	Client CRM Access
+	•	Create/edit/delete clients (subject to workspace limits for free tier).
+	•	Use pipeline board and list view.
+	•	Add notes and timeline entries for clients.
+	2.	Invoice & Payment Module
+	•	Create invoice for any client.
+	•	Mark invoice sent/paid.
+	•	See invoice list, filter by status.
+	•	Receive reminders for overdue invoices (triggered by system).
+	•	Cannot change subscription/plan.
+	3.	Travel & Residency Tracking
+	•	Add/edit/delete trips (country, entry/exit date).
+	•	View residency status, Schengen 90/180 visualization.
+	•	Add/edit visas/permits (expiry alerts).
+	4.	Document Vault
+	•	Upload documents (passport, visa, contract, invoice).
+	•	View list of documents with metadata (type, country, expiry date).
+	•	Receive alerts for documents nearing expiry.
+	5.	Dashboard View
+	•	See own dashboard with metrics: active clients, open invoices, residency status.
+	•	Receive alerts relevant to their data (not workspace-wide).
+
+Normal User Restrictions
+	•	Cannot invite or manage other users.
+	•	Cannot change workspace/global settings (currency, default tax country, subscription plan).
+	•	Cannot upgrade/downgrade plan or view other users’ usage.
+	•	Their view is scoped to workspace data but limited actions.
+
+UI Screens for Normal User
+	•	/app/dashboard — standard view.
+	•	/app/clients, /app/clients/[id] — client management.
+	•	/app/invoices, /app/invoices/new.
+	•	/app/travel, /app/visas, /app/documents.
+	•	/app/settings/profile — personal profile (name, email, nationality, home country, currency).
+	•	No /app/settings/users or /app/settings/subscription by default unless Admin.
+
+⸻
+
+✅ Clear Access Table
+
+Feature Area	Admin Access	Normal User Access
+View workspace usage/data	✅	Limited to own data
+Manage users/roles	✅	❌
+Change workspace settings	✅	❌
+Create/Edit clients	✅	✅
+View pipeline board	✅	✅
+Create/Edit invoices	✅	✅
+Upgrade plan	✅	❌
+Upload/view documents	✅	✅
+Travel & residency logs	✅	✅
+Alerts overview (global)	✅	Individual alerts
+
+
+⸻
+
+🖥 API & Endpoint Spec (for Replit AI)
+
+// Users
+GET    /api/users            (Admin only)
+POST   /api/users/invite     (Admin only)
+PUT    /api/users/:userId/role (Admin only)
+DELETE /api/users/:userId     (Admin only)
+
+// Workspace settings
+GET    /api/workspace/settings   (Admin)
+PUT    /api/workspace/settings   (Admin)
+
+// Client CRM
+GET    /api/clients            (Admin & User)
+POST   /api/clients            (Admin & User)
+GET    /api/clients/:id        (Admin & User)
+PUT    /api/clients/:id        (Admin & User)
+DELETE /api/clients/:id        (Admin & User)
+
+// Invoice Module
+GET    /api/invoices           (Admin & User)
+POST   /api/invoices           (Admin & User)
+PUT    /api/invoices/:id       (Admin & User)
+DELETE /api/invoices/:id       (Admin & User)  // maybe Admin only or establish rule
+
+// Travel Logs
+GET    /api/trips              (Admin & User)
+POST   /api/trips              (Admin & User)
+PUT    /api/trips/:id          (Admin & User)
+DELETE /api/trips/:id          (Admin & User)
+
+// Visas/Permits
+GET    /api/visas              (Admin & User)
+POST   /api/visas              (Admin & User)
+PUT    /api/visas/:id          (Admin & User)
+DELETE /api/visas/:id          (Admin & User)
+
+// Documents
+GET    /api/documents          (Admin & User)
+POST   /api/documents/upload   (Admin & User)
+GET    /api/documents/:id      (Admin & User)
+DELETE /api/documents/:id      (Admin & User)
+
+// Notifications/Alerts
+GET    /api/alerts             (Admin & User)
+
+
+⸻
+
+🧠 Notes for Replit AI Developer
+	•	Implement middleware to check user.role and user.workspaceId on each request.
+	•	Use workspaceId (or tenantId) in each record (clients, invoices, trips, visas, documents) to ensure data isolation.
+	•	Use ENUM for role field in User table.
+	•	Default first user for a workspace = Admin.
+	•	Free tier: limit number of clients or other features — enforce in backend.
+	•	For now MVP: single workspace per account is fine; multi-workspace support can come later.
+	•	Use RBAC checks at endpoint level.
+
+⸻
+
+If you like, I can now generate schema modifications for the User and Workspace tables (for admin/normal roles) and UI wireframe layouts for the Admin vs User views.
