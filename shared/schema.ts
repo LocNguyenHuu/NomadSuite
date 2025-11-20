@@ -24,6 +24,11 @@ export const users = pgTable("users", {
   homeCountry: text("home_country").default("USA"),
   currentCountry: text("current_country").default("Japan"),
   role: text("role").default("user").notNull(), // 'admin', 'user'
+  // Business/Tax fields for invoicing
+  businessName: text("business_name"),
+  businessAddress: text("business_address"),
+  vatId: text("vat_id"),
+  taxRegime: text("tax_regime"), // e.g., 'standard', 'kleinunternehmer'
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -59,12 +64,21 @@ export const invoices = pgTable("invoices", {
   userId: integer("user_id").notNull().references(() => users.id),
   clientId: integer("client_id").notNull().references(() => clients.id),
   invoiceNumber: text("invoice_number").notNull(),
-  amount: integer("amount").notNull(), // In cents
+  amount: integer("amount").notNull(),
   currency: text("currency").notNull().default("USD"),
   status: text("status").notNull(), // 'Draft', 'Sent', 'Paid', 'Overdue'
   dueDate: timestamp("due_date").notNull(),
   issuedAt: timestamp("issued_at").defaultNow(),
   items: jsonb("items").$type<{ description: string; amount: number }[]>().notNull(),
+  // Multi-country compliance fields
+  country: text("country"),
+  language: text("language").default("en"),
+  exchangeRate: text("exchange_rate"), // Stored as string for precision
+  customerVatId: text("customer_vat_id"),
+  reverseCharge: boolean("reverse_charge").default(false),
+  reverseChargeNote: text("reverse_charge_note"),
+  complianceChecked: boolean("compliance_checked").default(false),
+  templateVersion: text("template_version").default("standard"),
 });
 
 // Trips (Travel Log)
@@ -85,6 +99,24 @@ export const documents = pgTable("documents", {
   type: text("type").notNull(), // 'Passport', 'Visa', 'Contract', 'Other'
   expiryDate: timestamp("expiry_date"),
   fileUrl: text("file_url").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Jurisdiction Rules for multi-country invoicing
+export const jurisdictionRules = pgTable("jurisdiction_rules", {
+  id: serial("id").primaryKey(),
+  country: text("country").notNull().unique(), // ISO code e.g., "DE", "FR", "GB", "CA", "US"
+  countryName: text("country_name").notNull(),
+  supportedLanguages: text("supported_languages").array().notNull(),
+  defaultLanguage: text("default_language").notNull(),
+  defaultCurrency: text("default_currency").notNull(),
+  requiresVatId: boolean("requires_vat_id").default(false),
+  requiresCustomerVatId: boolean("requires_customer_vat_id").default(false),
+  supportsReverseCharge: boolean("supports_reverse_charge").default(false),
+  archivingYears: integer("archiving_years").default(7),
+  taxRate: text("tax_rate"), // Stored as string, e.g., "19" for 19%
+  languageNote: text("language_note"),
+  complianceNotes: text("compliance_notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -141,7 +173,14 @@ export const insertClientNoteSchema = createInsertSchema(clientNotes, {
 
 export const insertInvoiceSchema = createInsertSchema(invoices, {
   dueDate: z.coerce.date(),
+  reverseCharge: z.boolean().optional(),
+  complianceChecked: z.boolean().optional(),
 }).omit({ id: true, issuedAt: true });
+
+export const insertJurisdictionRuleSchema = createInsertSchema(jurisdictionRules).omit({ 
+  id: true, 
+  createdAt: true 
+});
 
 export const insertTripSchema = createInsertSchema(trips, {
   entryDate: z.coerce.date(),
@@ -167,3 +206,5 @@ export type Trip = typeof trips.$inferSelect;
 export type InsertTrip = z.infer<typeof insertTripSchema>;
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type JurisdictionRule = typeof jurisdictionRules.$inferSelect;
+export type InsertJurisdictionRule = z.infer<typeof insertJurisdictionRuleSchema>;

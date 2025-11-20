@@ -219,6 +219,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(updatedInvoice);
   });
 
+  // Jurisdiction Rules
+  app.get("/api/jurisdictions", requireAuth, async (req, res) => {
+    const rules = await storage.getJurisdictionRules();
+    res.json(rules);
+  });
+
+  app.get("/api/jurisdictions/:country", requireAuth, async (req, res) => {
+    const rule = await storage.getJurisdictionRule(req.params.country);
+    if (!rule) {
+      return res.status(404).send("Jurisdiction rule not found");
+    }
+    res.json(rule);
+  });
+
   // Trips
   app.get("/api/trips", requireAuth, async (req, res) => {
     const trips = await storage.getTrips(req.user!.id);

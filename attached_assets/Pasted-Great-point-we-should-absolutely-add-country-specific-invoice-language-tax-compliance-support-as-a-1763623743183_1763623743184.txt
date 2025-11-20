@@ -1,0 +1,110 @@
+Great point — we should absolutely add country-specific invoice/language/tax compliance support as a feature in the CRM/invoicing module of NomadSuite. Below is a detailed specification for this feature so Replit AI knows exactly how to implement it.
+
+⸻
+
+🌍 Feature: Multi-Country Invoice & Compliance Support
+
+Purpose: When freelancers/nomads serve clients in Europe, Canada, UK, USA (or other jurisdictions), the invoice system adapts to the local requirements: language, mandatory fields, tax rates, VAT/regime rules, archived format. This increases trust & compliance for your users.
+
+✅ Functional Requirements
+
+1. Jurisdiction Detection or Selection
+	•	On invoice creation form: user selects the client country (already existing).
+	•	The system then determines jurisdiction rules for invoice formatting, language, tax/regime.
+	•	E.g., Germany → German (DE) or English allowed but German tax authorities may request German translation.  ￼
+	•	France, Canada, UK, USA each have their own invoice norms (we will need to research and codify).
+	•	Provide override: user can select language manually from a dropdown (e.g., English, German, French) but show “recommended” based on country.
+
+2. Invoice Template Variation
+	•	Invoice template engine must support different languages and terminology (e.g., “Invoice” vs “Rechnung” vs “Facture”).
+	•	Mandatory fields by country:
+	•	Germany: unique sequential number, date of issue, supplier & customer full address, VAT number of supplier and if B2B intra-EU, customer’s VAT ID.  ￼
+	•	Germany: language: not strictly German only, but authorities may request German translation.  ￼
+	•	Currency & conversion: If user invoices in currency ≠ country currency (e.g., USD invoice for German client), clearly show exchange rate and local equivalent.
+	•	Reverse charge / intra-EU B2B logic: If transaction is intra-EU and B2B, the invoice must include “reverse charge” wording in correct language.  ￼
+
+3. Format & Archiving Rules
+	•	Provide storage/archive capability for invoices in a legally compliant format for each jurisdiction: e-g Germany requires invoices to be archived 10 years in readable, unaltered format.  ￼
+	•	Support PDF download and optionally structured data (for advanced future versions).
+
+4. UI Elements for Invoice Creation
+	•	On “Create Invoice” form:
+	•	Field: Client Country (pre-filled from client).
+	•	Field: Language (dropdown) — default to client country recommended language.
+	•	Display hint: “These fields will be formatted according to  rules.”
+	•	Field: Invoice template version (shows language version).
+	•	After user selects country + language, the fields in the PDF template adjust automatically (labels/text) to correct language.
+	•	Pre-fill supplier address & VAT number from user profile and toggle if small business rule applies (e.g., Germany Kleinunternehmer) with note like: “Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.”  ￼
+
+5. Business Logic / Tax Rules Hub
+	•	Maintain a configuration table for each supported jurisdiction with:
+	•	Supported languages
+	•	Required invoice fields
+	•	Tax/VAT logic (rate, reverse charge conditions)
+	•	Currency default
+	•	Archiving duration
+	•	Notes regarding language translation required
+	•	On invoice save, system checks:
+	•	All required fields for that jurisdiction are filled.
+	•	If language selected is non-default, warn: “You selected English but German authorities may request German translation.”
+	•	If currency ≠ default currency of that country, prompt for exchange rate field.
+	•	If reverse charge scenario applies, auto-include correct clause in specified language.
+
+6. Reporting & Compliance Alerts
+	•	Provide user alerts when there are upcoming compliance changes or anniversary of archiving requirement for that country.
+	•	E.g., “In Germany you must retain invoices for 10 years; oldest invoice in system is now 9 years old.”
+	•	Provide “Compliance Checklist” in settings: “For Germany: Ensure your invoices include VAT ID, unique number, sequential numbering.”
+	•	Provide export of invoices filtered by country/jurisdiction for accountant export.
+
+⸻
+
+🧩 Data Model Additions
+
+Extend Invoice model (example):
+
+Invoice {
+  ...
+  country          String   // ISO country code of client
+  language         String   // ISO language code used for invoice (e.g., "en", "de", "fr")
+  exchangeRate     Float?   // if currency != country default
+  complianceChecked Boolean // flag set if the required field-check passed
+  templateVersion  String   // key referencing language/template version
+  savedAt          DateTime
+}
+
+Add JurisdictionRule model:
+
+JurisdictionRule {
+  country         String  // ISO code e.g., "DE", "FR", "CA", "UK", "US"
+  supportedLanguages [String]  // e.g., ["de","en"] for Germany
+  requiredFields  Json    // e.g., {"vatId":true,"customerAddress":true, "reverseChargeClause":true}
+  defaultCurrency String  // e.g., "EUR"
+  archivingYears  Int     // e.g., 10 years for Germany
+  notes           String
+}
+
+
+⸻
+
+🔧 Implementation Notes for Replit AI Developer
+	•	Build endpoint(s) to load jurisdiction rule when client country changes:
+GET /api/jurisdictions/{country} → returns rule object.
+	•	Invoice creation flow: when country selected → fetch rule → validate UI accordingly.
+	•	Template engine part: use i18n library (e.g., next-i18next) to load invoice labels/translations.
+	•	PDF generator: pick template version based on selected language; use dynamic translation labels.
+	•	Validation: Backend middleware for invoice creation must verify that all requiredFields from JurisdictionRule are present; if not, respond with validation error.
+	•	Archiving logic: When invoice is saved + status Paid (or special milestone) store creation date; set job/alert to remind user possibly about archiving retention.
+	•	UI hint banners: show compliance tips/hints based on jurisdiction.
+	•	For MVP, support a few key jurisdictions first: Germany (DE), France (FR), UK (GB/UK), Canada (CA), USA (US). Additional countries can be added over time.
+
+⸻
+
+🎯 Summary
+
+By adding Multi-Country Invoice & Compliance Support, NomadSuite positions itself as truly global-nomad friendly. It addresses major pain points: “I don’t know how to invoice someone in Germany”, “Do I need German translation?”, “What fields are mandatory in France?”, etc.
+
+This feature should be clearly included in the MVP roadmap (if not full support for all countries, at least core ones) and is essential for differentiating from generic CRMs.
+
+⸻
+
+If you like, I can generate the UI/UX wireframes and invoice template language variations for each of the five core jurisdictions (DE/FR/UK/CA/US) ready for Replit AI developer.

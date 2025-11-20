@@ -1,9 +1,9 @@
 import { 
-  users, clients, invoices, trips, documents, clientNotes, workspaces,
+  users, clients, invoices, trips, documents, clientNotes, workspaces, jurisdictionRules,
   type User, type InsertUser, type Client, type InsertClient,
   type Invoice, type InsertInvoice, type Trip, type InsertTrip,
   type Document, type InsertDocument, type ClientNote, type InsertClientNote,
-  type Workspace, type InsertWorkspace
+  type Workspace, type InsertWorkspace, type JurisdictionRule
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, count, or, desc, inArray } from "drizzle-orm";
@@ -46,6 +46,10 @@ export interface IStorage {
   // Documents
   getDocuments(userId: number): Promise<Document[]>;
   createDocument(doc: InsertDocument): Promise<Document>;
+
+  // Jurisdiction Rules
+  getJurisdictionRules(): Promise<JurisdictionRule[]>;
+  getJurisdictionRule(country: string): Promise<JurisdictionRule | undefined>;
 
   // Admin
   getAdminStats(workspaceId: number): Promise<{ totalUsers: number; totalClients: number; totalInvoices: number; totalTrips: number }>;
@@ -235,6 +239,15 @@ export class DatabaseStorage implements IStorage {
 
   async getWorkspaceUsers(workspaceId: number): Promise<User[]> {
     return db.select().from(users).where(eq(users.workspaceId, workspaceId)).orderBy(users.id);
+  }
+
+  async getJurisdictionRules(): Promise<JurisdictionRule[]> {
+    return db.select().from(jurisdictionRules).orderBy(jurisdictionRules.countryName);
+  }
+
+  async getJurisdictionRule(country: string): Promise<JurisdictionRule | undefined> {
+    const [rule] = await db.select().from(jurisdictionRules).where(eq(jurisdictionRules.country, country));
+    return rule || undefined;
   }
 }
 
