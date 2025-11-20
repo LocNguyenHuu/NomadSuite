@@ -75,7 +75,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
-    const [newInvoice] = await db.insert(invoices).values(invoice).returning();
+    // Cast to any to avoid complex type mismatch with jsonb array and drizzle inference
+    const [newInvoice] = await db.insert(invoices).values(invoice as any).returning();
     return newInvoice;
   }
 

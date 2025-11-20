@@ -31,7 +31,8 @@ export default function Invoices() {
   const { invoices, createInvoice } = useInvoices();
   const { clients } = useClients();
   const [open, setOpen] = useState(false);
-  const { register, handleSubmit, control, reset } = useForm<InsertInvoice & { clientId: string }>();
+  // Explicitly defining form data type to handle the string vs number mismatch for clientId
+  const { register, handleSubmit, control, reset } = useForm<Omit<InsertInvoice, 'clientId'> & { clientId: string }>();
 
   const getClientName = (id: number) => {
     return clients.find(c => c.id === id)?.name || 'Unknown Client';

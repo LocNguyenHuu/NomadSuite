@@ -9,16 +9,16 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X,
   Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useStore } from '@/lib/store';
+import { useAuth } from '@/hooks/use-auth';
 
 const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => void }) => {
   const [location] = useLocation();
+  const { logoutMutation } = useAuth();
   
   const navItems = [
     { href: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -62,19 +62,21 @@ const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => v
         </nav>
       </div>
       <div className="p-4 border-t border-sidebar-border">
-        <Link href="/login">
-          <a className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-destructive transition-colors">
-            <LogOut className="h-4 w-4" />
-            Sign Out
-          </a>
-        </Link>
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-destructive transition-colors"
+          onClick={() => logoutMutation.mutate()}
+        >
+          <LogOut className="h-4 w-4" />
+          Sign Out
+        </Button>
       </div>
     </div>
   );
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useStore();
+  const { user } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
 
   return (
@@ -102,12 +104,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="ml-auto flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium leading-none">{user.name}</p>
-                  <p className="text-xs text-muted-foreground">📍 {user.currentCountry}</p>
+                  <p className="text-sm font-medium leading-none">{user?.name}</p>
+                  <p className="text-xs text-muted-foreground">📍 {user?.currentCountry}</p>
                 </div>
                 <Avatar>
                   <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>AN</AvatarFallback>
+                  <AvatarFallback>{user?.username?.substring(0,2).toUpperCase()}</AvatarFallback>
                 </Avatar>
               </div>
             </div>
