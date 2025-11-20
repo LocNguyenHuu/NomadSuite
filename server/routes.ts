@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth, requireAuth, requireAdmin } from "./auth";
 import { storage } from "./storage";
 import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema, insertUserSchema, insertClientNoteSchema, insertWorkspaceSchema } from "@shared/schema";
+import { generateInvoicePDF } from "./pdf-generator";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -221,6 +222,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     res.json(updatedInvoice);
+  });
+
+  // PDF Download
+  app.get("/api/invoices/:id/pdf", requireAuth, async (req, res) => {
+    const invoiceId = parseInt(req.params.id);
+    const invoice = await storage.getInvoice(invoiceId);
+    
+    if (!invoice || invoice.userId !== req.user!.id) {
+      return res.status(404).send("Invoice not found");
+    }
+
+    const client = await storage.getClient(invoice.clientId);
+    if (!client) {
+      return res.status(404).send("Client not found");
+    }
+
+    const user = req.user!;
+    
+    try {
+      const doc = generateInvoicePDF({ invoice, client, user });
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`);
+      
+      doc.pipe(res);
+      doc.end();
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      res.status(500).send("Error generating PDF");
+    }
   });
 
   // Jurisdiction Rules

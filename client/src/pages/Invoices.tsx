@@ -277,7 +277,15 @@ export default function Invoices() {
                     <StatusBadge status={invoice.status} />
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => {
+                        window.open(`/api/invoices/${invoice.id}/pdf`, '_blank');
+                      }}
+                      data-testid={`button-download-invoice-${invoice.id}`}
+                    >
                       <Download className="h-4 w-4" />
                     </Button>
                   </TableCell>

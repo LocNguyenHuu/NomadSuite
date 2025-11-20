@@ -18,7 +18,7 @@ export function generateInvoicePDF(data: InvoicePDFData): PDFKit.PDFDocument {
   // Invoice details (top right)
   doc.fontSize(10);
   doc.text(`Invoice #: ${invoice.invoiceNumber}`, { align: 'right' });
-  doc.text(`Date: ${new Date(invoice.issuedAt).toLocaleDateString()}`, { align: 'right' });
+  doc.text(`Date: ${invoice.issuedAt ? new Date(invoice.issuedAt).toLocaleDateString() : new Date().toLocaleDateString()}`, { align: 'right' });
   doc.text(`Due: ${new Date(invoice.dueDate).toLocaleDateString()}`, { align: 'right' });
   doc.text(`Currency: ${invoice.currency}`, { align: 'right' });
   if (invoice.language && invoice.language !== 'en') {
