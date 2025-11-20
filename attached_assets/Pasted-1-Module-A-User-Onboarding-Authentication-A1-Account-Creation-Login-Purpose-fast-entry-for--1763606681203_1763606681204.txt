@@ -1,0 +1,291 @@
+1. Module A – User Onboarding & Authentication
+
+A1. Account Creation/Login
+
+Purpose: fast entry for nomads, frictionless auth.
+
+Functional Requirements:
+	•	OAuth Login (Google, Apple).
+	•	Email/password fallback.
+	•	JWT session tokens.
+	•	Basic user profile:
+	•	Name
+	•	Email
+	•	Nationality
+	•	Primary currency
+	•	Home country
+	•	Optional: IP-based geolocation (on consent prompt).
+
+Non-functional:
+	•	Session persistence 30 days.
+	•	Mobile-first UI.
+
+⸻
+
+A2. Profile Setup Wizard (3 steps)
+
+Purpose: personalize tax & visa alerts immediately.
+
+Steps:
+	1.	Nationality + passport(s)
+	2.	Current location + intended travel region (EU/Asia/Americas)
+	3.	Visa types (tourist, nomad visa, residence permit, etc.)
+
+Output:
+	•	Save user ruleset for residency calculations.
+	•	Initialize dashboards with correct tax/visa logic.
+
+⸻
+
+2. Module B – Dashboard & Alerts Engine
+
+B1. Home Dashboard
+
+Purpose: consolidate business + travel status.
+
+Displays:
+	•	Total active clients
+	•	Open invoices count + total unpaid
+	•	Revenue YTD
+	•	Residency status:
+	•	Days in current country
+	•	183-day risk indicator
+	•	Schengen counter (if relevant)
+	•	Upcoming visa/document expiries
+	•	Upcoming tasks/reminders
+
+UI Requirements:
+	•	Mobile-responsive
+	•	Color-coded alerts (Green/Yellow/Red)
+
+⸻
+
+B2. Notification System
+
+Triggers:
+	•	Invoice overdue
+	•	Visa expires soon
+	•	Approaching 183-day threshold
+	•	Schengen 90/180 approaching
+	•	No contact with client for 14 days
+	•	Document expiration
+
+Delivery:
+	•	In-app banner
+	•	Email notifications
+
+⸻
+
+3. Module C – Simple CRM for Freelancers
+
+C1. Client List
+
+Purpose: Lightweight, non-corporate CRM.
+
+Fields:
+	•	Name
+	•	Email
+	•	Country
+	•	Notes
+	•	Status (Lead, Proposal, Active, Completed)
+
+Features:
+	•	Add/edit/delete client
+	•	Search + filter
+	•	Limit to 5 clients on free tier (freemium conversion driver)
+
+⸻
+
+C2. Pipeline View (Board)
+
+Purpose: Visual workflow without complexity.
+
+Stages:
+	•	Lead
+	•	Proposal Sent
+	•	Active
+	•	Completed
+
+Features:
+	•	Drag-and-drop cards
+	•	Shows overdue tasks, invoice status, next action
+	•	Clicking a card opens Client Detail Panel
+
+⸻
+
+C3. Client Detail Panel
+
+Contains:
+	•	Contact info
+	•	Timeline:
+	•	Notes
+	•	Invoices
+	•	Projects
+	•	Uploaded docs
+	•	“Create Invoice” button
+	•	“Add Note” button
+
+⸻
+
+4. Module D – Invoicing & Payments
+
+D1. Invoice Creator
+
+Purpose: Generate & send invoices in <1 minute.
+
+Fields:
+	•	Client
+	•	Item description(s)
+	•	Rate/amount
+	•	Currency
+	•	Auto-calculated totals
+	•	Optional VAT (EU rules: reverse charge if B2B EU)
+	•	Due date
+
+Features:
+	•	Generate PDF
+	•	Send via email (SMTP or SendGrid)
+	•	“Mark as Paid” toggle
+	•	PDF includes:
+	•	Your name/business
+	•	Client details
+	•	Invoice number
+	•	Breakdown of items
+	•	Total
+
+⸻
+
+D2. Payment Reminders
+
+Logic:
+	•	0 days after due date = “Invoice overdue”
+	•	7 / 14 days = automated email reminders
+	•	Timezone-aware scheduling
+
+⸻
+
+5. Module E – Tax Residency & Visa Tracking
+
+E1. Travel Log
+
+Purpose: Helps nomads avoid residency & visa mistakes.
+
+Features:
+	•	Add trip:
+	•	Country
+	•	Entry date
+	•	Exit date
+	•	Editable list
+	•	Auto calculate total days per country
+	•	Calendar view
+
+⸻
+
+E2. Residency Calculator
+
+Logic:
+	•	Based on 183-day rule:
+	•	<120 days = Safe
+	•	120–183 days = At Risk
+	•	183 days = Likely Tax Resident
+	•	Display:
+	•	Days spent
+	•	Days remaining
+	•	Warnings
+
+⸻
+
+E3. Schengen 90/180 Tracker
+
+Logic:
+
+Sliding window 180-day algorithm:
+	•	90 days max allowed
+	•	Highlight:
+	•	Days used
+	•	Days remaining
+	•	Next free day
+
+UI:
+	•	Visual bar with 180-day window
+	•	Red warning if <10 days left
+
+⸻
+
+E4. Visa Alert System
+
+Features:
+	•	Add visa document:
+	•	Country
+	•	Visa type
+	•	Issue date
+	•	Expiry date
+	•	System generates:
+	•	Renewal reminders 30/7/1 days before expiry
+
+⸻
+
+E5. Tax Optimization Suggestions (MVP-Lite)
+
+Static rules only:
+	•	If client country ≠ user country → “Cross-border income: check treaty”
+	•	If EU client B2B → “Reverse charge applies”
+	•	If user spends >183 days → “Potential tax residency”
+
+Disclaimers included:
+“Not tax/legal advice. General informational rules only.”
+
+⸻
+
+6. Module F – Document Vault
+
+F1. Secure Upload
+
+Supports:
+	•	JPEG
+	•	PNG
+	•	PDF
+
+Document types:
+	•	Passports
+	•	Visas
+	•	Residence cards
+	•	Client contracts
+	•	Invoices
+	•	Tax forms
+
+Stored securely in S3/GCS.
+
+⸻
+
+F2. AI Metadata Extraction (Simple MVP)
+
+Use OpenAI GPT-4.1/GPT-5-mini to extract:
+	•	Document type
+	•	Country
+	•	Expiry date
+	•	Issue date
+	•	Person name
+	•	Visa conditions
+
+Tags auto-generated.
+
+⸻
+
+F3. Document Expiry Alerts
+
+Tied to Module E (Visa Tracking).
+
+⸻
+
+🧰 Non-Functional Requirements
+
+Performance:
+	•	Dashboard loads <300ms
+	•	Document extraction <5 seconds
+
+Security:
+	•	Encrypted at-rest documents (AES-256)
+	•	JWT auth
+	•	HTTPS only
+	•	No sensitive data stored unencrypted

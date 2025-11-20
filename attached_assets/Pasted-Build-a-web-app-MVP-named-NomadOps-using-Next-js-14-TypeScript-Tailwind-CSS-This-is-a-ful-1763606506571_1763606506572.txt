@@ -1,0 +1,72 @@
+Build a web app MVP named **NomadOps** using Next.js 14 + TypeScript + Tailwind CSS.  
+This is a full‐stack web application (not mobile app) for freelancers & digital nomads that combines:
+
+1. A **lightweight CRM** for solo freelancers.  
+2. **Invoicing & payment tracking** (basic).  
+3. A **travel/residency & visa tracker** (for nomads).  
+4. A **document vault** with metadata extraction.
+
+### Tech stack:
+- Frontend + backend via Next.js (App Router)  
+- React + Tailwind CSS for UI  
+- PostgreSQL (via Prisma ORM) for database  
+- Authentication via NextAuth (email/password + Google OAuth)  
+- File storage for documents (S3 or similar)  
+- Use OpenAI API for document metadata extraction (stubbed if needed)
+
+### User flows / pages:
+
+#### Public:
+- `/` : Landing page with headline, value prop, “Sign Up / Log In” CTA  
+- `/login` : Login page  
+- `/register` : Signup page  
+
+#### Protected (authenticated):
+- `/app/dashboard` : Home screen with summary of clients, open invoices, travel/residency status, alerts  
+- `/app/clients` : List of clients (name, email, country, status) + “Add Client”  
+- `/app/clients/[id]` : Client detail page (contact info + timeline + invoices)  
+- `/app/invoices` : Invoice list with status (Draft, Sent, Paid, Overdue)  
+- `/app/invoices/new` : Create invoice page  
+- `/app/travel` : Travel log list & form (country, entry date, exit date) + residency calculation widget  
+- `/app/visas` : Visa/permit list + form (country, type, issue date, expiry date) + alerts  
+- `/app/documents` : Document vault (upload PDF/JPG/PNG) + list with metadata (type, country, expiry)  
+- `/app/settings` : Profile settings (name, nationality, home country, currency) + Data export (CSV)  
+
+### Data models (simplified):
+- User { id, email, name, nationality, homeCountry, currency, createdAt }  
+- Client { id, userId, name, email, country, status, notes, createdAt }  
+- Invoice { id, userId, clientId, number, currency, items (JSON), total, vatRate?, status, dueDate, issuedAt }  
+- Trip { id, userId, country, entryDate, exitDate, createdAt }  
+- Visa { id, userId, country, visaType, issueDate, expiryDate, notes, createdAt }  
+- Document { id, userId, type, country?, fileUrl, issueDate?, expiryDate?, label?, createdAt }
+
+### Core features:
+- Authentication & profile setup wizard (nation, home country, currency)  
+- Dashboard showing key metrics: active clients, open invoices, travel/residency status (183-day rule + Schengen 90/180)  
+- Client list + pipeline board (Lead → Proposal → Active → Completed)  
+- Invoice creation + PDF export + mark as sent/paid + overdue reminders  
+- Travel log with day counting per country + residency risk indicator  
+- Schengen 90/180 calculator  
+- Visa list + expiry alerts  
+- Document upload + metadata extraction via OpenAI + automatic expiry alerts  
+- Data export (CSV) for clients, invoices, trips, visas, documents  
+- Mobile-responsive UI  
+
+### Non-functional requirements:
+- JWT session management  
+- Secure storage for documents (AES-256 at rest)  
+- Application loads <300ms for dashboard  
+- Role: only one role (user) in MVP  
+- Simple deployment (hosting on Replit)  
+
+### Build plan:
+1. Implement authentication + profile wizard  
+2. Build dashboard skeleton  
+3. Build CRM (client list + detail)  
+4. Build invoice module  
+5. Build travel/residency tracker  
+6. Build visa module  
+7. Build document vault + metadata extraction  
+8. QA + mobile responsive + publish  
+
+Please propose the initial folder structure, package.json dependencies, and scaffold the Next.js app with the above pages and models. Then proceed step by step.  
