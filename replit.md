@@ -61,9 +61,10 @@ Preferred communication style: Simple, everyday language.
 
 **Core Entities**:
 - **Workspaces**: Top-level tenant isolation with settings (currency, tax country, subscription plan)
-- **Users**: Authentication credentials, profile data, workspace membership, role assignment
+- **Users**: Authentication credentials, profile data, workspace membership, role assignment, business information (VAT ID, business name, business address, tax regime)
 - **Clients**: CRM contacts with status pipeline (Lead → Proposal → Active → Completed), interaction tracking, and action reminders
-- **Invoices**: Billing records with JSON items, status tracking, and client associations
+- **Invoices**: Billing records with JSON items, status tracking, client associations, and multi-country compliance fields (language, exchangeRate, country, customerVatId, reverseCharge, complianceChecked, templateVersion)
+- **Jurisdiction Rules**: Country-specific invoice requirements including supported languages, VAT rules, tax rates, reverse charge support, archiving years, and compliance notes
 - **Trips**: Travel log entries with country, entry/exit dates for residency calculations
 - **Documents**: File metadata storage with type categorization and expiry tracking
 - **Client Notes**: Timeline of interactions and notes associated with clients
@@ -93,12 +94,14 @@ Preferred communication style: Simple, everyday language.
 ### API Structure
 
 **Resource Endpoints**:
-- `/api/user` - Current user profile management
+- `/api/user` - Current user profile management (includes business/tax information)
 - `/api/users` - User listing and role management (admin only)
 - `/api/workspace` - Workspace settings (admin only)
 - `/api/clients` - Client CRM operations
 - `/api/clients/:id/notes` - Client interaction notes
-- `/api/invoices` - Invoice management
+- `/api/invoices` - Invoice management with multi-country compliance
+- `/api/jurisdictions` - Jurisdiction rules for all countries
+- `/api/jurisdictions/:country` - Country-specific invoice requirements
 - `/api/trips` - Travel log entries
 - `/api/documents` - Document vault operations
 - `/api/admin/*` - Admin analytics and statistics
@@ -182,9 +185,41 @@ Preferred communication style: Simple, everyday language.
 - **nanoid**: Unique ID generation
 - **sonner**: Toast notification system
 
+## Key Features
+
+### Multi-Country Invoice Compliance (November 2025)
+
+The platform now supports country-specific invoice requirements for digital nomads operating across multiple jurisdictions. This feature ensures invoices meet local tax and legal requirements.
+
+**Implementation Details**:
+- **Jurisdiction Rules Table**: Stores country-specific requirements including supported languages, default currency, VAT requirements, reverse charge support, archiving years, default tax rates, and compliance notes
+- **Pre-seeded Countries**: Germany (DE), France (FR), United Kingdom (GB), Canada (CA), United States (US)
+- **Invoice Multi-Country Fields**: Each invoice stores country, language, exchange rate, customer VAT ID, reverse charge flag, compliance checked flag, and template version
+- **User Business Information**: Users can save business name, business address, VAT ID, and tax regime (e.g., "standard", "kleinunternehmer") required for invoice generation
+- **Dynamic Form Validation**: Invoice creation form adapts based on selected country's jurisdiction rules, showing/hiding VAT ID fields, reverse charge options, and language selection
+- **Compliance Hints**: Real-time warnings and guidance displayed during invoice creation based on jurisdiction requirements
+- **Multi-Currency Support**: Invoices can be created in USD, EUR, GBP, or CAD with exchange rate tracking
+- **Multi-Language Support**: Invoices can be generated in English, German, or French depending on jurisdiction
+
+**User Experience Flow**:
+1. User configures business information in Settings (VAT ID, business address, tax regime)
+2. When creating invoice, system auto-detects client's country and loads jurisdiction rules
+3. Form dynamically shows/hides fields based on country requirements
+4. Real-time compliance hints guide user through mandatory fields
+5. Invoice is marked as compliance-checked when all requirements met
+6. Invoice list displays country, language, and compliance status for each invoice
+
+**Technical Architecture**:
+- Jurisdiction rules loaded via React Query from `/api/jurisdictions/:country`
+- Form validation adapts dynamically using React Hook Form and Controller pattern
+- Invoice amounts stored as integers (not cents) for flexibility across currencies
+- Reverse charge calculation logic for intra-EU B2B transactions
+- Template versioning support for future invoice format changes
+
 ### Notable Design Decisions
 - **No dedicated file storage service**: Document fileUrl currently uses placeholder URLs; real implementation would require S3, Cloudflare R2, or similar
 - **No email service integration**: User invitations and notifications not yet implemented
 - **No payment processing**: Subscription plans defined but billing integration pending
 - **Session storage in PostgreSQL**: Chosen for simplicity and data locality; could migrate to Redis for scale
 - **Neon serverless PostgreSQL**: Selected for ease of provisioning and serverless architecture compatibility
+- **Invoice amounts as integers**: Stored as whole currency units rather than cents for multi-currency flexibility
