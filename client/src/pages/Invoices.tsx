@@ -176,7 +176,7 @@ export default function Invoices() {
                       control={control}
                       defaultValue="en"
                       render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || 'en'}>
                           <SelectTrigger data-testid="select-language">
                             <SelectValue />
                           </SelectTrigger>
