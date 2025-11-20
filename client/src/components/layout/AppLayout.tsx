@@ -13,7 +13,7 @@ import {
   Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -95,12 +95,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       <div className="flex flex-col h-screen overflow-hidden">
         <header className="flex h-16 items-center gap-4 border-b bg-background px-6 shadow-sm z-10">
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" onClick={() => setIsMobileOpen(true)}>
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle Menu</span>
-            </Button>
-          </SheetTrigger>
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileOpen(true)}>
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle Menu</span>
+          </Button>
           <div className="w-full flex items-center justify-between">
             <h1 className="font-heading text-lg font-semibold md:hidden">NomadOps</h1>
             <div className="ml-auto flex items-center gap-4">
