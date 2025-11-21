@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { 
@@ -22,6 +24,15 @@ import {
 } from 'lucide-react';
 
 export default function Help() {
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
+
+  const scrollToFeatureGuides = () => {
+    const element = document.getElementById('feature-guides');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -193,7 +204,7 @@ export default function Help() {
       </section>
 
       {/* Feature Guides */}
-      <section className="py-16 bg-muted/30">
+      <section id="feature-guides" className="py-16 bg-muted/30">
         <div className="container mx-auto px-4 sm:px-6 max-w-5xl">
           <div className="space-y-8">
             <div>
@@ -526,7 +537,7 @@ export default function Help() {
                   <p className="text-sm text-muted-foreground mb-4">
                     Browse our comprehensive guides and tutorials
                   </p>
-                  <Button variant="outline" className="w-full">View Docs</Button>
+                  <Button variant="outline" className="w-full" onClick={scrollToFeatureGuides} data-testid="button-view-docs">View Docs</Button>
                 </CardContent>
               </Card>
 
@@ -541,7 +552,7 @@ export default function Help() {
                   <p className="text-sm text-muted-foreground mb-4">
                     Chat with our support team in real-time
                   </p>
-                  <Button variant="outline" className="w-full">Start Chat</Button>
+                  <Button variant="outline" className="w-full" onClick={() => setComingSoonOpen(true)} data-testid="button-start-chat">Start Chat</Button>
                 </CardContent>
               </Card>
 
@@ -563,6 +574,23 @@ export default function Help() {
           </div>
         </div>
       </section>
+
+      {/* Coming Soon Dialog */}
+      <Dialog open={comingSoonOpen} onOpenChange={setComingSoonOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Coming Soon!</DialogTitle>
+            <DialogDescription>
+              Live chat support is coming soon. In the meantime, please reach out to us via email support and we'll respond within 24 hours.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button onClick={() => setComingSoonOpen(false)} data-testid="button-close-coming-soon">
+              Got it
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Footer */}
       <footer className="border-t py-12 bg-background">
