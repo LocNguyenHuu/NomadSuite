@@ -11,7 +11,8 @@ import {
   Menu,
   Globe,
   Shield,
-  Building2
+  Building2,
+  MapPin
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -99,24 +100,32 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </Sheet>
 
       <div className="flex flex-col h-screen overflow-hidden">
-        <header className="flex h-16 items-center gap-4 border-b bg-background px-6 shadow-sm z-10">
+        <header className="flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur-md px-4 md:px-6 shadow-sm z-10">
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileOpen(true)}>
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle Menu</span>
           </Button>
-          <div className="w-full flex items-center justify-between">
-            <h1 className="font-heading text-lg font-semibold md:hidden">NomadSuite</h1>
-            <div className="ml-auto flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium leading-none">{user?.name}</p>
-                  <p className="text-xs text-muted-foreground">📍 {user?.currentCountry}</p>
-                </div>
-                <Avatar>
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>{user?.username?.substring(0,2).toUpperCase()}</AvatarFallback>
-                </Avatar>
+          <div className="w-full flex items-center justify-between md:justify-end">
+            <div className="flex items-center gap-2 md:hidden">
+              <Globe className="h-5 w-5 text-primary" />
+              <h1 className="font-heading text-lg font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                NomadSuite
+              </h1>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-medium leading-none">{user?.name}</p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {user?.currentCountry}
+                </p>
               </div>
+              <Avatar className="h-9 w-9 border-2 border-primary/20">
+                <AvatarImage src="https://github.com/shadcn.png" />
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                  {user?.username?.substring(0,2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
             </div>
           </div>
         </header>

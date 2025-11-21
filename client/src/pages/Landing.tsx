@@ -230,14 +230,17 @@ export default function Landing() {
           </Link>
           
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/blog">
-              <span className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer" data-testid="nav-blog">
-                Blog
-              </span>
-            </Link>
+            <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer" data-testid="nav-features">
+              Features
+            </a>
             <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer" data-testid="nav-pricing">
               Pricing
             </a>
+            <Link href="/help">
+              <span className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer" data-testid="nav-help">
+                Help
+              </span>
+            </Link>
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4">
@@ -246,8 +249,7 @@ export default function Landing() {
             </Link>
             <Link href="/register">
               <Button className="font-medium shadow-md hover:shadow-lg transition-all text-sm sm:text-base h-9 sm:h-10 px-3 sm:px-4" data-testid="button-get-started">
-                <span className="hidden sm:inline">Get Started</span>
-                <span className="sm:hidden">Start</span>
+                Sign Up Free
               </Button>
             </Link>
           </div>
@@ -276,7 +278,7 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 pt-2 sm:pt-4">
               <Link href="/register">
                 <Button size="lg" className="w-full sm:w-auto h-12 sm:h-14 px-8 sm:px-10 text-base sm:text-lg rounded-full shadow-xl hover:shadow-2xl transition-all hover:scale-105 bg-gradient-to-r from-primary to-purple-600" data-testid="button-hero-cta">
-                  Get Started Free <ArrowRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
+                  Start Free Trial <ArrowRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
                 </Button>
               </Link>
               <Button size="lg" variant="outline" className="w-full sm:w-auto h-12 sm:h-14 px-8 sm:px-10 text-base sm:text-lg rounded-full border-2 hover:bg-primary/5" data-testid="button-demo">

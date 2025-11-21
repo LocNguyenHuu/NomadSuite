@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Blog from "@/pages/Blog";
+import Help from "@/pages/Help";
 import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import Dashboard from "@/pages/Dashboard";
@@ -28,6 +29,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/blog" component={Blog} />
+      <Route path="/help" component={Help} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/login" component={AuthPage} />
