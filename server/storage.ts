@@ -1,12 +1,16 @@
 import { 
   users, clients, invoices, trips, documents, clientNotes, workspaces, jurisdictionRules,
+  vaultDocuments, vaultAuditLogs, documentRetentionJobs,
   type User, type InsertUser, type Client, type InsertClient,
   type Invoice, type InsertInvoice, type Trip, type InsertTrip,
   type Document, type InsertDocument, type ClientNote, type InsertClientNote,
-  type Workspace, type InsertWorkspace, type JurisdictionRule
+  type Workspace, type InsertWorkspace, type JurisdictionRule,
+  type VaultDocument, type InsertVaultDocument,
+  type VaultAuditLog, type InsertVaultAuditLog,
+  type DocumentRetentionJob, type InsertDocumentRetentionJob
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, count, or, desc, inArray } from "drizzle-orm";
+import { eq, count, or, desc, inArray, isNull, and } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -56,6 +60,17 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
   deleteUser(id: number): Promise<void>;
+
+  // Vault Documents (GDPR-compliant encrypted storage)
+  getVaultDocuments(userId: number): Promise<VaultDocument[]>;
+  getVaultDocument(id: number): Promise<VaultDocument | undefined>;
+  createVaultDocument(doc: InsertVaultDocument): Promise<VaultDocument>;
+  softDeleteVaultDocument(id: number, userId: number, workspaceId: number): Promise<void>;
+  hardDeleteVaultDocument(id: number, userId: number, workspaceId: number): Promise<void>;
+
+  // Vault Audit Logs
+  createVaultAuditLog(log: InsertVaultAuditLog): Promise<VaultAuditLog>;
+  getVaultAuditLogs(userId: number): Promise<VaultAuditLog[]>;
 
   sessionStore: session.Store;
 }
@@ -253,6 +268,65 @@ export class DatabaseStorage implements IStorage {
   async getJurisdictionRule(country: string): Promise<JurisdictionRule | undefined> {
     const [rule] = await db.select().from(jurisdictionRules).where(eq(jurisdictionRules.country, country));
     return rule || undefined;
+  }
+
+  // Vault Documents (GDPR-compliant with soft delete filtering and ownership checks)
+  async getVaultDocuments(userId: number): Promise<VaultDocument[]> {
+    return db.select().from(vaultDocuments).where(
+      and(
+        eq(vaultDocuments.userId, userId),
+        isNull(vaultDocuments.deletedAt) // Only return non-deleted documents
+      )
+    );
+  }
+
+  async getVaultDocument(id: number): Promise<VaultDocument | undefined> {
+    const [doc] = await db.select().from(vaultDocuments).where(
+      and(
+        eq(vaultDocuments.id, id),
+        isNull(vaultDocuments.deletedAt) // Only return if not soft-deleted
+      )
+    );
+    return doc || undefined;
+  }
+
+  async createVaultDocument(doc: InsertVaultDocument): Promise<VaultDocument> {
+    const [newDoc] = await db.insert(vaultDocuments).values(doc).returning();
+    return newDoc;
+  }
+
+  async softDeleteVaultDocument(id: number, userId: number, workspaceId: number): Promise<void> {
+    // Verify ownership before soft delete
+    await db.update(vaultDocuments)
+      .set({ deletedAt: new Date(), updatedAt: new Date() })
+      .where(
+        and(
+          eq(vaultDocuments.id, id),
+          eq(vaultDocuments.userId, userId),
+          eq(vaultDocuments.workspaceId, workspaceId)
+        )
+      );
+  }
+
+  async hardDeleteVaultDocument(id: number, userId: number, workspaceId: number): Promise<void> {
+    // Verify ownership before hard delete (GDPR compliance)
+    await db.delete(vaultDocuments).where(
+      and(
+        eq(vaultDocuments.id, id),
+        eq(vaultDocuments.userId, userId),
+        eq(vaultDocuments.workspaceId, workspaceId)
+      )
+    );
+  }
+
+  // Vault Audit Logs
+  async createVaultAuditLog(log: InsertVaultAuditLog): Promise<VaultAuditLog> {
+    const [newLog] = await db.insert(vaultAuditLogs).values(log).returning();
+    return newLog;
+  }
+
+  async getVaultAuditLogs(userId: number): Promise<VaultAuditLog[]> {
+    return db.select().from(vaultAuditLogs).where(eq(vaultAuditLogs.userId, userId));
   }
 }
 
