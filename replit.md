@@ -32,6 +32,21 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+**November 21, 2025** - GDPR-Compliant Document Vault (PRODUCTION-READY):
+- Full-featured encrypted document storage with AES-256-GCM encryption for metadata
+- Server-side file type validation using magic bytes (prevents MIME spoofing attacks)
+- EU-region only object storage with 5-minute signed download URLs
+- Comprehensive security: strict metadata validation, SHA-256 file integrity verification, server-side immutable values
+- GDPR compliance: 10-year retention cap, soft delete with hard delete scheduling, minimal audit logging
+- Retention policies: on_expiry, after_upload (1-120 months), indefinite (max 10 years)
+- Privacy-preserving audit logs: upload, download_link, user_delete actions tracked
+- Workspace-level encryption key isolation (single key MVP, KMS integration planned)
+- Complete vault UI: upload form with drag-and-drop, document grid, download, and delete
+- All security vulnerabilities fixed: metadata tampering, hash integrity, MIME spoofing
+- Database: vault_documents, vault_audit_logs, document_retention_jobs tables
+- API endpoints: POST/GET/DELETE /api/vault/documents, GET /api/vault/documents/:id/download
+- Libraries: server/lib/encryption.ts, server/lib/object-storage-vault.ts, server/lib/audit.ts
+
 **November 21, 2025** - Settings Module:
 - Complete user preferences system with primary language (EN/DE/FR), default currency, default invoice language, timezone, date format, and custom invoice prefix
 - Settings page with Language & Regional Settings and Invoice Settings sections
