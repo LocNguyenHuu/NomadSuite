@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, requireAuth, requireAdmin, hashPassword, comparePasswords } from "./auth";
 import { storage } from "./storage";
-import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema, insertUserSchema, insertClientNoteSchema, insertWorkspaceSchema } from "@shared/schema";
+import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema, insertUserSchema, insertClientNoteSchema, insertWorkspaceSchema, type EncryptedDocumentMetadata, RetentionPolicy } from "@shared/schema";
 import { z } from "zod";
 import { generateInvoicePDF } from "./pdf-generator";
 import { emailService } from "./email-service";
@@ -15,6 +15,10 @@ import {
 } from "./travel-calculations";
 import { generateInvoiceNumber } from "./invoice-numbering";
 import { getExchangeRate } from "./fx-rates";
+import { encryptMetadata, decryptMetadata, computeFileHash } from "./lib/encryption";
+import { VaultStorageService } from "./lib/object-storage-vault";
+import { AuditLogger } from "./lib/audit";
+import multer from "multer";
 
 // Profile update schema with strict validation
 const updateProfileSchema = z.object({
@@ -589,6 +593,212 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const parsed = insertDocumentSchema.parse({ ...req.body, userId: req.user!.id });
     const document = await storage.createDocument(parsed);
     res.status(201).json(document);
+  });
+
+  // ============================================
+  // GDPR-Compliant Document Vault API (MVP)
+  // ============================================
+  
+  const vaultStorage = new VaultStorageService();
+  const auditLogger = new AuditLogger(storage);
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB max
+  });
+
+  // Vault document upload schema
+  const vaultUploadSchema = z.object({
+    name: z.string().min(1, "Document name is required"),
+    type: z.string().min(1, "Document type is required"),
+    country: z.string().optional(),
+    notes: z.string().optional(),
+    retentionPolicy: RetentionPolicy,
+    retentionMonths: z.number().int().positive().max(120).optional(),
+    expiryDate: z.string().optional(), // ISO date string
+  });
+
+  // Upload document
+  app.post("/api/vault/documents", requireAuth, upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      if (!req.user?.workspaceId) {
+        return res.status(400).json({ message: "User workspace not found" });
+      }
+
+      // Validate metadata
+      const metadata = vaultUploadSchema.parse(JSON.parse(req.body.metadata || '{}'));
+
+      // Validate file type (PDF, JPG, PNG only)
+      const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      if (!allowedMimeTypes.includes(req.file.mimetype)) {
+        return res.status(400).json({ message: "Only PDF, JPG, and PNG files are allowed" });
+      }
+
+      // Encrypt metadata
+      const encryptedMetadata = encryptMetadata({
+        name: metadata.name,
+        type: metadata.type,
+        country: metadata.country,
+        notes: metadata.notes,
+      }, req.user.workspaceId);
+
+      // Compute file hash
+      const fileHash = computeFileHash(req.file.buffer);
+
+      // Generate storage key
+      const storageKey = vaultStorage.generateStorageKey(req.user.id);
+
+      // Upload file to object storage
+      await vaultStorage.uploadFile(storageKey, req.file.buffer, req.file.mimetype);
+
+      // Calculate hard delete date (max 10 years from now)
+      const hardDeleteAt = new Date();
+      hardDeleteAt.setFullYear(hardDeleteAt.getFullYear() + 10);
+
+      // Create vault document record
+      const document = await storage.createVaultDocument({
+        userId: req.user.id,
+        workspaceId: req.user.workspaceId,
+        encryptedMetadata,
+        storageKey,
+        fileHash,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+        storageRegion: "EU",
+        retentionPolicy: metadata.retentionPolicy,
+        retentionMonths: metadata.retentionMonths,
+        expiryDate: metadata.expiryDate ? new Date(metadata.expiryDate) : undefined,
+        hardDeleteAt,
+      });
+
+      // Audit log
+      await auditLogger.logUpload(req.user.id, document.id);
+
+      res.status(201).json({
+        id: document.id,
+        message: "Document uploaded successfully",
+      });
+    } catch (error: any) {
+      console.error("Vault upload error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(500).json({ message: error.message || "Upload failed" });
+    }
+  });
+
+  // List documents (with decrypted metadata)
+  app.get("/api/vault/documents", requireAuth, async (req, res) => {
+    try {
+      if (!req.user?.workspaceId) {
+        return res.status(400).json({ message: "User workspace not found" });
+      }
+
+      const documents = await storage.getVaultDocuments(req.user.id);
+
+      // Decrypt metadata for each document
+      const decryptedDocuments = documents.map(doc => {
+        try {
+          const metadata = decryptMetadata(doc.encryptedMetadata, req.user!.workspaceId!);
+          return {
+            id: doc.id,
+            ...metadata,
+            fileSize: doc.fileSize,
+            mimeType: doc.mimeType,
+            retentionPolicy: doc.retentionPolicy,
+            retentionMonths: doc.retentionMonths,
+            expiryDate: doc.expiryDate,
+            createdAt: doc.createdAt,
+            updatedAt: doc.updatedAt,
+          };
+        } catch (error) {
+          console.error(`Failed to decrypt document ${doc.id}:`, error);
+          return null;
+        }
+      }).filter(Boolean);
+
+      res.json(decryptedDocuments);
+    } catch (error: any) {
+      console.error("Vault list error:", error);
+      res.status(500).json({ message: error.message || "Failed to fetch documents" });
+    }
+  });
+
+  // Get download URL (5-minute signed URL)
+  app.get("/api/vault/documents/:id/download", requireAuth, async (req, res) => {
+    try {
+      if (!req.user?.workspaceId) {
+        return res.status(400).json({ message: "User workspace not found" });
+      }
+
+      const documentId = parseInt(req.params.id);
+      const document = await storage.getVaultDocument(documentId);
+
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+
+      // Verify ownership
+      if (document.userId !== req.user.id || document.workspaceId !== req.user.workspaceId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Generate 5-minute signed URL
+      const downloadUrl = await vaultStorage.getSignedDownloadUrl(document.storageKey);
+
+      // Audit log
+      await auditLogger.logDownloadLink(req.user.id, documentId);
+
+      // Decrypt metadata for filename
+      const metadata = decryptMetadata(document.encryptedMetadata, req.user.workspaceId);
+
+      res.json({
+        downloadUrl,
+        filename: metadata.name,
+        expiresIn: 300, // 5 minutes in seconds
+      });
+    } catch (error: any) {
+      console.error("Vault download error:", error);
+      res.status(500).json({ message: error.message || "Failed to generate download URL" });
+    }
+  });
+
+  // Delete document
+  app.delete("/api/vault/documents/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user?.workspaceId) {
+        return res.status(400).json({ message: "User workspace not found" });
+      }
+
+      const documentId = parseInt(req.params.id);
+      const document = await storage.getVaultDocument(documentId);
+
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+
+      // Verify ownership
+      if (document.userId !== req.user.id || document.workspaceId !== req.user.workspaceId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Delete file from storage
+      await vaultStorage.deleteFile(document.storageKey);
+
+      // Soft delete in database
+      await storage.softDeleteVaultDocument(documentId, req.user.id, req.user.workspaceId);
+
+      // Audit log
+      await auditLogger.logUserDelete(req.user.id, documentId);
+
+      res.json({ message: "Document deleted successfully" });
+    } catch (error: any) {
+      console.error("Vault delete error:", error);
+      res.status(500).json({ message: error.message || "Failed to delete document" });
+    }
   });
 
   const httpServer = createServer(app);
