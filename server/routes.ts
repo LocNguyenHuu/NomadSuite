@@ -338,8 +338,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/invoices", requireAuth, async (req, res) => {
-    // Generate invoice number automatically
-    const invoiceNumber = await generateInvoiceNumber(req.user!.id);
+    // Get user to access settings (invoice prefix)
+    const user = await storage.getUser(req.user!.id);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    
+    // Generate invoice number automatically using user's custom prefix
+    const invoiceNumber = await generateInvoiceNumber(req.user!.id, user.invoicePrefix || "NS-");
     
     const parsed = insertInvoiceSchema.parse({ ...req.body, userId: req.user!.id, invoiceNumber });
     

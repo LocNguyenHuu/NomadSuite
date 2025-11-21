@@ -3,13 +3,13 @@ import { invoiceCounters } from '@shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
 
 /**
- * Generate next invoice number in format: NS-{year}-{sequential}
+ * Generate next invoice number in format: {prefix}{year}-{sequential}
  * Example: NS-2025-00012
  * 
  * Sequential number is per user, per year
  * Uses atomic database counter with row-level locking for concurrency safety
  */
-export async function generateInvoiceNumber(userId: number): Promise<string> {
+export async function generateInvoiceNumber(userId: number, prefix: string = "NS-"): Promise<string> {
   const year = new Date().getFullYear();
   
   // Use database transaction with row-level locking for atomicity
@@ -50,5 +50,5 @@ export async function generateInvoiceNumber(userId: number): Promise<string> {
   // Format with leading zeros (5 digits)
   const formattedNumber = result.toString().padStart(5, '0');
   
-  return `NS-${year}-${formattedNumber}`;
+  return `${prefix}${year}-${formattedNumber}`;
 }

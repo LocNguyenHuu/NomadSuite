@@ -25,7 +25,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Download, Info, Globe, Mail } from 'lucide-react';
 import { useInvoices } from '@/hooks/use-invoices';
 import { useClients } from '@/hooks/use-clients';
-import { InsertInvoice, JurisdictionRule } from '@shared/schema';
+import { InsertInvoice, JurisdictionRule, User } from '@shared/schema';
 import { format } from 'date-fns';
 import { useForm, Controller } from 'react-hook-form';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -48,20 +48,24 @@ export default function Invoices() {
     queryKey: ['/api/jurisdictions'] 
   });
 
+  const { data: user } = useQuery<User>({
+    queryKey: ['/api/user']
+  });
+
   const { register, handleSubmit, control, reset, watch, setValue } = useForm<Omit<InsertInvoice, 'clientId'> & { clientId: string }>();
 
   const selectedClient = clients.find(c => c.id.toString() === selectedClientId);
   const selectedJurisdiction = jurisdictions.find(j => j.country === selectedCountry);
 
-  // Auto-set country when client is selected
+  // Auto-set country when client is selected, with user defaults as fallback
   useEffect(() => {
     if (selectedClient) {
       setSelectedCountry(selectedClient.country);
       setValue('country', selectedClient.country);
-      setValue('language', selectedJurisdiction?.defaultLanguage || 'en');
-      setValue('currency', selectedJurisdiction?.defaultCurrency || 'USD');
+      setValue('language', selectedJurisdiction?.defaultLanguage || user?.defaultInvoiceLanguage || 'en');
+      setValue('currency', selectedJurisdiction?.defaultCurrency || user?.defaultCurrency || 'USD');
     }
-  }, [selectedClient, setValue, selectedJurisdiction]);
+  }, [selectedClient, setValue, selectedJurisdiction, user]);
 
   const getClientName = (id: number) => {
     return clients.find(c => c.id === id)?.name || 'Unknown Client';
