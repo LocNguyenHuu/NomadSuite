@@ -34,6 +34,13 @@ export const users = pgTable("users", {
   accountNumber: text("account_number"),
   iban: text("iban"),
   swift: text("swift"),
+  // User Settings/Preferences
+  primaryLanguage: text("primary_language").default("en"), // 'en', 'de', 'fr'
+  defaultCurrency: text("default_currency").default("USD"),
+  defaultInvoiceLanguage: text("default_invoice_language").default("en"),
+  timezone: text("timezone").default("UTC"),
+  dateFormat: text("date_format").default("MM/DD/YYYY"), // 'MM/DD/YYYY', 'DD/MM/YYYY', 'DD.MM.YYYY'
+  invoicePrefix: text("invoice_prefix").default("NS-"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
