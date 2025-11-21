@@ -65,7 +65,9 @@ export function generateInvoicePDF(data: InvoicePDFData): PDFKit.PDFDocument {
   // Table header
   doc.fontSize(10).font('Helvetica-Bold');
   doc.text('Description', 50, tableTop);
-  doc.text('Amount', 450, tableTop, { align: 'right', width: 100 });
+  doc.text('Qty', 320, tableTop, { width: 40 });
+  doc.text('Unit Price', 370, tableTop, { width: 60, align: 'right' });
+  doc.text('Subtotal', 450, tableTop, { align: 'right', width: 100 });
   
   // Line under header
   doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
@@ -74,29 +76,74 @@ export function generateInvoicePDF(data: InvoicePDFData): PDFKit.PDFDocument {
   doc.font('Helvetica');
   let yPosition = tableTop + 25;
   
-  const items = invoice.items as { description: string; amount: number }[];
-  items.forEach((item, index) => {
-    doc.text(item.description, 50, yPosition, { width: 380 });
+  const items = invoice.items as any[];
+  items.forEach((item) => {
+    // Support both old and new format for backward compatibility
+    if ('unitPrice' in item && 'quantity' in item) {
+      // New format with detailed line items
+      doc.text(item.description, 50, yPosition, { width: 260 });
+      doc.text(item.quantity.toString(), 320, yPosition, { width: 40 });
+      doc.text(
+        `${invoice.currency} ${(item.unitPrice / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        370,
+        yPosition,
+        { width: 60, align: 'right' }
+      );
+      doc.text(
+        `${invoice.currency} ${(item.subtotal / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        450,
+        yPosition,
+        { align: 'right', width: 100 }
+      );
+    } else {
+      // Old format (fallback for backward compatibility)
+      doc.text(item.description, 50, yPosition, { width: 380 });
+      doc.text(
+        `${invoice.currency} ${(item.amount / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        450,
+        yPosition,
+        { align: 'right', width: 100 }
+      );
+    }
+    yPosition += 30;
+  });
+  
+  // Subtotal, tax, total section
+  yPosition += 10;
+  doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
+  yPosition += 15;
+  
+  // Subtotal
+  const subtotal = invoice.amount - (invoice.tax || 0);
+  doc.font('Helvetica');
+  doc.fontSize(10);
+  doc.text('Subtotal', 350, yPosition);
+  doc.text(
+    `${invoice.currency} ${(subtotal / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    450,
+    yPosition,
+    { align: 'right', width: 100 }
+  );
+  yPosition += 20;
+  
+  // Tax (if applicable)
+  if (invoice.tax && invoice.tax > 0) {
+    doc.text('Tax', 350, yPosition);
     doc.text(
-      `${invoice.currency} ${item.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      `${invoice.currency} ${(invoice.tax / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       450,
       yPosition,
       { align: 'right', width: 100 }
     );
-    yPosition += 30;
-  });
-  
-  // Subtotal, tax, total
-  yPosition += 10;
-  doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
-  yPosition += 15;
+    yPosition += 20;
+  }
   
   // Total
   doc.font('Helvetica-Bold');
   doc.fontSize(12);
   doc.text('TOTAL', 350, yPosition);
   doc.text(
-    `${invoice.currency} ${invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    `${invoice.currency} ${(invoice.amount / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     450,
     yPosition,
     { align: 'right', width: 100 }

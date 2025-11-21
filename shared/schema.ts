@@ -58,18 +58,29 @@ export const clientNotes = pgTable("client_notes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Invoice Line Item type
+export interface InvoiceLineItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+  tax?: number;
+}
+
 // Invoices
 export const invoices = pgTable("invoices", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   clientId: integer("client_id").notNull().references(() => clients.id),
   invoiceNumber: text("invoice_number").notNull(),
-  amount: integer("amount").notNull(),
+  amount: integer("amount").notNull(), // Total amount in cents
   currency: text("currency").notNull().default("USD"),
   status: text("status").notNull(), // 'Draft', 'Sent', 'Paid', 'Overdue'
   dueDate: timestamp("due_date").notNull(),
   issuedAt: timestamp("issued_at").defaultNow(),
-  items: jsonb("items").$type<{ description: string; amount: number }[]>().notNull(),
+  items: jsonb("items").$type<InvoiceLineItem[]>().notNull(),
+  tax: integer("tax").default(0), // Total tax amount in cents
+  notesToClient: text("notes_to_client"),
   // Multi-country compliance fields
   country: text("country"),
   language: text("language").default("en"),

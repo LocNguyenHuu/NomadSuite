@@ -12,6 +12,7 @@ import {
   calculateTravelSummary,
   calculateTripDays
 } from "./travel-calculations";
+import { generateInvoiceNumber } from "./invoice-numbering";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -186,7 +187,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/invoices", requireAuth, async (req, res) => {
-    const parsed = insertInvoiceSchema.parse({ ...req.body, userId: req.user!.id });
+    // Generate invoice number automatically
+    const invoiceNumber = await generateInvoiceNumber(req.user!.id);
+    
+    const parsed = insertInvoiceSchema.parse({ ...req.body, userId: req.user!.id, invoiceNumber });
     
     // Verify client belongs to user
     const client = await storage.getClient(parsed.clientId);
