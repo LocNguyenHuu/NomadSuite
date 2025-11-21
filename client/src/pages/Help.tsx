@@ -189,7 +189,8 @@ export default function Help() {
               </Card>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
       {/* Feature Guides */}
       <section className="py-16 bg-muted/30">
@@ -202,7 +203,7 @@ export default function Help() {
 
             <Accordion type="single" collapsible className="w-full space-y-4">
               <AccordionItem value="invoices" className="border rounded-lg px-6 bg-background">
-                <AccordionTrigger className="hover:no-underline">
+                <AccordionTrigger className="hover:no-underline" data-testid="accordion-invoicing">
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 text-primary" />
                     <span className="font-semibold">Multi-Country Invoicing</span>
@@ -300,7 +301,7 @@ export default function Help() {
               </AccordionItem>
 
               <AccordionItem value="travel" className="border rounded-lg px-6 bg-background">
-                <AccordionTrigger className="hover:no-underline">
+                <AccordionTrigger className="hover:no-underline" data-testid="accordion-travel">
                   <div className="flex items-center gap-3">
                     <Plane className="h-5 w-5 text-primary" />
                     <span className="font-semibold">Travel & Visa Tracking</span>
@@ -343,7 +344,7 @@ export default function Help() {
               </AccordionItem>
 
               <AccordionItem value="clients" className="border rounded-lg px-6 bg-background">
-                <AccordionTrigger className="hover:no-underline">
+                <AccordionTrigger className="hover:no-underline" data-testid="accordion-clients">
                   <div className="flex items-center gap-3">
                     <Users className="h-5 w-5 text-primary" />
                     <span className="font-semibold">Client Management & Pipeline</span>
@@ -399,7 +400,7 @@ export default function Help() {
               </AccordionItem>
 
               <AccordionItem value="documents" className="border rounded-lg px-6 bg-background">
-                <AccordionTrigger className="hover:no-underline">
+                <AccordionTrigger className="hover:no-underline" data-testid="accordion-documents">
                   <div className="flex items-center gap-3">
                     <FileCheck className="h-5 w-5 text-primary" />
                     <span className="font-semibold">Document Vault</span>
