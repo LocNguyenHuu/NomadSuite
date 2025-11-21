@@ -32,6 +32,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+**November 21, 2025** - Security Hardening (PRODUCTION-READY):
+- CSRF Protection: Session-based CSRF tokens for all state-changing routes (POST, PATCH, DELETE)
+- Frontend CSRF Integration: Automatic token fetching and injection in all API requests (JSON + multipart)
+- Authentication Rate Limiting: 10 requests per 15 minutes per IP for /api/login and /api/register (prevents brute force)
+- Security Audit Logging Schema: Database table for tracking auth events and critical operations (integration pending)
+- Comprehensive Security Roadmap: 7-phase implementation plan in SECURITY_ROADMAP.md
+- Protected Routes: 20+ endpoints with CSRF protection (auth, users, workspace, clients, invoices, trips, documents, vault)
+- Security Headers: Helmet middleware with HSTS, CSP, X-Content-Type-Options, X-Frame-Options
+- Global Rate Limiting: 1000 requests per 15 minutes per IP for all routes
+
 **November 21, 2025** - GDPR-Compliant Document Vault (PRODUCTION-READY):
 - Full-featured encrypted document storage with AES-256-GCM encryption for metadata
 - Server-side file type validation using magic bytes (prevents MIME spoofing attacks)
