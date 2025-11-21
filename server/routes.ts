@@ -5,6 +5,13 @@ import { storage } from "./storage";
 import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema, insertUserSchema, insertClientNoteSchema, insertWorkspaceSchema } from "@shared/schema";
 import { generateInvoicePDF } from "./pdf-generator";
 import { emailService } from "./email-service";
+import { 
+  validateNoOverlap, 
+  calculate183DayRule, 
+  calculateSchengen90_180, 
+  calculateTravelSummary,
+  calculateTripDays
+} from "./travel-calculations";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -348,9 +355,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/trips", requireAuth, async (req, res) => {
-    const parsed = insertTripSchema.parse({ ...req.body, userId: req.user!.id });
-    const trip = await storage.createTrip(parsed);
-    res.status(201).json(trip);
+    try {
+      const parsed = insertTripSchema.parse({ ...req.body, userId: req.user!.id });
+      
+      // Validate dates
+      if (parsed.exitDate && parsed.exitDate < parsed.entryDate) {
+        return res.status(400).json({ error: "Exit date must be after entry date" });
+      }
+      
+      // Check for overlapping trips
+      const existingTrips = await storage.getTrips(req.user!.id);
+      const validation = validateNoOverlap(
+        { entryDate: parsed.entryDate, exitDate: parsed.exitDate || null },
+        existingTrips.map(t => ({
+          id: t.id,
+          country: t.country,
+          entryDate: t.entryDate,
+          exitDate: t.exitDate
+        }))
+      );
+      
+      if (!validation.valid) {
+        return res.status(400).json({ error: validation.message });
+      }
+      
+      const trip = await storage.createTrip(parsed);
+      res.status(201).json(trip);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Travel calculations
+  app.get("/api/trips/calculations/tax-residency", requireAuth, async (req, res) => {
+    const year = req.query.year ? parseInt(req.query.year as string) : new Date().getFullYear();
+    const trips = await storage.getTrips(req.user!.id);
+    const calculations = calculate183DayRule(trips, year);
+    res.json(calculations);
+  });
+
+  app.get("/api/trips/calculations/schengen", requireAuth, async (req, res) => {
+    const trips = await storage.getTrips(req.user!.id);
+    const status = calculateSchengen90_180(trips);
+    res.json(status);
+  });
+
+  app.get("/api/trips/calculations/summary", requireAuth, async (req, res) => {
+    const trips = await storage.getTrips(req.user!.id);
+    const summary = calculateTravelSummary(trips);
+    res.json(summary);
   });
 
   // Documents
