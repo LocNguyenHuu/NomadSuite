@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, date, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -113,6 +113,18 @@ export const documents = pgTable("documents", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Invoice Counter for atomic sequential numbering
+export const invoiceCounters = pgTable("invoice_counters", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  year: integer("year").notNull(),
+  counter: integer("counter").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  // Unique constraint on userId + year combination
+  userYearUnique: unique().on(table.userId, table.year)
+}));
+
 // Jurisdiction Rules for multi-country invoicing
 export const jurisdictionRules = pgTable("jurisdiction_rules", {
   id: serial("id").primaryKey(),
@@ -182,8 +194,12 @@ export const insertClientNoteSchema = createInsertSchema(clientNotes, {
   date: z.coerce.date().optional(),
 }).omit({ id: true, createdAt: true });
 
+// Invoice status enum for validation
+export const InvoiceStatus = z.enum(['Draft', 'Sent', 'Paid', 'Overdue']);
+
 export const insertInvoiceSchema = createInsertSchema(invoices, {
   dueDate: z.coerce.date(),
+  status: InvoiceStatus,
   reverseCharge: z.boolean().optional(),
   complianceChecked: z.boolean().optional(),
 }).omit({ id: true, issuedAt: true });

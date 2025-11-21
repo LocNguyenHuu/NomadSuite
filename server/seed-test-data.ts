@@ -308,7 +308,7 @@ async function seedTestData() {
         invoiceNumber: `INV-${userIndex + 1}-2025-001`,
         amount: 5950,
         currency: 'EUR',
-        status: 'paid',
+        status: 'Paid',
         dueDate: new Date('2025-10-31'),
         items: [
           { description: 'Web Development - October', amount: 5950 }
@@ -324,7 +324,7 @@ async function seedTestData() {
         invoiceNumber: `INV-${userIndex + 1}-2025-002`,
         amount: 7200,
         currency: 'EUR',
-        status: 'sent',
+        status: 'Sent',
         dueDate: new Date('2025-11-30'),
         items: [
           { description: 'Consulting Services (48 hours @ €150/hr)', amount: 7200 }
@@ -342,7 +342,7 @@ async function seedTestData() {
         invoiceNumber: `INV-${userIndex + 1}-2025-003`,
         amount: 4500,
         currency: 'GBP',
-        status: 'draft',
+        status: 'Draft',
         dueDate: new Date('2025-12-15'),
         items: [
           { description: 'UI/UX Design Services', amount: 4500 }
@@ -358,7 +358,7 @@ async function seedTestData() {
         invoiceNumber: `INV-${userIndex + 1}-2025-004`,
         amount: 3200,
         currency: 'EUR',
-        status: 'overdue',
+        status: 'Overdue',
         dueDate: new Date('2025-11-10'),
         items: [
           { description: 'Monthly Retainer - November', amount: 3200 }

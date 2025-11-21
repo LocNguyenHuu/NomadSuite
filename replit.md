@@ -77,8 +77,17 @@ Preferred communication style: Simple, everyday language.
 
 ### Key Features
 
+**Travel & Residency Tracking**: Comprehensive travel log with automatic tax residency calculations (183-day rule per country), Schengen 90/180 rolling window tracker, trip validation (overlap prevention), visual calendar view with country color-coding, and lifetime travel summary statistics. All calculations run automatically on the backend.
+
 **Multi-Country Invoice Compliance**: Supports country-specific invoice requirements (e.g., Germany, France, UK, Canada, US) with dynamic form validation, compliance hints, multi-currency, and multi-language support.
-**Invoice PDF Export and Email**: Server-side PDF generation using PDFKit with multi-country compliance. Emailing functionality via Resend, including PDF attachments and automatic status updates.
+
+**Automatic Invoice Numbering**: Invoices are auto-numbered in NS-{year}-{incremental} format (e.g., NS-2025-00012), with sequential numbering per user per year.
+
+**Real-Time FX Rates**: Currency exchange rates fetched from exchangerate.host API with 1-hour caching for accurate multi-currency invoicing.
+
+**Automatic Overdue Detection**: Invoices automatically marked as "Overdue" when past due date, with real-time status updates on fetch.
+
+**Invoice PDF Export and Email**: Server-side PDF generation using PDFKit with multi-country compliance, detailed line items (quantity, unit price, subtotal, tax), and email functionality via Resend with PDF attachments.
 
 ### Notable Design Decisions
 

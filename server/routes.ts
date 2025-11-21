@@ -185,12 +185,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/invoices", requireAuth, async (req, res) => {
     const invoices = await storage.getInvoices(req.user!.id);
     
-    // Auto-update overdue status based on due date
+    // Auto-update overdue status for "Sent" invoices only (not Draft or Paid)
     const today = new Date();
     const updatedInvoices = await Promise.all(
       invoices.map(async (invoice) => {
-        if (invoice.status !== 'Paid' && invoice.status !== 'Overdue' && new Date(invoice.dueDate) < today) {
-          // Update to overdue
+        if (invoice.status === 'Sent' && new Date(invoice.dueDate) < today) {
+          // Update to overdue only if currently "Sent"
           const updated = await storage.updateInvoice(invoice.id, { status: 'Overdue' });
           return updated;
         }
@@ -241,12 +241,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).send("Invoice not found");
     }
 
-    // Validate and restrict updatable fields
+    // Validate and restrict updatable fields  
     const allowedUpdates = insertInvoiceSchema.partial().omit({ 
       userId: true, 
-      clientId: true 
+      clientId: true,
+      invoiceNumber: true // Invoice number should not be editable after creation
     });
     const parsed = allowedUpdates.parse(req.body);
+    
+    // Additional validation: if status is being updated, ensure it's normalized
+    if (parsed.status && !['Draft', 'Sent', 'Paid', 'Overdue'].includes(parsed.status)) {
+      return res.status(400).json({ error: "Invalid status. Must be one of: Draft, Sent, Paid, Overdue" });
+    }
 
     const oldStatus = existingInvoice.status;
     const updatedInvoice = await storage.updateInvoice(invoiceId, parsed);
@@ -353,9 +359,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ error: result.error });
     }
 
-    // Update invoice status to 'sent' if it was 'draft'
-    if (invoice.status === 'draft') {
-      await storage.updateInvoice(invoiceId, { status: 'sent' });
+    // Update invoice status to 'Sent' if it was 'Draft'
+    if (invoice.status === 'Draft') {
+      await storage.updateInvoice(invoiceId, { status: 'Sent' });
       
       await storage.createClientNote({
         clientId: invoice.clientId,
