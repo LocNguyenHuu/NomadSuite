@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -174,20 +175,23 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-border" />
-      </div>
+      <AppLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-border" />
+        </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Profile Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your account settings and business information
-        </p>
-      </div>
+    <AppLayout>
+      <div className="space-y-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Profile Settings</h1>
+          <p className="text-muted-foreground">
+            Manage your account settings and business information
+          </p>
+        </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
@@ -489,6 +493,7 @@ export default function Profile() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </AppLayout>
   );
 }
