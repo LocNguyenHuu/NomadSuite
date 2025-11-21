@@ -13,6 +13,7 @@ import {
   calculateTripDays
 } from "./travel-calculations";
 import { generateInvoiceNumber } from "./invoice-numbering";
+import { getExchangeRate } from "./fx-rates";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -183,7 +184,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Invoices
   app.get("/api/invoices", requireAuth, async (req, res) => {
     const invoices = await storage.getInvoices(req.user!.id);
-    res.json(invoices);
+    
+    // Auto-update overdue status based on due date
+    const today = new Date();
+    const updatedInvoices = await Promise.all(
+      invoices.map(async (invoice) => {
+        if (invoice.status !== 'Paid' && invoice.status !== 'Overdue' && new Date(invoice.dueDate) < today) {
+          // Update to overdue
+          const updated = await storage.updateInvoice(invoice.id, { status: 'Overdue' });
+          return updated;
+        }
+        return invoice;
+      })
+    );
+    
+    res.json(updatedInvoices);
+  });
+
+  // Get exchange rate between two currencies
+  app.get("/api/fx-rate", requireAuth, async (req, res) => {
+    const { from, to } = req.query;
+    
+    if (!from || !to) {
+      return res.status(400).send("Missing 'from' or 'to' currency parameter");
+    }
+    
+    try {
+      const rate = await getExchangeRate(from as string, to as string);
+      res.json({ from, to, rate });
+    } catch (error: any) {
+      res.status(500).send(error.message || "Failed to fetch exchange rate");
+    }
   });
 
   app.post("/api/invoices", requireAuth, async (req, res) => {
