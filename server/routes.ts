@@ -347,7 +347,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Generate invoice number automatically using user's custom prefix
     const invoiceNumber = await generateInvoiceNumber(req.user!.id, user.invoicePrefix || "NS-");
     
-    const parsed = insertInvoiceSchema.parse({ ...req.body, userId: req.user!.id, invoiceNumber });
+    // Schema for invoice creation - invoiceNumber is generated server-side, not sent by client
+    const createInvoiceSchema = insertInvoiceSchema.omit({ invoiceNumber: true, userId: true });
+    const parsed = createInvoiceSchema.parse(req.body);
     
     // Verify client belongs to user
     const client = await storage.getClient(parsed.clientId);
@@ -355,7 +357,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(403).send("Cannot create invoice for client that doesn't belong to you");
     }
     
-    const invoice = await storage.createInvoice(parsed);
+    const invoice = await storage.createInvoice({ 
+      ...parsed, 
+      userId: req.user!.id, 
+      invoiceNumber 
+    });
     res.status(201).json(invoice);
   });
 

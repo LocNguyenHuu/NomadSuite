@@ -32,6 +32,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+**November 21, 2025** - Settings Module:
+- Complete user preferences system with primary language (EN/DE/FR), default currency, default invoice language, timezone, date format, and custom invoice prefix
+- Settings page with Language & Regional Settings and Invoice Settings sections
+- API endpoint: PATCH /api/user/settings with strict Zod validation (enum constraints for language/date format)
+- Invoice creation automatically uses user's default currency, language, and custom invoice prefix
+- Invoice numbering function updated to accept custom prefix parameter (generateInvoiceNumber)
+- Invoice form simplified: removed manual invoice number input, auto-generation with user prefix
+
 **November 21, 2025** - Authentication + Account Module:
 - Extended user schema with bank info fields (bankName, accountNumber, iban, swift) for invoice payment details
 - New Profile page with tabs for Personal Info, Business Info, Bank Details, and Security (change password)

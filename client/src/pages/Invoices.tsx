@@ -73,13 +73,20 @@ export default function Invoices() {
 
 
   const onSubmit = (data: any) => {
+    const amountInCents = parseInt(data.amount) * 100; // Convert to cents
     createInvoice({ 
       ...data, 
       clientId: parseInt(data.clientId),
-      amount: parseInt(data.amount),
+      amount: amountInCents,
       dueDate: new Date(data.dueDate),
       status: 'Sent',
-      items: [{ description: 'Consulting Services', amount: parseInt(data.amount) }],
+      items: [{
+        description: 'Consulting Services',
+        quantity: 1,
+        unitPrice: amountInCents,
+        subtotal: amountInCents,
+        tax: 0
+      }],
       country: selectedCountry,
       language: data.language || 'en',
       reverseCharge: data.reverseCharge || false,
@@ -113,15 +120,16 @@ export default function Invoices() {
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="invoiceNumber">Invoice Number</Label>
-                    <Input data-testid="input-invoice-number" id="invoiceNumber" placeholder="INV-001" {...register('invoiceNumber', { required: true })} />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="dueDate">Due Date</Label>
-                    <Input data-testid="input-due-date" id="dueDate" type="date" {...register('dueDate', { required: true })} />
-                  </div>
+                <Alert className="bg-muted/50">
+                  <Info className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    Invoice number will be generated automatically using your custom prefix ({user?.invoicePrefix || "NS-"})
+                  </AlertDescription>
+                </Alert>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="dueDate">Due Date</Label>
+                  <Input data-testid="input-due-date" id="dueDate" type="date" {...register('dueDate', { required: true })} />
                 </div>
 
                 <div className="grid gap-2">
