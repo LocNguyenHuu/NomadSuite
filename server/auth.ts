@@ -2,6 +2,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
+import csrf from "csurf";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
@@ -28,6 +29,11 @@ export async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+// CSRF Protection middleware (session-based)
+export const csrfProtection = csrf({ 
+  cookie: false, // Use session-based CSRF (not cookies)
+});
+
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "dev_secret_key",
@@ -40,6 +46,11 @@ export function setupAuth(app: Express) {
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // CSRF token endpoint (public, provides token for forms)
+  app.get("/api/csrf-token", csrfProtection, (req, res) => {
+    res.json({ csrfToken: req.csrfToken() });
+  });
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
@@ -73,7 +84,7 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/register", async (req, res, next) => {
+  app.post("/api/register", csrfProtection, async (req, res, next) => {
     try {
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
@@ -94,11 +105,11 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
+  app.post("/api/login", csrfProtection, passport.authenticate("local"), (req, res) => {
     res.status(200).json(req.user);
   });
 
-  app.post("/api/logout", (req, res, next) => {
+  app.post("/api/logout", csrfProtection, (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
       res.sendStatus(200);

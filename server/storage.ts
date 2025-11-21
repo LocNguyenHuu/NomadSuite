@@ -1,13 +1,14 @@
 import { 
   users, clients, invoices, trips, documents, clientNotes, workspaces, jurisdictionRules,
-  vaultDocuments, vaultAuditLogs, documentRetentionJobs,
+  vaultDocuments, vaultAuditLogs, documentRetentionJobs, securityAuditLogs,
   type User, type InsertUser, type Client, type InsertClient,
   type Invoice, type InsertInvoice, type Trip, type InsertTrip,
   type Document, type InsertDocument, type ClientNote, type InsertClientNote,
   type Workspace, type InsertWorkspace, type JurisdictionRule,
   type VaultDocument, type InsertVaultDocument,
   type VaultAuditLog, type InsertVaultAuditLog,
-  type DocumentRetentionJob, type InsertDocumentRetentionJob
+  type DocumentRetentionJob, type InsertDocumentRetentionJob,
+  type SecurityAuditLog, type InsertSecurityAuditLog
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, count, or, desc, inArray, isNull, and } from "drizzle-orm";
@@ -71,6 +72,10 @@ export interface IStorage {
   // Vault Audit Logs
   createVaultAuditLog(log: InsertVaultAuditLog): Promise<VaultAuditLog>;
   getVaultAuditLogs(userId: number): Promise<VaultAuditLog[]>;
+
+  // Security Audit Logs
+  createSecurityAuditLog(log: InsertSecurityAuditLog): Promise<SecurityAuditLog>;
+  getSecurityAuditLogs(userId?: number): Promise<SecurityAuditLog[]>;
 
   sessionStore: session.Store;
 }
@@ -327,6 +332,18 @@ export class DatabaseStorage implements IStorage {
 
   async getVaultAuditLogs(userId: number): Promise<VaultAuditLog[]> {
     return db.select().from(vaultAuditLogs).where(eq(vaultAuditLogs.userId, userId));
+  }
+
+  async createSecurityAuditLog(log: InsertSecurityAuditLog): Promise<SecurityAuditLog> {
+    const [newLog] = await db.insert(securityAuditLogs).values(log).returning();
+    return newLog;
+  }
+
+  async getSecurityAuditLogs(userId?: number): Promise<SecurityAuditLog[]> {
+    if (userId) {
+      return db.select().from(securityAuditLogs).where(eq(securityAuditLogs.userId, userId)).orderBy(desc(securityAuditLogs.timestamp));
+    }
+    return db.select().from(securityAuditLogs).orderBy(desc(securityAuditLogs.timestamp));
   }
 }
 

@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupAuth, requireAuth, requireAdmin, hashPassword, comparePasswords } from "./auth";
+import { setupAuth, requireAuth, requireAdmin, hashPassword, comparePasswords, csrfProtection } from "./auth";
 import { storage } from "./storage";
+import rateLimit from "express-rate-limit";
 import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema, insertUserSchema, insertClientNoteSchema, insertWorkspaceSchema, type EncryptedDocumentMetadata, RetentionPolicy } from "@shared/schema";
 import { z } from "zod";
 import { generateInvoicePDF } from "./pdf-generator";
@@ -53,11 +54,25 @@ const updateSettingsSchema = z.object({
   invoicePrefix: z.string().min(1, "Invoice prefix cannot be empty").optional(),
 }).strict();
 
+// Auth-specific strict rate limiting (prevents brute force attacks)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 requests per windowMs (strict for auth)
+  message: "Too many authentication attempts, please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true, // Don't count successful logins
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
+  
+  // Apply auth rate limiting to authentication endpoints
+  app.use("/api/login", authLimiter);
+  app.use("/api/register", authLimiter);
 
   // User Profile (extended)
-  app.patch("/api/user/profile", requireAuth, async (req, res) => {
+  app.patch("/api/user/profile", requireAuth, csrfProtection, async (req, res) => {
     try {
       const parsed = updateProfileSchema.parse(req.body);
       
@@ -78,7 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Change password
-  app.post("/api/user/change-password", requireAuth, async (req, res) => {
+  app.post("/api/user/change-password", requireAuth, csrfProtection, async (req, res) => {
     try {
       const parsed = changePasswordSchema.parse(req.body);
 
@@ -109,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User Settings
-  app.patch("/api/user/settings", requireAuth, async (req, res) => {
+  app.patch("/api/user/settings", requireAuth, csrfProtection, async (req, res) => {
     try {
       const parsed = updateSettingsSchema.parse(req.body);
       
@@ -130,7 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Legacy endpoint (backward compatibility) - now uses same validation as /api/user/profile
-  app.patch("/api/user", requireAuth, async (req, res) => {
+  app.patch("/api/user", requireAuth, csrfProtection, async (req, res) => {
     try {
       // Use same schema validation as profile endpoint for consistency
       const legacySchema = z.object({
@@ -171,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(users);
   });
 
-  app.patch("/api/users/:id/role", requireAdmin, async (req, res) => {
+  app.patch("/api/users/:id/role", requireAdmin, csrfProtection, async (req, res) => {
     const userId = parseInt(req.params.id);
     const { role } = req.body;
     
@@ -188,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(updatedUser);
   });
 
-  app.delete("/api/users/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/users/:id", requireAdmin, csrfProtection, async (req, res) => {
     const userId = parseInt(req.params.id);
     
     if (userId === req.user!.id) {
@@ -214,7 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(workspace);
   });
 
-  app.patch("/api/workspace", requireAdmin, async (req, res) => {
+  app.patch("/api/workspace", requireAdmin, csrfProtection, async (req, res) => {
     const workspaceId = req.user!.workspaceId;
     if (!workspaceId) {
       return res.status(400).send("User not associated with a workspace");
@@ -247,7 +262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(clients);
   });
 
-  app.post("/api/clients", requireAuth, async (req, res) => {
+  app.post("/api/clients", requireAuth, csrfProtection, async (req, res) => {
     const parsed = insertClientSchema.parse({ ...req.body, userId: req.user!.id });
     const client = await storage.createClient(parsed);
     res.status(201).json(client);
@@ -263,7 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(client);
   });
 
-  app.patch("/api/clients/:id", requireAuth, async (req, res) => {
+  app.patch("/api/clients/:id", requireAuth, csrfProtection, async (req, res) => {
     const clientId = parseInt(req.params.id);
     const existingClient = await storage.getClient(clientId);
     
@@ -289,7 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(notes);
   });
 
-  app.post("/api/clients/:id/notes", requireAuth, async (req, res) => {
+  app.post("/api/clients/:id/notes", requireAuth, csrfProtection, async (req, res) => {
     const clientId = parseInt(req.params.id);
     const existingClient = await storage.getClient(clientId);
     
@@ -342,7 +357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/invoices", requireAuth, async (req, res) => {
+  app.post("/api/invoices", requireAuth, csrfProtection, async (req, res) => {
     // Get user to access settings (invoice prefix)
     const user = await storage.getUser(req.user!.id);
     if (!user) {
@@ -370,7 +385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json(invoice);
   });
 
-  app.patch("/api/invoices/:id", requireAuth, async (req, res) => {
+  app.patch("/api/invoices/:id", requireAuth, csrfProtection, async (req, res) => {
     const invoiceId = parseInt(req.params.id);
     const existingInvoice = await storage.getInvoice(invoiceId);
     
@@ -458,7 +473,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Email Invoice
-  app.post("/api/invoices/:id/email", requireAuth, async (req, res) => {
+  app.post("/api/invoices/:id/email", requireAuth, csrfProtection, async (req, res) => {
     const invoiceId = parseInt(req.params.id);
     const invoice = await storage.getInvoice(invoiceId);
     
@@ -532,7 +547,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(trips);
   });
 
-  app.post("/api/trips", requireAuth, async (req, res) => {
+  app.post("/api/trips", requireAuth, csrfProtection, async (req, res) => {
     try {
       const parsed = insertTripSchema.parse({ ...req.body, userId: req.user!.id });
       
@@ -590,7 +605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(documents);
   });
 
-  app.post("/api/documents", requireAuth, async (req, res) => {
+  app.post("/api/documents", requireAuth, csrfProtection, async (req, res) => {
     const parsed = insertDocumentSchema.parse({ ...req.body, userId: req.user!.id });
     const document = await storage.createDocument(parsed);
     res.status(201).json(document);
@@ -618,7 +633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     expiryDate: z.string().optional(), // ISO date string
   });
 
-  // Upload document
+  // Upload document (csrfProtection MUST be before multer to parse token)
   app.post("/api/vault/documents", requireAuth, upload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
@@ -679,10 +694,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: metadata.notes,
       }, req.user.workspaceId);
 
-      // Calculate hard delete date (max 10 years from now)
-      const hardDeleteAt = new Date();
-      hardDeleteAt.setFullYear(hardDeleteAt.getFullYear() + 10);
-
       // Create vault document record with server-derived values
       const document = await storage.createVaultDocument({
         userId: req.user.id,
@@ -696,7 +707,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         retentionPolicy: metadata.retentionPolicy,
         retentionMonths: metadata.retentionMonths,
         expiryDate: metadata.expiryDate ? new Date(metadata.expiryDate) : undefined,
-        hardDeleteAt,
       });
 
       // Audit log
@@ -792,7 +802,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete document
-  app.delete("/api/vault/documents/:id", requireAuth, async (req, res) => {
+  app.delete("/api/vault/documents/:id", requireAuth, csrfProtection, async (req, res) => {
     try {
       if (!req.user?.workspaceId) {
         return res.status(400).json({ message: "User workspace not found" });

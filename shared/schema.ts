@@ -238,6 +238,35 @@ export const documentRetentionJobs = pgTable("document_retention_jobs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Security Audit Logs (authentication & critical operations)
+export const SecurityAuditActionEnum = pgEnum("security_audit_action_enum", [
+  'login_success',
+  'login_failed',
+  'logout',
+  'password_change',
+  'password_reset_request',
+  'password_reset_complete',
+  'registration',
+  'session_invalidated',
+  'rate_limit_exceeded',
+  'invoice_created',
+  'invoice_updated',
+  'invoice_deleted',
+  'client_created',
+  'client_updated',
+  'client_deleted',
+]);
+
+export const securityAuditLogs = pgTable("security_audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id), // Nullable for failed logins
+  action: SecurityAuditActionEnum("action").notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  metadata: jsonb("metadata").$type<Record<string, any>>(), // Additional context (no sensitive data)
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
 // Relations
 export const workspacesRelations = relations(workspaces, ({ many }) => ({
   users: many(users),
@@ -376,5 +405,7 @@ export type VaultDocument = typeof vaultDocuments.$inferSelect;
 export type InsertVaultDocument = z.infer<typeof insertVaultDocumentSchema>;
 export type VaultAuditLog = typeof vaultAuditLogs.$inferSelect;
 export type InsertVaultAuditLog = z.infer<typeof insertVaultAuditLogSchema>;
+export type SecurityAuditLog = typeof securityAuditLogs.$inferSelect;
+export type InsertSecurityAuditLog = typeof securityAuditLogs.$inferInsert;
 export type DocumentRetentionJob = typeof documentRetentionJobs.$inferSelect;
 export type InsertDocumentRetentionJob = z.infer<typeof insertDocumentRetentionJobSchema>;
