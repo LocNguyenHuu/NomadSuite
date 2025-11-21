@@ -29,6 +29,11 @@ export const users = pgTable("users", {
   businessAddress: text("business_address"),
   vatId: text("vat_id"),
   taxRegime: text("tax_regime"), // e.g., 'standard', 'kleinunternehmer'
+  // Bank info for invoices
+  bankName: text("bank_name"),
+  accountNumber: text("account_number"),
+  iban: text("iban"),
+  swift: text("swift"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
