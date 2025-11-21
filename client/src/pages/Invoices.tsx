@@ -75,10 +75,10 @@ export default function Invoices() {
   const onSubmit = (data: any) => {
     const amountInCents = parseInt(data.amount) * 100; // Convert to cents
     createInvoice({ 
-      ...data, 
       clientId: parseInt(data.clientId),
       amount: amountInCents,
-      dueDate: new Date(data.dueDate),
+      currency: data.currency || 'USD',
+      dueDate: new Date(data.dueDate).toISOString(),
       status: 'Sent',
       items: [{
         description: 'Consulting Services',
@@ -87,9 +87,11 @@ export default function Invoices() {
         subtotal: amountInCents,
         tax: 0
       }],
+      tax: 0,
       country: selectedCountry,
       language: data.language || 'en',
       reverseCharge: data.reverseCharge || false,
+      customerVatId: data.customerVatId || undefined,
       complianceChecked: true
     });
     setOpen(false);
