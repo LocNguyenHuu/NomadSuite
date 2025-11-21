@@ -1,8 +1,54 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import slowDown from "express-slow-down";
 
 const app = express();
+
+// ============================================
+// SECURITY HEADERS & HTTPS ENFORCEMENT
+// ============================================
+
+// Trust proxy (required for Replit deployment)
+app.set("trust proxy", 1);
+
+// Helmet: Secure HTTP headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Vite requires unsafe-eval in dev
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"], // Allow external images
+      connectSrc: ["'self'", "https://storage.googleapis.com"], // Allow object storage
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000, // 1 year in seconds
+    includeSubDomains: true,
+    preload: true,
+  },
+  frameguard: { action: "deny" }, // Prevent clickjacking
+  noSniff: true, // Prevent MIME type sniffing
+  xssFilter: true, // Enable XSS filter
+}));
+
+// Global rate limiting (generous limits for legitimate use)
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // Limit each IP to 1000 requests per windowMs
+  message: "Too many requests from this IP, please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(globalLimiter);
 
 declare module 'http' {
   interface IncomingMessage {
