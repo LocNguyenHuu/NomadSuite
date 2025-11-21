@@ -1,8 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupAuth, requireAuth, requireAdmin } from "./auth";
+import { setupAuth, requireAuth, requireAdmin, hashPassword, comparePasswords } from "./auth";
 import { storage } from "./storage";
 import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema, insertUserSchema, insertClientNoteSchema, insertWorkspaceSchema } from "@shared/schema";
+import { z } from "zod";
 import { generateInvoicePDF } from "./pdf-generator";
 import { emailService } from "./email-service";
 import { 
@@ -15,25 +16,113 @@ import {
 import { generateInvoiceNumber } from "./invoice-numbering";
 import { getExchangeRate } from "./fx-rates";
 
+// Profile update schema with strict validation
+const updateProfileSchema = z.object({
+  name: z.string().trim().min(1, "Name cannot be empty").optional(),
+  email: z.string().email("Invalid email address").optional(),
+  homeCountry: z.string().optional(),
+  currentCountry: z.string().optional(),
+  businessName: z.string().optional(),
+  businessAddress: z.string().optional(),
+  vatId: z.string().optional(),
+  taxRegime: z.string().optional(),
+  bankName: z.string().optional(),
+  accountNumber: z.string().optional(),
+  iban: z.string().optional(),
+  swift: z.string().optional(),
+}).strict();
+
+// Password change schema
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(6, "New password must be at least 6 characters"),
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
-  // User Settings
-  app.patch("/api/user", requireAuth, async (req, res) => {
-    // Allow updating specific fields, ignore others like role/id/password/email
-    const updateSchema = insertUserSchema.partial().pick({
-      name: true,
-      homeCountry: true,
-      currentCountry: true,
-      businessName: true,
-      businessAddress: true,
-      vatId: true,
-      taxRegime: true,
-    });
+  // User Profile (extended)
+  app.patch("/api/user/profile", requireAuth, async (req, res) => {
+    try {
+      const parsed = updateProfileSchema.parse(req.body);
+      
+      // Filter out undefined fields to avoid overwriting with undefined
+      const updates = Object.fromEntries(
+        Object.entries(parsed).filter(([_, value]) => value !== undefined)
+      );
+      
+      const user = await storage.updateUser(req.user!.id, updates);
+      res.json(user);
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(400).json({ message: error.message || "Failed to update profile" });
+    }
+  });
 
-    const parsed = updateSchema.parse(req.body);
-    const user = await storage.updateUser(req.user!.id, parsed);
-    res.json(user);
+  // Change password
+  app.post("/api/user/change-password", requireAuth, async (req, res) => {
+    try {
+      const parsed = changePasswordSchema.parse(req.body);
+
+      // Get current user from database
+      const user = await storage.getUser(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Verify current password
+      const isValid = await comparePasswords(parsed.currentPassword, user.password);
+      if (!isValid) {
+        return res.status(401).json({ message: "Current password is incorrect" });
+      }
+
+      // Hash new password and update
+      const hashedPassword = await hashPassword(parsed.newPassword);
+      await storage.updateUser(req.user!.id, { password: hashedPassword });
+
+      res.json({ message: "Password changed successfully" });
+    } catch (error: any) {
+      console.error("Error changing password:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(500).json({ message: "Failed to change password" });
+    }
+  });
+
+  // Legacy endpoint (backward compatibility) - now uses same validation as /api/user/profile
+  app.patch("/api/user", requireAuth, async (req, res) => {
+    try {
+      // Use same schema validation as profile endpoint for consistency
+      const legacySchema = z.object({
+        name: z.string().trim().min(1, "Name cannot be empty").optional(),
+        homeCountry: z.string().optional(),
+        currentCountry: z.string().optional(),
+        businessName: z.string().optional(),
+        businessAddress: z.string().optional(),
+        vatId: z.string().optional(),
+        taxRegime: z.string().optional(),
+      }).strict();
+
+      const parsed = legacySchema.parse(req.body);
+      
+      // Filter out undefined fields
+      const updates = Object.fromEntries(
+        Object.entries(parsed).filter(([_, value]) => value !== undefined)
+      );
+      
+      const user = await storage.updateUser(req.user!.id, updates);
+      res.json(user);
+    } catch (error: any) {
+      console.error("Error updating user:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(400).json({ message: error.message || "Failed to update user" });
+    }
   });
 
   // User Management (Admin only)

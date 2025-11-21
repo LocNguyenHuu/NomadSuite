@@ -30,6 +30,15 @@ Preferred communication style: Simple, everyday language.
 
 **Running Seed Script**: `tsx server/seed-test-data.ts` (clears existing data and creates fresh test data)
 
+## Recent Updates
+
+**November 21, 2025** - Authentication + Account Module:
+- Extended user schema with bank info fields (bankName, accountNumber, iban, swift) for invoice payment details
+- New Profile page with tabs for Personal Info, Business Info, Bank Details, and Security (change password)
+- API endpoints: PATCH /api/user/profile, POST /api/user/change-password with Zod validation
+- Security: Strict validation prevents empty name/email, filters undefined fields, validates passwords (min 6 chars)
+- Added Profile link to sidebar navigation
+
 ## System Architecture
 
 ### Frontend

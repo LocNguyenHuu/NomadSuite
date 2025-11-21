@@ -12,7 +12,8 @@ import {
   Globe,
   Shield,
   Building2,
-  MapPin
+  MapPin,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -34,6 +35,7 @@ const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => v
       { href: '/app/users', icon: UsersIcon, label: 'Team Members' },
       { href: '/app/workspace', icon: Building2, label: 'Workspace' },
     ] : []),
+    { href: '/app/profile', icon: User, label: 'Profile' },
     { href: '/app/settings', icon: Settings, label: 'Settings' },
   ];
 
