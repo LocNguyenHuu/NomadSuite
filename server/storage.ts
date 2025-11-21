@@ -136,8 +136,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
+    // Normalize status to ensure consistency
+    const normalizedInvoice = {
+      ...invoice,
+      status: invoice.status || 'Draft'
+    };
     // Cast to any to avoid complex type mismatch with jsonb array and drizzle inference
-    const [newInvoice] = await db.insert(invoices).values(invoice as any).returning();
+    const [newInvoice] = await db.insert(invoices).values(normalizedInvoice as any).returning();
     return newInvoice;
   }
 

@@ -79,7 +79,9 @@ Preferred communication style: Simple, everyday language.
 
 **Travel & Residency Tracking**: Comprehensive travel log with automatic tax residency calculations (183-day rule per country), Schengen 90/180 rolling window tracker, trip validation (overlap prevention), visual calendar view with country color-coding, and lifetime travel summary statistics. All calculations run automatically on the backend.
 
-**Multi-Country Invoice Compliance**: Supports country-specific invoice requirements (e.g., Germany, France, UK, Canada, US) with dynamic form validation, compliance hints, multi-currency, and multi-language support.
+**Multi-Country Invoice Compliance**: Supports country-specific invoice requirements (e.g., Germany, France, UK, Canada, US) with dynamic form validation, compliance hints, and multi-currency support.
+
+**Multi-Language Invoice PDFs**: Full i18n support for invoice PDFs in English (EN), German (DE), and French (FR). Language-aware field labels, date formatting (locale-specific), currency formatting, compliance text, and payment terms. Language selection automatically defaults to client's jurisdiction language.
 
 **Automatic Invoice Numbering**: Invoices are auto-numbered in NS-{year}-{incremental} format (e.g., NS-2025-00012), with sequential numbering per user per year.
 
