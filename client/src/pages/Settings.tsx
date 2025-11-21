@@ -1,255 +1,326 @@
-import React from 'react';
-import AppLayout from '@/components/layout/AppLayout';
-import { useAuth } from '@/hooks/use-auth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useForm } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { User } from '@shared/schema';
-import { Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import AppLayout from "@/components/layout/AppLayout";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Globe, DollarSign, FileText } from "lucide-react";
+import type { User as UserType } from "@shared/schema";
 
-type SettingsFormData = {
-  name: string;
-  homeCountry: string;
-  currentCountry: string;
-};
+const settingsSchema = z.object({
+  primaryLanguage: z.enum(["en", "de", "fr"]),
+  defaultCurrency: z.string().min(1, "Currency is required"),
+  defaultInvoiceLanguage: z.enum(["en", "de", "fr"]),
+  timezone: z.string().min(1, "Timezone is required"),
+  dateFormat: z.enum(["MM/DD/YYYY", "DD/MM/YYYY", "DD.MM.YYYY"]),
+  invoicePrefix: z.string().min(1, "Invoice prefix is required"),
+});
 
-type BusinessFormData = {
-  businessName?: string;
-  businessAddress?: string;
-  vatId?: string;
-  taxRegime?: string;
-};
+type SettingsForm = z.infer<typeof settingsSchema>;
+
+const LANGUAGES = [
+  { value: "en", label: "English" },
+  { value: "de", label: "Deutsch (German)" },
+  { value: "fr", label: "Français (French)" },
+];
+
+const CURRENCIES = [
+  { value: "USD", label: "USD - US Dollar" },
+  { value: "EUR", label: "EUR - Euro" },
+  { value: "GBP", label: "GBP - British Pound" },
+  { value: "CAD", label: "CAD - Canadian Dollar" },
+  { value: "CHF", label: "CHF - Swiss Franc" },
+  { value: "JPY", label: "JPY - Japanese Yen" },
+  { value: "AUD", label: "AUD - Australian Dollar" },
+];
+
+const DATE_FORMATS = [
+  { value: "MM/DD/YYYY", label: "MM/DD/YYYY (US)" },
+  { value: "DD/MM/YYYY", label: "DD/MM/YYYY (UK/International)" },
+  { value: "DD.MM.YYYY", label: "DD.MM.YYYY (German)" },
+];
+
+const TIMEZONES = [
+  { value: "UTC", label: "UTC (Coordinated Universal Time)" },
+  { value: "America/New_York", label: "Eastern Time (US & Canada)" },
+  { value: "America/Chicago", label: "Central Time (US & Canada)" },
+  { value: "America/Denver", label: "Mountain Time (US & Canada)" },
+  { value: "America/Los_Angeles", label: "Pacific Time (US & Canada)" },
+  { value: "Europe/London", label: "London" },
+  { value: "Europe/Paris", label: "Paris, Berlin, Rome" },
+  { value: "Europe/Athens", label: "Athens, Bucharest" },
+  { value: "Asia/Tokyo", label: "Tokyo, Osaka" },
+  { value: "Asia/Dubai", label: "Dubai" },
+  { value: "Asia/Bangkok", label: "Bangkok" },
+  { value: "Australia/Sydney", label: "Sydney" },
+];
 
 export default function Settings() {
-  const { user, isLoading } = useAuth();
   const { toast } = useToast();
-  
-  const { register, handleSubmit, formState: { isDirty }, reset } = useForm<SettingsFormData>({
-    defaultValues: {
-      name: user?.name || '',
-      homeCountry: user?.homeCountry || '',
-      currentCountry: user?.currentCountry || '',
-    },
-    values: user ? {
-      name: user.name,
-      homeCountry: user.homeCountry || '',
-      currentCountry: user.currentCountry || '',
-    } : undefined
+  const queryClient = useQueryClient();
+
+  const { data: user, isLoading } = useQuery<UserType>({
+    queryKey: ["/api/user"],
   });
 
-  const { register: registerBusiness, handleSubmit: handleBusinessSubmit, formState: { isDirty: isBusinessDirty }, reset: resetBusiness } = useForm<BusinessFormData>({
-    defaultValues: {
-      businessName: user?.businessName || '',
-      businessAddress: user?.businessAddress || '',
-      vatId: user?.vatId || '',
-      taxRegime: user?.taxRegime || 'standard',
-    },
-    values: user ? {
-      businessName: user.businessName || '',
-      businessAddress: user.businessAddress || '',
-      vatId: user.vatId || '',
-      taxRegime: user.taxRegime || 'standard',
-    } : undefined
-  });
-
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data: SettingsFormData) => {
-      const res = await apiRequest("PATCH", "/api/user", data);
-      return await res.json();
-    },
-    onSuccess: (updatedUser: User) => {
-      queryClient.setQueryData(["/api/user"], updatedUser);
-      toast({
-        title: "Profile updated",
-        description: "Your settings have been saved successfully.",
+  const updateSettingsMutation = useMutation({
+    mutationFn: async (data: Partial<SettingsForm>) => {
+      const response = await fetch("/api/user/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       });
-      reset({
-        name: updatedUser.name,
-        homeCountry: updatedUser.homeCountry || '',
-        currentCountry: updatedUser.currentCountry || '',
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update settings");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      toast({
+        title: "Success",
+        description: "Settings updated successfully",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Update failed",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  const updateBusinessMutation = useMutation({
-    mutationFn: async (data: BusinessFormData) => {
-      const res = await apiRequest("PATCH", "/api/user", data);
-      return await res.json();
-    },
-    onSuccess: (updatedUser: User) => {
-      queryClient.setQueryData(["/api/user"], updatedUser);
-      toast({
-        title: "Business information updated",
-        description: "Your business details have been saved successfully.",
-      });
-      resetBusiness({
-        businessName: updatedUser.businessName || '',
-        businessAddress: updatedUser.businessAddress || '',
-        vatId: updatedUser.vatId || '',
-        taxRegime: updatedUser.taxRegime || 'standard',
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Update failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
+  const form = useForm<SettingsForm>({
+    resolver: zodResolver(settingsSchema),
+    values: user ? {
+      primaryLanguage: (user.primaryLanguage || "en") as "en" | "de" | "fr",
+      defaultCurrency: user.defaultCurrency || "USD",
+      defaultInvoiceLanguage: (user.defaultInvoiceLanguage || "en") as "en" | "de" | "fr",
+      timezone: user.timezone || "UTC",
+      dateFormat: (user.dateFormat || "MM/DD/YYYY") as "MM/DD/YYYY" | "DD/MM/YYYY" | "DD.MM.YYYY",
+      invoicePrefix: user.invoicePrefix || "NS-",
+    } : undefined,
   });
 
-  const onSubmit = (data: SettingsFormData) => {
-    updateProfileMutation.mutate(data);
-  };
-
-  const onBusinessSubmit = (data: BusinessFormData) => {
-    updateBusinessMutation.mutate(data);
+  const onSubmit = (data: SettingsForm) => {
+    updateSettingsMutation.mutate(data);
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-border" />
-      </div>
+      <AppLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-border" />
+        </div>
+      </AppLayout>
     );
   }
 
-  if (!user) return null;
-
   return (
     <AppLayout>
-      <div className="space-y-8 max-w-2xl mx-auto">
-        <div>
-          <h2 className="text-3xl font-heading font-bold tracking-tight">Settings</h2>
-          <p className="text-muted-foreground">Manage your account preferences and profile.</p>
+      <div className="space-y-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Settings</h1>
+          <p className="text-muted-foreground">
+            Manage your preferences and default settings
+          </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>Update your personal details and location.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Language & Regional Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Language & Regional Settings
+              </CardTitle>
+              <CardDescription>
+                Set your preferred language, timezone, and date format
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="grid gap-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input id="name" {...register('name', { required: true })} />
+                <Label htmlFor="primaryLanguage">Primary Language</Label>
+                <Select
+                  value={form.watch("primaryLanguage")}
+                  onValueChange={(value) => form.setValue("primaryLanguage", value as "en" | "de" | "fr")}
+                >
+                  <SelectTrigger id="primaryLanguage" data-testid="select-primary-language">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.value} value={lang.value}>
+                        {lang.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.primaryLanguage && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.primaryLanguage.message}
+                  </p>
+                )}
               </div>
-              
+
               <div className="grid gap-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  value={user?.email || ''} 
-                  disabled 
-                  className="bg-muted"
+                <Label htmlFor="timezone">Timezone</Label>
+                <Select
+                  value={form.watch("timezone")}
+                  onValueChange={(value) => form.setValue("timezone", value)}
+                >
+                  <SelectTrigger id="timezone" data-testid="select-timezone">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TIMEZONES.map((tz) => (
+                      <SelectItem key={tz.value} value={tz.value}>
+                        {tz.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.timezone && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.timezone.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="dateFormat">Date Format</Label>
+                <Select
+                  value={form.watch("dateFormat")}
+                  onValueChange={(value) => form.setValue("dateFormat", value as "MM/DD/YYYY" | "DD/MM/YYYY" | "DD.MM.YYYY")}
+                >
+                  <SelectTrigger id="dateFormat" data-testid="select-date-format">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DATE_FORMATS.map((format) => (
+                      <SelectItem key={format.value} value={format.value}>
+                        {format.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.dateFormat && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.dateFormat.message}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Invoice Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Invoice Settings
+              </CardTitle>
+              <CardDescription>
+                Configure default invoice preferences
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="defaultCurrency">Default Currency</Label>
+                <Select
+                  value={form.watch("defaultCurrency")}
+                  onValueChange={(value) => form.setValue("defaultCurrency", value)}
+                >
+                  <SelectTrigger id="defaultCurrency" data-testid="select-default-currency">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CURRENCIES.map((currency) => (
+                      <SelectItem key={currency.value} value={currency.value}>
+                        {currency.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.defaultCurrency && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.defaultCurrency.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="defaultInvoiceLanguage">Default Invoice Language</Label>
+                <Select
+                  value={form.watch("defaultInvoiceLanguage")}
+                  onValueChange={(value) => form.setValue("defaultInvoiceLanguage", value as "en" | "de" | "fr")}
+                >
+                  <SelectTrigger id="defaultInvoiceLanguage" data-testid="select-default-invoice-language">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.value} value={lang.value}>
+                        {lang.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.defaultInvoiceLanguage && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.defaultInvoiceLanguage.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="invoicePrefix">Invoice Number Prefix</Label>
+                <Input
+                  id="invoicePrefix"
+                  {...form.register("invoicePrefix")}
+                  placeholder="NS-"
+                  data-testid="input-invoice-prefix"
                 />
-                <p className="text-xs text-muted-foreground">Contact support to change your email address.</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="homeCountry">Home Country</Label>
-                  <Input id="homeCountry" placeholder="e.g. USA" {...register('homeCountry')} />
-                  <p className="text-xs text-muted-foreground">Used for tax residency calculations.</p>
-                </div>
-                
-                <div className="grid gap-2">
-                  <Label htmlFor="currentCountry">Current Location</Label>
-                  <Input id="currentCountry" placeholder="e.g. Japan" {...register('currentCountry')} />
-                  <p className="text-xs text-muted-foreground">Your current base of operations.</p>
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Button type="submit" disabled={!isDirty || updateProfileMutation.isPending}>
-                  {updateProfileMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Changes
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Business & Tax Information</CardTitle>
-            <CardDescription>Required for invoice compliance and multi-country invoicing.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleBusinessSubmit(onBusinessSubmit)} className="space-y-6">
-              <div className="grid gap-2">
-                <Label htmlFor="businessName">Business Name</Label>
-                <Input id="businessName" placeholder="Your Company Ltd." {...registerBusiness('businessName')} />
-                <p className="text-xs text-muted-foreground">Will appear on invoices</p>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="businessAddress">Business Address</Label>
-                <Input id="businessAddress" placeholder="123 Main St, City, Country" {...registerBusiness('businessAddress')} />
-                <p className="text-xs text-muted-foreground">Required for EU invoices</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="vatId">VAT ID / Tax Number</Label>
-                  <Input id="vatId" placeholder="DE123456789" {...registerBusiness('vatId')} />
-                  <p className="text-xs text-muted-foreground">For B2B invoicing in EU</p>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="taxRegime">Tax Regime</Label>
-                  <Input id="taxRegime" placeholder="standard" {...registerBusiness('taxRegime')} />
-                  <p className="text-xs text-muted-foreground">E.g., "standard", "kleinunternehmer"</p>
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Button type="submit" disabled={!isBusinessDirty || updateBusinessMutation.isPending}>
-                  {updateBusinessMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Business Info
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Role</CardTitle>
-            <CardDescription>Your current permission level.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
-              <div>
-                <p className="font-medium capitalize">{user?.role}</p>
                 <p className="text-sm text-muted-foreground">
-                  {user?.role === 'admin' 
-                    ? 'You have full access to all features and admin dashboard.' 
-                    : 'You have access to standard features.'}
+                  Invoices will be numbered as: {form.watch("invoicePrefix")}2025-00001
+                </p>
+                {form.formState.errors.invoicePrefix && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.invoicePrefix.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="p-4 bg-muted rounded-lg">
+                <h4 className="font-medium mb-2">PDF Template Style</h4>
+                <p className="text-sm text-muted-foreground">
+                  Default template (MVP version)
                 </p>
               </div>
-              {user?.role === 'admin' && (
-                <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase">
-                  Admin
-                </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={updateSettingsMutation.isPending}
+              data-testid="button-save-settings"
+            >
+              {updateSettingsMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-            </div>
-          </CardContent>
-        </Card>
+              Save Settings
+            </Button>
+          </div>
+        </form>
       </div>
     </AppLayout>
   );
