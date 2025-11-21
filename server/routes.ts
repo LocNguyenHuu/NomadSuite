@@ -38,6 +38,16 @@ const changePasswordSchema = z.object({
   newPassword: z.string().min(6, "New password must be at least 6 characters"),
 });
 
+// Settings update schema
+const updateSettingsSchema = z.object({
+  primaryLanguage: z.enum(["en", "de", "fr"]).optional(),
+  defaultCurrency: z.string().optional(),
+  defaultInvoiceLanguage: z.enum(["en", "de", "fr"]).optional(),
+  timezone: z.string().optional(),
+  dateFormat: z.enum(["MM/DD/YYYY", "DD/MM/YYYY", "DD.MM.YYYY"]).optional(),
+  invoicePrefix: z.string().min(1, "Invoice prefix cannot be empty").optional(),
+}).strict();
+
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
@@ -90,6 +100,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: error.errors[0]?.message || "Invalid input" });
       }
       res.status(500).json({ message: "Failed to change password" });
+    }
+  });
+
+  // User Settings
+  app.patch("/api/user/settings", requireAuth, async (req, res) => {
+    try {
+      const parsed = updateSettingsSchema.parse(req.body);
+      
+      // Filter out undefined fields
+      const updates = Object.fromEntries(
+        Object.entries(parsed).filter(([_, value]) => value !== undefined)
+      );
+      
+      const user = await storage.updateUser(req.user!.id, updates);
+      res.json(user);
+    } catch (error: any) {
+      console.error("Error updating settings:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(400).json({ message: error.message || "Failed to update settings" });
     }
   });
 
