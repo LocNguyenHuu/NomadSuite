@@ -1,7 +1,7 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp, date, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, date, unique, pgEnum, check } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 // Workspaces
 export const workspaces = pgTable("workspaces", {
@@ -155,6 +155,89 @@ export const jurisdictionRules = pgTable("jurisdiction_rules", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// GDPR-Compliant Document Vault
+// Encrypted metadata interface for sensitive document information
+export interface EncryptedDocumentMetadata {
+  name: string;
+  type: string; // 'Passport', 'Visa', 'Contract', 'Tax Document', 'Insurance', 'Other'
+  country?: string;
+  notes?: string;
+}
+
+// Retention policy enum with DB-level enforcement
+export const RetentionPolicyEnum = pgEnum("retention_policy_enum", ["on_expiry", "after_upload", "indefinite"]);
+export const RetentionPolicy = z.enum(['on_expiry', 'after_upload', 'indefinite']);
+export type RetentionPolicyType = z.infer<typeof RetentionPolicy>;
+
+// Storage region enum (EU-only for GDPR)
+export const StorageRegionEnum = pgEnum("storage_region_enum", ["EU"]);
+
+// Audit action enum with DB-level enforcement
+export const AuditActionEnum = pgEnum("audit_action_enum", ['upload', 'download_link', 'download', 'delete', 'user_delete', 'auto_delete', 'expiry_notice', 'erasure_request']);
+export const AuditAction = z.enum(['upload', 'download_link', 'download', 'delete', 'user_delete', 'auto_delete', 'expiry_notice', 'erasure_request']);
+export type AuditActionType = z.infer<typeof AuditAction>;
+
+// Job type enum
+export const JobTypeEnum = pgEnum("job_type_enum", ['retention_delete', 'expiry_alert_30d', 'expiry_alert_7d']);
+
+// Vault Documents (GDPR-compliant encrypted storage)
+export const vaultDocuments = pgTable("vault_documents", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  workspaceId: integer("workspace_id").notNull().references(() => workspaces.id), // For workspace-level encryption keys
+  // Encrypted metadata stored as JSONB (ciphertext, iv, authTag)
+  encryptedMetadata: jsonb("encrypted_metadata").$type<{
+    ciphertext: string;
+    iv: string;
+    authTag: string;
+  }>().notNull(),
+  // File storage and integrity
+  storageKey: text("storage_key").notNull(), // Object storage path
+  fileHash: text("file_hash").notNull(), // SHA-256 for integrity verification
+  fileSize: integer("file_size").notNull(), // In bytes
+  mimeType: text("mime_type").notNull(),
+  storageRegion: StorageRegionEnum("storage_region").notNull().default("EU"), // GDPR compliance - EU only
+  // GDPR retention policy with constraints
+  retentionPolicy: RetentionPolicyEnum("retention_policy").notNull().default("indefinite"),
+  retentionMonths: integer("retention_months"), // Must be positive, max 120 (10 years)
+  expiryDate: timestamp("expiry_date"), // For 'on_expiry' policy and document expiration (passport, visa, etc.)
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at"), // Soft delete timestamp
+  hardDeleteAt: timestamp("hard_delete_at"), // Scheduled hard delete (max 10 years from creation)
+}, (table) => ({
+  // Constraint: retention_months must be positive and <= 120 (10 years)
+  retentionMonthsCheck: check("retention_months_check", 
+    sql`${table.retentionMonths} IS NULL OR (${table.retentionMonths} > 0 AND ${table.retentionMonths} <= 120)`
+  ),
+  // Constraint: hard_delete_at must be within 10 years of creation
+  hardDeleteCheck: check("hard_delete_check",
+    sql`${table.hardDeleteAt} IS NULL OR ${table.hardDeleteAt} <= ${table.createdAt} + INTERVAL '10 years'`
+  ),
+}));
+
+// Vault Audit Logs (GDPR-compliant minimal logging)
+export const vaultAuditLogs = pgTable("vault_audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  documentId: integer("document_id").references(() => vaultDocuments.id), // Nullable for erasure requests
+  action: AuditActionEnum("action").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  // NO content/metadata stored - GDPR privacy requirement
+});
+
+// Document Retention Jobs (scheduled auto-deletion)
+export const documentRetentionJobs = pgTable("document_retention_jobs", {
+  id: serial("id").primaryKey(),
+  documentId: integer("document_id").notNull().references(() => vaultDocuments.id),
+  dueAt: timestamp("due_at").notNull(), // When to execute deletion
+  jobType: JobTypeEnum("job_type").notNull(),
+  executed: boolean("executed").default(false),
+  executedAt: timestamp("executed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const workspacesRelations = relations(workspaces, ({ many }) => ({
   users: many(users),
@@ -191,6 +274,21 @@ export const tripsRelations = relations(trips, ({ one }) => ({
 
 export const documentsRelations = relations(documents, ({ one }) => ({
   user: one(users, { fields: [documents.userId], references: [users.id] }),
+}));
+
+export const vaultDocumentsRelations = relations(vaultDocuments, ({ one, many }) => ({
+  user: one(users, { fields: [vaultDocuments.userId], references: [users.id] }),
+  auditLogs: many(vaultAuditLogs),
+  retentionJobs: many(documentRetentionJobs),
+}));
+
+export const vaultAuditLogsRelations = relations(vaultAuditLogs, ({ one }) => ({
+  user: one(users, { fields: [vaultAuditLogs.userId], references: [users.id] }),
+  document: one(vaultDocuments, { fields: [vaultAuditLogs.documentId], references: [vaultDocuments.id] }),
+}));
+
+export const documentRetentionJobsRelations = relations(documentRetentionJobs, ({ one }) => ({
+  document: one(vaultDocuments, { fields: [documentRetentionJobs.documentId], references: [vaultDocuments.id] }),
 }));
 
 // Zod Schemas
@@ -247,3 +345,36 @@ export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type JurisdictionRule = typeof jurisdictionRules.$inferSelect;
 export type InsertJurisdictionRule = z.infer<typeof insertJurisdictionRuleSchema>;
+
+// Vault schemas and types
+export const insertVaultDocumentSchema = createInsertSchema(vaultDocuments, {
+  expiryDate: z.coerce.date().optional(),
+  retentionMonths: z.number().int().positive().max(120).optional(),
+}).omit({ 
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+  hardDeleteAt: true
+});
+
+export const insertVaultAuditLogSchema = createInsertSchema(vaultAuditLogs).omit({ 
+  id: true,
+  timestamp: true
+});
+
+export const insertDocumentRetentionJobSchema = createInsertSchema(documentRetentionJobs, {
+  dueAt: z.coerce.date(),
+}).omit({ 
+  id: true,
+  createdAt: true,
+  executed: true,
+  executedAt: true
+});
+
+export type VaultDocument = typeof vaultDocuments.$inferSelect;
+export type InsertVaultDocument = z.infer<typeof insertVaultDocumentSchema>;
+export type VaultAuditLog = typeof vaultAuditLogs.$inferSelect;
+export type InsertVaultAuditLog = z.infer<typeof insertVaultAuditLogSchema>;
+export type DocumentRetentionJob = typeof documentRetentionJobs.$inferSelect;
+export type InsertDocumentRetentionJob = z.infer<typeof insertDocumentRetentionJobSchema>;
