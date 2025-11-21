@@ -19,6 +19,7 @@ import { encryptMetadata, decryptMetadata, computeFileHash } from "./lib/encrypt
 import { VaultStorageService } from "./lib/object-storage-vault";
 import { AuditLogger } from "./lib/audit";
 import multer from "multer";
+import fileType from "file-type";
 
 // Profile update schema with strict validation
 const updateProfileSchema = z.object({
@@ -628,16 +629,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User workspace not found" });
       }
 
-      // Validate metadata
-      const metadata = vaultUploadSchema.parse(JSON.parse(req.body.metadata || '{}'));
-
-      // Validate file type (PDF, JPG, PNG only)
-      const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-      if (!allowedMimeTypes.includes(req.file.mimetype)) {
-        return res.status(400).json({ message: "Only PDF, JPG, and PNG files are allowed" });
+      // Parse and strictly validate metadata from multipart request
+      let parsedMetadata: any;
+      try {
+        parsedMetadata = JSON.parse(req.body.metadata || '{}');
+      } catch (error) {
+        return res.status(400).json({ message: "Invalid metadata JSON" });
       }
 
-      // Encrypt metadata
+      // Validate metadata with strict Zod schema (sanitize user input)
+      const metadata = vaultUploadSchema.parse(parsedMetadata);
+
+      // CRITICAL: Server-side file type detection using magic bytes (prevent MIME spoofing)
+      const detectedType = await fileType.fromBuffer(req.file.buffer);
+      
+      // Allowed MIME types (whitelist)
+      const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      
+      // Reject if file type cannot be detected or is not in whitelist
+      if (!detectedType || !allowedMimeTypes.includes(detectedType.mime)) {
+        return res.status(400).json({ 
+          message: "Only PDF, JPG, and PNG files are allowed. Detected type: " + (detectedType?.mime || "unknown")
+        });
+      }
+
+      // Derive immutable server-side values from actual file content (prevent tampering)
+      const serverFileSize = req.file.size;
+      const serverMimeType = detectedType.mime; // Use detected MIME, not client-provided
+      const serverFileHash = computeFileHash(req.file.buffer);
+
+      // Generate storage key
+      const storageKey = vaultStorage.generateStorageKey(req.user.id);
+
+      // Upload file to object storage and verify integrity
+      const uploadedHash = await vaultStorage.uploadFile(storageKey, req.file.buffer, serverMimeType);
+
+      // Critical: Verify uploaded hash matches computed hash (integrity check)
+      if (uploadedHash !== serverFileHash) {
+        // Hash mismatch indicates corruption or tampering
+        await vaultStorage.deleteFile(storageKey); // Rollback upload
+        return res.status(500).json({ message: "File integrity verification failed" });
+      }
+
+      // Encrypt metadata (only user-provided fields)
       const encryptedMetadata = encryptMetadata({
         name: metadata.name,
         type: metadata.type,
@@ -645,28 +679,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: metadata.notes,
       }, req.user.workspaceId);
 
-      // Compute file hash
-      const fileHash = computeFileHash(req.file.buffer);
-
-      // Generate storage key
-      const storageKey = vaultStorage.generateStorageKey(req.user.id);
-
-      // Upload file to object storage
-      await vaultStorage.uploadFile(storageKey, req.file.buffer, req.file.mimetype);
-
       // Calculate hard delete date (max 10 years from now)
       const hardDeleteAt = new Date();
       hardDeleteAt.setFullYear(hardDeleteAt.getFullYear() + 10);
 
-      // Create vault document record
+      // Create vault document record with server-derived values
       const document = await storage.createVaultDocument({
         userId: req.user.id,
         workspaceId: req.user.workspaceId,
         encryptedMetadata,
         storageKey,
-        fileHash,
-        fileSize: req.file.size,
-        mimeType: req.file.mimetype,
+        fileHash: serverFileHash, // Use verified server-side hash
+        fileSize: serverFileSize, // Use server-side file size
+        mimeType: serverMimeType, // Use server-side mime type
         storageRegion: "EU",
         retentionPolicy: metadata.retentionPolicy,
         retentionMonths: metadata.retentionMonths,
