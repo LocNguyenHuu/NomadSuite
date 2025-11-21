@@ -57,19 +57,15 @@ const updateSettingsSchema = z.object({
 // Auth-specific strict rate limiting (prevents brute force attacks)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs (strict for auth)
+  max: 10, // Limit each IP to 10 requests per windowMs (allows retries but prevents brute force)
   message: "Too many authentication attempts, please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: true, // Don't count successful logins
+  skipSuccessfulRequests: false, // Count all attempts (prevents bypass)
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  setupAuth(app);
-  
-  // Apply auth rate limiting to authentication endpoints
-  app.use("/api/login", authLimiter);
-  app.use("/api/register", authLimiter);
+  setupAuth(app, authLimiter);
 
   // User Profile (extended)
   app.patch("/api/user/profile", requireAuth, csrfProtection, async (req, res) => {

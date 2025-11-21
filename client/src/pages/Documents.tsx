@@ -30,6 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm, Controller } from 'react-hook-form';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { getCsrfToken } from '@/lib/api';
 
 interface VaultDocument {
   id: number;
@@ -86,8 +87,15 @@ export default function Documents() {
         expiryDate: data.expiryDate,
       }));
 
+      const headers: Record<string, string> = {};
+      const csrfToken = getCsrfToken();
+      if (csrfToken) {
+        headers['csrf-token'] = csrfToken;
+      }
+
       const response = await fetch('/api/vault/documents', {
         method: 'POST',
+        headers,
         body: formData,
         credentials: 'include',
       });
@@ -151,8 +159,15 @@ export default function Documents() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
+      const headers: Record<string, string> = {};
+      const csrfToken = getCsrfToken();
+      if (csrfToken) {
+        headers['csrf-token'] = csrfToken;
+      }
+
       const response = await fetch(`/api/vault/documents/${id}`, {
         method: 'DELETE',
+        headers,
         credentials: 'include',
       });
 

@@ -24,6 +24,19 @@ import WorkspaceSettings from "@/pages/WorkspaceSettings";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { AdminRoute } from "@/lib/admin-route";
+import { CsrfProvider } from "@/lib/csrf";
+import { useEffect } from "react";
+import { setCsrfToken } from "@/lib/api";
+
+function CsrfInitializer() {
+  useEffect(() => {
+    fetch('/api/csrf-token', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setCsrfToken(data.csrfToken))
+      .catch(err => console.error('Failed to fetch CSRF token:', err));
+  }, []);
+  return null;
+}
 
 function Router() {
   return (
@@ -60,10 +73,13 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <Toaster />
-          <Router />
-        </AuthProvider>
+        <CsrfProvider>
+          <CsrfInitializer />
+          <AuthProvider>
+            <Toaster />
+            <Router />
+          </AuthProvider>
+        </CsrfProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

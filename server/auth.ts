@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, RequestHandler } from "express";
 import session from "express-session";
 import csrf from "csurf";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
@@ -34,7 +34,7 @@ export const csrfProtection = csrf({
   cookie: false, // Use session-based CSRF (not cookies)
 });
 
-export function setupAuth(app: Express) {
+export function setupAuth(app: Express, authRateLimiter?: RequestHandler) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "dev_secret_key",
     resave: false,
@@ -84,7 +84,11 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/register", csrfProtection, async (req, res, next) => {
+  const registerMiddleware = authRateLimiter 
+    ? [authRateLimiter, csrfProtection]
+    : [csrfProtection];
+
+  app.post("/api/register", ...registerMiddleware, async (req, res, next) => {
     try {
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
@@ -105,7 +109,11 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/login", csrfProtection, passport.authenticate("local"), (req, res) => {
+  const loginMiddleware = authRateLimiter
+    ? [authRateLimiter, csrfProtection, passport.authenticate("local")]
+    : [csrfProtection, passport.authenticate("local")];
+
+  app.post("/api/login", ...loginMiddleware, (req, res) => {
     res.status(200).json(req.user);
   });
 
