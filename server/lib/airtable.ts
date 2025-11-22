@@ -75,6 +75,7 @@ class AirtableService {
           'Use Case': data.useCase || '',
           'Referral Code': data.referralCode || '',
           'Email Consent': data.emailConsent,
+          'Created At': new Date().toISOString().split('T')[0], // Date format: YYYY-MM-DD
         },
       };
 
@@ -114,7 +115,8 @@ class AirtableService {
         'Name': data.name || 'Anonymous',
         'Email': data.email || '',
         'Description': data.description,
-        'Contact Consent': data.contactConsent ? 'Yes' : 'No',
+        'Contact Consent': data.contactConsent, // Boolean for Checkbox
+        'Created At': new Date().toISOString().split('T')[0], // Date format: YYYY-MM-DD
       };
       
       // Handle screenshot as Airtable Attachment field

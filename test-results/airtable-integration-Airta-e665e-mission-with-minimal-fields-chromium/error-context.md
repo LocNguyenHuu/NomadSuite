@@ -1,0 +1,502 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications (F8)":
+      - list
+    - generic [ref=e3]:
+      - navigation [ref=e4]:
+        - generic [ref=e5]:
+          - link "NomadSuite" [ref=e6] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e7]:
+              - img [ref=e8]
+              - generic [ref=e11]: NomadSuite
+          - generic [ref=e12]:
+            - link "Features" [ref=e13] [cursor=pointer]:
+              - /url: "#features"
+            - link "Pricing" [ref=e14] [cursor=pointer]:
+              - /url: "#pricing"
+            - link "Help" [ref=e15] [cursor=pointer]:
+              - /url: /help
+          - generic [ref=e16]:
+            - link "Log In" [ref=e17] [cursor=pointer]:
+              - /url: /login
+              - button "Log In" [ref=e18]
+            - link "Sign Up Free" [ref=e19] [cursor=pointer]:
+              - /url: /register
+              - button "Sign Up Free" [ref=e20]
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - generic [ref=e26]: ✨ Trusted by 10,000+ digital nomads
+          - heading "Run your freelance business and global lifestyle—effortlessly" [level=1] [ref=e27]
+          - paragraph [ref=e28]: Client CRM, invoices, travel & visa tracking, and tax-residency alerts—all from one powerful web-app.
+          - generic [ref=e29]:
+            - link "Start Free Trial" [ref=e30] [cursor=pointer]:
+              - /url: /register
+              - button "Start Free Trial" [ref=e31]:
+                - text: Start Free Trial
+                - img
+            - button "Watch Demo" [ref=e32]
+          - generic [ref=e33]:
+            - generic [ref=e34]:
+              - img [ref=e35]
+              - generic [ref=e40]: 40+ countries
+            - generic [ref=e41]:
+              - img [ref=e42]
+              - generic [ref=e45]: Bank-level encryption
+            - generic [ref=e46]:
+              - img [ref=e47]
+              - generic [ref=e49]: No credit card
+        - img "NomadSuite Dashboard showing client management, invoicing, and travel tracking features" [ref=e52]
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - heading "Your one-stop tool because generic CRMs aren't built for nomads" [level=2] [ref=e56]
+          - paragraph [ref=e57]: Stop juggling multiple tools, spreadsheets, and anxiety about compliance.
+        - generic [ref=e58]:
+          - generic [ref=e59]:
+            - img [ref=e61]
+            - heading "Bloated CRMs create more work" [level=3] [ref=e64]
+            - paragraph [ref=e65]: Tools like Salesforce are built for sales teams with 100+ people, not solo freelancers. You need simple, not enterprise.
+          - generic [ref=e66]:
+            - img [ref=e68]
+            - heading "Compliance is a nightmare" [level=3] [ref=e71]
+            - paragraph [ref=e72]: Tracking visa expiry dates, tax residency days, and Schengen 90/180 rules manually is error-prone and stressful.
+          - generic [ref=e73]:
+            - img [ref=e75]
+            - heading "Billing across borders is chaos" [level=3] [ref=e78]
+            - paragraph [ref=e79]: Different currencies, tax rules, and payment methods make invoicing clients a time-consuming mess.
+      - generic [ref=e81]:
+        - generic [ref=e82]:
+          - heading "Everything you need in one dashboard" [level=2] [ref=e83]
+          - paragraph [ref=e84]: Designed specifically for location-independent professionals who need to stay compliant while staying mobile.
+        - generic [ref=e85]:
+          - generic [ref=e86]:
+            - img [ref=e88]
+            - heading "Freelance CRM & Billing" [level=3] [ref=e93]
+            - paragraph [ref=e94]: Manage clients with a visual pipeline board, send professional invoices, and track revenue—all in one place.
+          - generic [ref=e95]:
+            - img [ref=e97]
+            - heading "Travel & Residency Tracker" [level=3] [ref=e99]
+            - paragraph [ref=e100]: Automatically calculate days abroad, get alerts for tax residency thresholds, and stay compliant with visa rules.
+          - generic [ref=e101]:
+            - img [ref=e103]
+            - heading "Visa & Document Vault" [level=3] [ref=e105]
+            - paragraph [ref=e106]: Securely store passports, permits, and contracts. AI reads expiry dates and sends automatic reminders.
+        - generic [ref=e107]:
+          - heading "Plus these powerful features:" [level=3] [ref=e108]
+          - generic [ref=e109]:
+            - generic [ref=e110]:
+              - img [ref=e111]
+              - generic [ref=e113]: Multi-currency invoicing
+            - generic [ref=e114]:
+              - img [ref=e115]
+              - generic [ref=e117]: Schengen 90/180 calculator
+            - generic [ref=e118]:
+              - img [ref=e119]
+              - generic [ref=e121]: Client pipeline board (Kanban)
+            - generic [ref=e122]:
+              - img [ref=e123]
+              - generic [ref=e125]: Exportable CSV/PDF reports
+            - generic [ref=e126]:
+              - img [ref=e127]
+              - generic [ref=e129]: Mobile-responsive interface
+            - generic [ref=e130]:
+              - img [ref=e131]
+              - generic [ref=e133]: Bank-level security (AES-256)
+      - generic [ref=e135]:
+        - generic [ref=e136]:
+          - heading "Start in under 5 minutes" [level=2] [ref=e137]
+          - paragraph [ref=e138]: Simple setup, powerful results—no technical skills required
+        - generic [ref=e139]:
+          - generic [ref=e141]:
+            - generic [ref=e142]: "1"
+            - heading "Sign up" [level=3] [ref=e143]
+            - paragraph [ref=e144]: Quick setup wizard sets your nationality, home country, and primary currency in 60 seconds.
+          - generic [ref=e145]:
+            - generic [ref=e146]: "2"
+            - heading "Add clients" [level=3] [ref=e147]
+            - paragraph [ref=e148]: Import existing contacts or create new ones with minimal required fields.
+          - generic [ref=e149]:
+            - generic [ref=e150]: "3"
+            - heading "Log travel" [level=3] [ref=e151]
+            - paragraph [ref=e152]: Instantly see your days abroad counted and residency status updated in real-time.
+          - generic [ref=e153]:
+            - generic [ref=e154]: "4"
+            - heading "Upload docs" [level=3] [ref=e155]
+            - paragraph [ref=e156]: AI reads dates from passports and visas, setting up automatic expiry alerts.
+          - generic [ref=e157]:
+            - generic [ref=e158]: "5"
+            - heading "Stay compliant" [level=3] [ref=e159]
+            - paragraph [ref=e160]: Dashboard shows your complete status at a glance. Relax and focus on your work.
+      - generic [ref=e162]:
+        - generic [ref=e163]:
+          - heading "Real numbers, real insights" [level=2] [ref=e164]
+          - paragraph [ref=e165]: See your business and lifestyle in data. Know when a visa is at risk. Know when you'll hit tax-resident status. Know your revenue flows at a glance.
+        - generic [ref=e166]:
+          - generic [ref=e167]:
+            - generic [ref=e168]:
+              - heading "Days abroad this year" [level=3] [ref=e169]
+              - paragraph [ref=e170]: Track your time in each country
+            - img [ref=e174]:
+              - generic [ref=e176]:
+                - generic [ref=e178]: Portugal
+                - generic [ref=e180]: Spain
+                - generic [ref=e182]: Thailand
+                - generic [ref=e184]: Mexico
+              - generic [ref=e186]:
+                - generic [ref=e188]: "0"
+                - generic [ref=e190]: "15"
+                - generic [ref=e192]: "30"
+                - generic [ref=e194]: "45"
+                - generic [ref=e196]: "60"
+          - generic [ref=e207]:
+            - generic [ref=e208]:
+              - heading "Clients by country" [level=3] [ref=e209]
+              - paragraph [ref=e210]: Geographic distribution of your client base
+            - img [ref=e214]:
+              - generic [ref=e215]:
+                - img [ref=e217]
+                - img [ref=e219]
+                - img [ref=e221]
+                - img [ref=e223]
+                - generic [ref=e224]:
+                  - generic [ref=e226]: "USA: 35%"
+                  - generic [ref=e228]: "UK: 25%"
+                  - generic [ref=e230]: "Germany: 20%"
+                  - generic [ref=e232]: "Other: 20%"
+          - generic [ref=e233]:
+            - generic [ref=e234]:
+              - heading "Invoice status trends" [level=3] [ref=e235]
+              - paragraph [ref=e236]: Payment performance over time
+            - generic [ref=e239]:
+              - img [ref=e240]:
+                - generic [ref=e242]:
+                  - generic [ref=e244]: Jan
+                  - generic [ref=e246]: Feb
+                  - generic [ref=e248]: Mar
+                  - generic [ref=e250]: Apr
+                - generic [ref=e252]:
+                  - generic [ref=e254]: "0"
+                  - generic [ref=e256]: "5"
+                  - generic [ref=e258]: "10"
+                  - generic [ref=e260]: "15"
+                  - generic [ref=e262]: "20"
+              - list [ref=e278]:
+                - listitem [ref=e279]:
+                  - img [ref=e280]
+                  - text: paid
+                - listitem [ref=e282]:
+                  - img [ref=e283]
+                  - text: overdue
+      - generic [ref=e286]:
+        - generic [ref=e287]:
+          - heading "Trusted by professionals worldwide" [level=2] [ref=e288]
+          - paragraph [ref=e289]: Join thousands of digital nomads who've simplified their work-life
+        - generic [ref=e291]:
+          - generic [ref=e294]:
+            - generic [ref=e295]:
+              - img [ref=e296]
+              - img [ref=e298]
+              - img [ref=e300]
+              - img [ref=e302]
+              - img [ref=e304]
+            - generic [ref=e306]:
+              - paragraph [ref=e307]: "\"Been using it for 8 months across 12 countries. The multi-currency invoicing alone paid for itself. Highly recommend for any location-independent professional.\""
+              - generic [ref=e308]:
+                - generic [ref=e309]: E
+                - generic [ref=e310]:
+                  - paragraph [ref=e311]: Emma Thompson
+                  - paragraph [ref=e312]: Content Strategist
+          - generic [ref=e313]:
+            - button [ref=e314]:
+              - img
+            - generic [ref=e315]:
+              - button [ref=e316]
+              - button [ref=e317]
+              - button [ref=e318]
+              - button [ref=e319]
+              - button [ref=e320]
+              - button [ref=e321]
+            - button [ref=e322]:
+              - img
+        - generic [ref=e323]:
+          - generic [ref=e324]:
+            - img [ref=e325]
+            - generic [ref=e328]: Freelancers from 30+ countries
+          - generic [ref=e329]:
+            - img [ref=e330]
+            - generic [ref=e332]: GDPR-Compliant
+          - generic [ref=e333]:
+            - img [ref=e334]
+            - generic [ref=e337]: Data encrypted at rest
+          - generic [ref=e338]:
+            - img [ref=e339]
+            - generic [ref=e342]: 100k+ secure documents
+      - generic [ref=e344]:
+        - generic [ref=e345]:
+          - heading "Simple, transparent pricing" [level=2] [ref=e346]
+          - paragraph [ref=e347]: Choose the plan that's right for you. No hidden fees. Cancel anytime.
+          - generic [ref=e348]:
+            - generic [ref=e349]: Monthly
+            - switch "Monthly Annual" [ref=e350] [cursor=pointer]
+            - generic [ref=e351]: Annual
+        - generic [ref=e352]:
+          - generic [ref=e353]:
+            - generic [ref=e354]:
+              - generic [ref=e355]: Free
+              - generic [ref=e356]: Perfect for getting started
+            - generic [ref=e357]:
+              - generic [ref=e359]:
+                - generic [ref=e360]: $0
+                - generic [ref=e361]: /month
+              - list [ref=e362]:
+                - listitem [ref=e363]:
+                  - img [ref=e364]
+                  - generic [ref=e366]: Up to 5 clients
+                - listitem [ref=e367]:
+                  - img [ref=e368]
+                  - generic [ref=e370]: Basic invoicing
+                - listitem [ref=e371]:
+                  - img [ref=e372]
+                  - generic [ref=e374]: Travel tracking
+                - listitem [ref=e375]:
+                  - img [ref=e376]
+                  - generic [ref=e378]: 1 GB document storage
+                - listitem [ref=e379]:
+                  - img [ref=e380]
+                  - generic [ref=e382]: Email support
+            - button "Get Started" [ref=e384]
+          - generic [ref=e385]:
+            - generic [ref=e387]: Most Popular
+            - generic [ref=e388]:
+              - generic [ref=e389]: Pro
+              - generic [ref=e390]: For serious digital nomads
+            - generic [ref=e391]:
+              - generic [ref=e393]:
+                - generic [ref=e394]: $29
+                - generic [ref=e395]: /month
+              - list [ref=e396]:
+                - listitem [ref=e397]:
+                  - img [ref=e398]
+                  - generic [ref=e400]: Unlimited clients
+                - listitem [ref=e401]:
+                  - img [ref=e402]
+                  - generic [ref=e404]: Multi-currency invoicing
+                - listitem [ref=e405]:
+                  - img [ref=e406]
+                  - generic [ref=e408]: Tax residency calculator
+                - listitem [ref=e409]:
+                  - img [ref=e410]
+                  - generic [ref=e412]: Visa deadline tracking
+                - listitem [ref=e413]:
+                  - img [ref=e414]
+                  - generic [ref=e416]: Encrypted document vault (10 GB)
+                - listitem [ref=e417]:
+                  - img [ref=e418]
+                  - generic [ref=e420]: Priority email support
+                - listitem [ref=e421]:
+                  - img [ref=e422]
+                  - generic [ref=e424]: Invoice templates
+                - listitem [ref=e425]:
+                  - img [ref=e426]
+                  - generic [ref=e428]: Expense tracking
+            - button "Start Free Trial" [ref=e430]
+          - generic [ref=e431]:
+            - generic [ref=e432]:
+              - generic [ref=e433]: Enterprise
+              - generic [ref=e434]: For agencies and teams
+            - generic [ref=e435]:
+              - generic [ref=e437]:
+                - generic [ref=e438]: $99
+                - generic [ref=e439]: /month
+              - list [ref=e440]:
+                - listitem [ref=e441]:
+                  - img [ref=e442]
+                  - generic [ref=e444]: Everything in Pro
+                - listitem [ref=e445]:
+                  - img [ref=e446]
+                  - generic [ref=e448]: Team collaboration (up to 10 users)
+                - listitem [ref=e449]:
+                  - img [ref=e450]
+                  - generic [ref=e452]: Advanced reporting
+                - listitem [ref=e453]:
+                  - img [ref=e454]
+                  - generic [ref=e456]: Custom invoice branding
+                - listitem [ref=e457]:
+                  - img [ref=e458]
+                  - generic [ref=e460]: API access
+                - listitem [ref=e461]:
+                  - img [ref=e462]
+                  - generic [ref=e464]: Dedicated account manager
+                - listitem [ref=e465]:
+                  - img [ref=e466]
+                  - generic [ref=e468]: SLA guarantee
+                - listitem [ref=e469]:
+                  - img [ref=e470]
+                  - generic [ref=e472]: Custom integrations
+            - button "Contact Sales" [ref=e474]
+        - paragraph [ref=e475]: No hidden fees. Cancel anytime. All plans include 14-day free trial.
+      - generic [ref=e477]:
+        - generic [ref=e478]:
+          - heading "Frequently asked questions" [level=2] [ref=e479]
+          - paragraph [ref=e480]: Everything you need to know about NomadSuite
+        - generic [ref=e481]:
+          - heading "Is NomadSuite legal or tax advice?" [level=3] [ref=e483]:
+            - button "Is NomadSuite legal or tax advice?" [ref=e484]:
+              - text: Is NomadSuite legal or tax advice?
+              - img [ref=e485]
+          - heading "How does the 183-day tax residency tracker work?" [level=3] [ref=e488]:
+            - button "How does the 183-day tax residency tracker work?" [ref=e489]:
+              - text: How does the 183-day tax residency tracker work?
+              - img [ref=e490]
+          - heading "What is the Schengen 90/180 rule and how do you track it?" [level=3] [ref=e493]:
+            - button "What is the Schengen 90/180 rule and how do you track it?" [ref=e494]:
+              - text: What is the Schengen 90/180 rule and how do you track it?
+              - img [ref=e495]
+          - heading "Which countries are supported for travel and visa tracking?" [level=3] [ref=e498]:
+            - button "Which countries are supported for travel and visa tracking?" [ref=e499]:
+              - text: Which countries are supported for travel and visa tracking?
+              - img [ref=e500]
+          - heading "How secure is my data?" [level=3] [ref=e503]:
+            - button "How secure is my data?" [ref=e504]:
+              - text: How secure is my data?
+              - img [ref=e505]
+          - heading "Can I import existing client data and invoices?" [level=3] [ref=e508]:
+            - button "Can I import existing client data and invoices?" [ref=e509]:
+              - text: Can I import existing client data and invoices?
+              - img [ref=e510]
+          - heading "Do you integrate with accounting software like QuickBooks or Xero?" [level=3] [ref=e513]:
+            - button "Do you integrate with accounting software like QuickBooks or Xero?" [ref=e514]:
+              - text: Do you integrate with accounting software like QuickBooks or Xero?
+              - img [ref=e515]
+          - heading "Can I use NomadSuite if I work with a team or have employees?" [level=3] [ref=e518]:
+            - button "Can I use NomadSuite if I work with a team or have employees?" [ref=e519]:
+              - text: Can I use NomadSuite if I work with a team or have employees?
+              - img [ref=e520]
+          - heading "What happens to my data if I cancel my subscription?" [level=3] [ref=e523]:
+            - button "What happens to my data if I cancel my subscription?" [ref=e524]:
+              - text: What happens to my data if I cancel my subscription?
+              - img [ref=e525]
+          - heading "Can I cancel anytime? Are there long-term contracts?" [level=3] [ref=e528]:
+            - button "Can I cancel anytime? Are there long-term contracts?" [ref=e529]:
+              - text: Can I cancel anytime? Are there long-term contracts?
+              - img [ref=e530]
+          - heading "How do visa expiry alerts work?" [level=3] [ref=e533]:
+            - button "How do visa expiry alerts work?" [ref=e534]:
+              - text: How do visa expiry alerts work?
+              - img [ref=e535]
+          - heading "Is there a mobile app?" [level=3] [ref=e538]:
+            - button "Is there a mobile app?" [ref=e539]:
+              - text: Is there a mobile app?
+              - img [ref=e540]
+      - generic [ref=e545]:
+        - heading "Ready to organize your freedom?" [level=2] [ref=e546]
+        - paragraph [ref=e547]: Join thousands of digital nomads who've simplified their work and travel life with NomadSuite.
+        - link "Start Free Today" [ref=e548] [cursor=pointer]:
+          - /url: /register
+          - button "Start Free Today" [ref=e549]
+        - paragraph [ref=e550]: No credit card required • 5-minute setup • Cancel anytime
+      - generic [ref=e553]:
+        - generic [ref=e554]:
+          - generic [ref=e555]: Join the waitlist & lock in founding pricing
+          - generic [ref=e556]: Be among the first to experience NomadSuite with exclusive early-bird pricing
+        - generic [ref=e558]:
+          - generic [ref=e559]:
+            - text: Name *
+            - textbox "Name *" [ref=e560]:
+              - /placeholder: Your full name
+          - generic [ref=e561]:
+            - text: Email *
+            - textbox "Email *" [ref=e562]:
+              - /placeholder: you@example.com
+          - generic [ref=e563]:
+            - text: Country
+            - textbox "Country" [ref=e564]:
+              - /placeholder: e.g., Portugal, Thailand, etc.
+          - generic [ref=e565]:
+            - text: What best describes you? *
+            - combobox [ref=e566]:
+              - generic: Select your role
+              - img [ref=e567]
+            - combobox [ref=e569]
+          - generic [ref=e570]:
+            - text: How do you plan to use NomadSuite?
+            - textbox "How do you plan to use NomadSuite?" [ref=e571]:
+              - /placeholder: Tell us about your business and travel needs...
+          - generic [ref=e572]:
+            - text: Referral Code (optional)
+            - textbox "Referral Code (optional)" [ref=e573]:
+              - /placeholder: Enter code if you have one
+          - generic [ref=e574]:
+            - checkbox "I agree to receive emails about NomadSuite *" [checked] [ref=e575]:
+              - generic:
+                - img
+            - checkbox [checked]
+            - generic [ref=e576]: I agree to receive emails about NomadSuite *
+          - button "Join the waitlist" [ref=e577]
+      - button "Found a bug?" [ref=e578]:
+        - img
+        - text: Found a bug?
+      - contentinfo [ref=e579]:
+        - generic [ref=e580]:
+          - generic [ref=e581]:
+            - generic [ref=e582]:
+              - generic [ref=e583]:
+                - img [ref=e584]
+                - generic [ref=e587]: NomadSuite
+              - paragraph [ref=e588]: Designed for freelancers & digital nomads. Work anywhere, worry less.
+            - generic [ref=e589]:
+              - heading "Product" [level=3] [ref=e590]
+              - list [ref=e591]:
+                - listitem [ref=e592]:
+                  - link "Features" [ref=e593] [cursor=pointer]:
+                    - /url: "#"
+                - listitem [ref=e594]:
+                  - link "Pricing" [ref=e595] [cursor=pointer]:
+                    - /url: "#pricing"
+                - listitem [ref=e596]:
+                  - link "Roadmap" [ref=e597] [cursor=pointer]:
+                    - /url: "#"
+                - listitem [ref=e598]:
+                  - link "Support" [ref=e599] [cursor=pointer]:
+                    - /url: "#"
+            - generic [ref=e600]:
+              - heading "Resources" [level=3] [ref=e601]
+              - list [ref=e602]:
+                - listitem [ref=e603]:
+                  - link "Blog" [ref=e604] [cursor=pointer]:
+                    - /url: /blog
+                - listitem [ref=e605]:
+                  - link "Guides" [ref=e606] [cursor=pointer]:
+                    - /url: "#"
+                - listitem [ref=e607]:
+                  - link "Help Center" [ref=e608] [cursor=pointer]:
+                    - /url: "#"
+            - generic [ref=e609]:
+              - heading "Legal" [level=3] [ref=e610]
+              - list [ref=e611]:
+                - listitem [ref=e612]:
+                  - link "Privacy Policy" [ref=e613] [cursor=pointer]:
+                    - /url: /privacy
+                - listitem [ref=e614]:
+                  - link "Terms of Service" [ref=e615] [cursor=pointer]:
+                    - /url: /terms
+          - generic [ref=e616]:
+            - generic [ref=e617]:
+              - paragraph [ref=e618]: © 2025 NomadSuite Inc. All rights reserved.
+              - generic [ref=e620]: Built with ❤️ for digital nomads
+            - generic [ref=e621]:
+              - paragraph [ref=e622]:
+                - img [ref=e623]
+                - generic [ref=e625]: GDPR-Compliant & Privacy-First
+                - generic [ref=e626]: •
+                - generic [ref=e627]: Your data is encrypted with AES-256 and stored in EU servers
+              - paragraph [ref=e628]:
+                - text: We never sell your data to third parties. You have full control over your personal information with rights to access, export, modify, and permanently delete your data at any time. All data processing complies with GDPR, CCPA, and international privacy regulations.
+                - link "Learn more about our privacy practices" [ref=e629] [cursor=pointer]:
+                  - /url: /privacy
+                - text: .
+  - generic [ref=e630]: "5"
+```

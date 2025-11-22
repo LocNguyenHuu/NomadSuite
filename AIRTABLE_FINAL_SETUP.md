@@ -26,14 +26,11 @@ Airtable record IDs created:
    - `Agency/Team` ← **Add this one**
    - `Other`
 
-### Step 2: Fix Bug Reports Table - Add Missing Field
+### Step 2: Bug Reports Table - Complete Field Setup
 
-**Issue**: "Contact Consent" field doesn't exist
-
-**Solution**: In your Airtable Bug Reports table:
-1. Add a new field named: `Contact Consent`
-2. Field type: **Single line text** (not Checkbox)
-3. It will receive values: "Yes" or "No"
+**Required fields**: In your Airtable Bug Reports table, ensure you have:
+1. `Contact Consent` - Field type: **Checkbox**
+2. `Created At` - Field type: **Date**
 
 ---
 
@@ -56,8 +53,9 @@ Airtable record IDs created:
 | 1 | Name | Single line text | Optional (can be "Anonymous") |
 | 2 | Email | Email | Optional |
 | 3 | Description | Long text | Required |
-| 4 | **Contact Consent** | **Single line text** | Will receive "Yes" or "No" |
-| 5 | Attachments | Attachment | Optional screenshots |
+| 4 | Contact Consent | **Checkbox** | Boolean true/false |
+| 5 | Created At | Date | Format: YYYY-MM-DD |
+| 6 | Attachments | Attachment | Optional screenshots |
 
 ---
 

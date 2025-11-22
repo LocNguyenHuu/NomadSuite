@@ -877,13 +877,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Upload screenshot to object storage if provided
       if (req.file) {
-        const { publicObjectStorage } = await import("./lib/object-storage-public");
-        const fileName = `bug-reports/${Date.now()}-${req.file.originalname}`;
-        screenshotUrl = await publicObjectStorage.uploadPublicFile(
-          Buffer.from(req.file.buffer),
-          fileName,
-          req.file.mimetype
-        );
+        const { objectStorageClient } = await import("./lib/object-storage-vault");
+        const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+        if (bucketId) {
+          const fileName = `public/bug-reports/${Date.now()}-${req.file.originalname}`;
+          const bucket = objectStorageClient.bucket(bucketId);
+          const file = bucket.file(fileName);
+          await file.save(req.file.buffer, {
+            metadata: { contentType: req.file.mimetype },
+          });
+          screenshotUrl = `https://storage.googleapis.com/${bucketId}/${fileName}`;
+        }
       }
 
       // Parse and validate request body
