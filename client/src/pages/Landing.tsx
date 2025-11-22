@@ -9,6 +9,7 @@ import { SEO, StructuredData } from '@/components/SEO';
 import PricingSection from '@/components/landing/PricingSection';
 import WaitlistForm from '@/components/landing/WaitlistForm';
 import BugReportForm from '@/components/landing/BugReportForm';
+import PublicLanguageSwitcher from '@/components/PublicLanguageSwitcher';
 // @ts-ignore
 import heroImage from '@assets/generated_images/A_minimal,_modern_hero_illustration_for_a_digital_nomad_app._f04ea532.png';
 
@@ -247,6 +248,7 @@ export default function Landing() {
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4">
+            <PublicLanguageSwitcher />
             <Link href="/login">
               <Button variant="ghost" className="font-medium hover:bg-primary/5 text-sm sm:text-base h-9 sm:h-10 px-3 sm:px-4" data-testid="button-login">Log In</Button>
             </Link>
