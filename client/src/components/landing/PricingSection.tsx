@@ -13,7 +13,16 @@ export default function PricingSection() {
     if (tierName === 'Enterprise') {
       window.location.href = 'mailto:sales@nomadsuite.com';
     } else {
-      window.location.href = '/register';
+      const waitlistSection = document.getElementById('waitlist');
+      if (waitlistSection) {
+        waitlistSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+          waitlistSection.classList.add('pulse-animation');
+          setTimeout(() => {
+            waitlistSection.classList.remove('pulse-animation');
+          }, 2000);
+        }, 800);
+      }
     }
   };
 

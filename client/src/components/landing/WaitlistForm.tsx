@@ -71,8 +71,20 @@ export default function WaitlistForm() {
 
   if (isSuccess) {
     return (
-      <section id="waitlist" className="py-20 bg-blue-50">
+      <section id="waitlist" className="py-20 bg-blue-50 transition-all duration-500">
         <div className="container mx-auto px-4 max-w-2xl">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+              </span>
+              MVP Phase - Validating Idea
+            </div>
+            <p className="text-gray-600 max-w-xl mx-auto">
+              We're verifying demand before launch. Join our waitlist to help us validate the idea and get exclusive early access.
+            </p>
+          </div>
           <Card className="border-2 border-blue-200">
             <CardContent className="pt-12 pb-12 text-center">
               <div className="text-6xl mb-6">🎉</div>
@@ -93,8 +105,20 @@ export default function WaitlistForm() {
   }
 
   return (
-    <section id="waitlist" className="py-20 bg-blue-50">
+    <section id="waitlist" className="py-20 bg-blue-50 transition-all duration-500">
       <div className="container mx-auto px-4 max-w-2xl">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+            </span>
+            MVP Phase - Validating Idea
+          </div>
+          <p className="text-gray-600 max-w-xl mx-auto">
+            We're verifying demand before launch. Join our waitlist to help us validate the idea and get exclusive early access.
+          </p>
+        </div>
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">Join the waitlist</CardTitle>
