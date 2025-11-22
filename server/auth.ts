@@ -120,7 +120,11 @@ export function setupAuth(app: Express, authRateLimiter?: RequestHandler) {
   app.post("/api/logout", csrfProtection, (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
-      res.sendStatus(200);
+      req.session.destroy((destroyErr) => {
+        if (destroyErr) return next(destroyErr);
+        res.clearCookie('connect.sid');
+        res.sendStatus(200);
+      });
     });
   });
 
