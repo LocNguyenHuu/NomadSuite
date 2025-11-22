@@ -40,6 +40,12 @@ export function setupAuth(app: Express, authRateLimiter?: RequestHandler) {
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // CSRF protection via SameSite cookies (MVP-friendly)
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    },
   };
 
   app.set("trust proxy", 1);

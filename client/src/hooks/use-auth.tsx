@@ -7,6 +7,18 @@ import {
 import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { setCsrfToken } from "../lib/api";
+
+// Helper function to fetch fresh CSRF token
+async function refreshCsrfToken() {
+  try {
+    const res = await fetch("/api/csrf-token", { credentials: "include" });
+    const data = await res.json();
+    setCsrfToken(data.csrfToken);
+  } catch (error) {
+    console.error("Failed to fetch CSRF token:", error);
+  }
+}
 
 type AuthContextType = {
   user: SelectUser | null;
@@ -37,8 +49,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/login", credentials);
       return await res.json();
     },
-    onSuccess: (user: SelectUser) => {
+    onSuccess: async (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
+      await refreshCsrfToken(); // Refresh CSRF token after login
     },
     onError: (error: Error) => {
       toast({
@@ -54,8 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/register", credentials);
       return await res.json();
     },
-    onSuccess: (user: SelectUser) => {
+    onSuccess: async (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
+      await refreshCsrfToken(); // Refresh CSRF token after registration
     },
     onError: (error: Error) => {
       toast({
@@ -70,8 +84,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     mutationFn: async () => {
       await apiRequest("POST", "/api/logout");
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.setQueryData(["/api/user"], null);
+      await refreshCsrfToken(); // Refresh CSRF token after logout
     },
     onError: (error: Error) => {
       toast({

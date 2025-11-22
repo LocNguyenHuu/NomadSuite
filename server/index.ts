@@ -14,21 +14,9 @@ const app = express();
 // Trust proxy (required for Replit deployment)
 app.set("trust proxy", 1);
 
-// Helmet: Secure HTTP headers
+// Helmet: Basic security headers (CSP disabled for MVP simplicity)
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Vite requires unsafe-eval in dev
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"], // Allow external images
-      connectSrc: ["'self'", "https://storage.googleapis.com"], // Allow object storage
-      fontSrc: ["'self'", "data:"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
-    },
-  },
+  contentSecurityPolicy: false, // Disabled for MVP - too complex
   hsts: {
     maxAge: 31536000, // 1 year in seconds
     includeSubDomains: true,
@@ -36,7 +24,6 @@ app.use(helmet({
   },
   frameguard: { action: "deny" }, // Prevent clickjacking
   noSniff: true, // Prevent MIME type sniffing
-  xssFilter: true, // Enable XSS filter
 }));
 
 // Global rate limiting (generous limits for legitimate use)

@@ -630,7 +630,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload document (csrfProtection MUST be before multer to parse token)
-  app.post("/api/vault/documents", requireAuth, upload.single('file'), async (req, res) => {
+  app.post("/api/vault/documents", requireAuth, csrfProtection, upload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
@@ -833,7 +833,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Waitlist API (public endpoint - no auth required)
-  app.post("/api/waitlist", csrfProtection, async (req, res) => {
+  app.post("/api/waitlist", async (req, res) => {
     try {
       const { insertWaitlistSchema } = await import("@shared/schema");
       const parsed = insertWaitlistSchema.parse(req.body);
@@ -863,7 +863,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Bug Report API (public endpoint - no auth required) - Supports file upload
-  app.post("/api/bug-report", csrfProtection, upload.single('screenshot'), async (req, res) => {
+  app.post("/api/bug-report", upload.single('screenshot'), async (req, res) => {
     try {
       let screenshotUrl = '';
       
