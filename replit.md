@@ -32,6 +32,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+**November 22, 2025** - Language Switcher & Landing Page UX Improvements:
+- Added LanguageSwitcher component to navigation header with flag icons for quick language switching
+- Language switcher uses queryClient.setQueryData for immediate UI updates without page reload
+- Pricing section buttons now scroll to waitlist section with smooth animation (MVP validation flow)
+- Waitlist section enhanced with "MVP Phase - Validating Idea" badge and pulsing indicator
+- Added pulse-scale CSS animation for visual feedback when scrolling to waitlist
+- Improved error handling in language switcher with specific backend error messages
+
 **November 22, 2025** - Multi-Language Support Expansion (6 Languages):
 - Extended language support from 3 to 6 languages: English (EN), German (DE), French (FR), Vietnamese (VI), Japanese (JA), Chinese (ZH)
 - Updated Settings page with all 6 language options for Primary Language and Default Invoice Language

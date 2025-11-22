@@ -9,6 +9,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
+import { getCsrfToken } from '@/lib/api';
 
 const LANGUAGES = [
   { code: 'en', flag: '🇬🇧', name: 'English' },
@@ -22,6 +24,7 @@ const LANGUAGES = [
 export default function LanguageSwitcher() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = React.useState(false);
 
   const currentLanguage = LANGUAGES.find(lang => lang.code === (user?.primaryLanguage || 'en')) || LANGUAGES[0];
@@ -29,32 +32,36 @@ export default function LanguageSwitcher() {
   const handleLanguageChange = async (languageCode: string) => {
     setIsLoading(true);
     try {
-      const csrfResponse = await fetch('/api/csrf-token');
-      const { csrfToken } = await csrfResponse.json();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const csrfToken = getCsrfToken();
+      if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken;
+      }
 
       const response = await fetch('/api/user/settings', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
-        },
+        headers,
         credentials: 'include',
         body: JSON.stringify({ primaryLanguage: languageCode }),
       });
 
-      if (!response.ok) throw new Error('Failed to update language');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to update language');
+      }
+
+      const updatedUser = await response.json();
+      queryClient.setQueryData(['/api/user'], updatedUser);
 
       const selectedLanguage = LANGUAGES.find(lang => lang.code === languageCode);
       toast({
         title: 'Language updated',
         description: `Language changed to ${selectedLanguage?.name}`,
       });
-
-      window.location.reload();
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'Failed to update language',
+        description: error.message || 'Failed to update language',
         variant: 'destructive',
       });
     } finally {
