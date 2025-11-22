@@ -267,6 +267,37 @@ export const securityAuditLogs = pgTable("security_audit_logs", {
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 
+// Waitlist (landing page signups)
+export const RoleEnum = pgEnum("waitlist_role_enum", ['Digital Nomad', 'Freelancer', 'Agency/Team', 'Other']);
+
+export const waitlist = pgTable("waitlist", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  country: text("country"),
+  role: RoleEnum("role").notNull(),
+  useCase: text("use_case"),
+  referralCode: text("referral_code"),
+  emailConsent: boolean("email_consent").notNull().default(true),
+  airtableRecordId: text("airtable_record_id"), // Store Airtable ID for reference
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Bug Reports
+export const BugModuleEnum = pgEnum("bug_module_enum", ['Pricing', 'Waitlist', 'Form', 'Other']);
+
+export const bugReports = pgTable("bug_reports", {
+  id: serial("id").primaryKey(),
+  name: text("name"),
+  email: text("email"),
+  description: text("description").notNull(),
+  affectedModule: BugModuleEnum("affected_module").notNull(),
+  screenshotUrl: text("screenshot_url"), // Object storage URL if uploaded
+  contactConsent: boolean("contact_consent").notNull().default(false),
+  airtableRecordId: text("airtable_record_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const workspacesRelations = relations(workspaces, ({ many }) => ({
   users: many(users),
@@ -409,3 +440,23 @@ export type SecurityAuditLog = typeof securityAuditLogs.$inferSelect;
 export type InsertSecurityAuditLog = typeof securityAuditLogs.$inferInsert;
 export type DocumentRetentionJob = typeof documentRetentionJobs.$inferSelect;
 export type InsertDocumentRetentionJob = z.infer<typeof insertDocumentRetentionJobSchema>;
+
+// Waitlist schemas
+export const insertWaitlistSchema = createInsertSchema(waitlist).omit({
+  id: true,
+  airtableRecordId: true,
+  createdAt: true,
+});
+
+export type Waitlist = typeof waitlist.$inferSelect;
+export type InsertWaitlist = z.infer<typeof insertWaitlistSchema>;
+
+// Bug Reports schemas
+export const insertBugReportSchema = createInsertSchema(bugReports).omit({
+  id: true,
+  airtableRecordId: true,
+  createdAt: true,
+});
+
+export type BugReport = typeof bugReports.$inferSelect;
+export type InsertBugReport = z.infer<typeof insertBugReportSchema>;

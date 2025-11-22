@@ -6,6 +6,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Card } from '@/components/ui/card';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
 import { SEO, StructuredData } from '@/components/SEO';
+import PricingSection from '@/components/landing/PricingSection';
+import WaitlistForm from '@/components/landing/WaitlistForm';
+import BugReportForm from '@/components/landing/BugReportForm';
 // @ts-ignore
 import heroImage from '@assets/generated_images/A_minimal,_modern_hero_illustration_for_a_digital_nomad_app._f04ea532.png';
 
@@ -533,58 +536,7 @@ export default function Landing() {
       </section>
 
       {/* Section 7: Pricing */}
-      <section className="py-20 md:py-28 bg-background" id="pricing">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4">Simple, transparent pricing</h2>
-            <p className="text-xl text-muted-foreground font-light">No hidden fees. Cancel anytime. No credit card for Free plan.</p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <PricingCard 
-              name="Free" 
-              price="€0" 
-              features={[
-                "Up to 5 clients",
-                "Basic travel log",
-                "Manual document uploads",
-                "Community support"
-              ]} 
-              cta="Start Free"
-              variant="outline"
-            />
-            <PricingCard 
-              name="Pro" 
-              price="€29" 
-              period="/month"
-              features={[
-                "Unlimited clients",
-                "Residency calculator",
-                "Professional invoicing",
-                "Visa expiry alerts",
-                "Email support"
-              ]} 
-              cta="Upgrade to Pro"
-              variant="default"
-              popular
-            />
-            <PricingCard 
-              name="Premium" 
-              price="€59" 
-              period="/month"
-              features={[
-                "Everything in Pro",
-                "Multi-currency support",
-                "Exportable tax reports",
-                "Priority support",
-                "API access"
-              ]} 
-              cta="Get Premium"
-              variant="outline"
-            />
-          </div>
-        </div>
-      </section>
+      <PricingSection />
 
       {/* Section 8: FAQ */}
       <section className="py-20 md:py-28 bg-muted/40">
@@ -731,6 +683,12 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Section 10: Waitlist Form */}
+      <WaitlistForm />
+
+      {/* Section 11: Bug Report Form */}
+      <BugReportForm />
+
       {/* Footer */}
       <footer className="py-16 md:py-20 bg-background border-t">
         <div className="container mx-auto px-6">
@@ -773,10 +731,25 @@ export default function Landing() {
             </div>
           </div>
           
-          <div className="border-t pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} NomadSuite Inc. All rights reserved.</p>
-            <div className="flex items-center gap-4">
-              <span>Built with ❤️ for digital nomads</span>
+          <div className="border-t pt-8 space-y-4">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+              <p>© {new Date().getFullYear()} NomadSuite Inc. All rights reserved.</p>
+              <div className="flex items-center gap-4">
+                <span>Built with ❤️ for digital nomads</span>
+              </div>
+            </div>
+            
+            <div className="text-center text-xs text-muted-foreground/80 space-y-2 pt-4 border-t">
+              <p className="flex items-center justify-center gap-2 flex-wrap">
+                <Shield className="h-3.5 w-3.5 text-primary" />
+                <span className="font-medium">GDPR-Compliant & Privacy-First</span>
+                <span className="hidden md:inline">•</span>
+                <span>Your data is encrypted with AES-256 and stored in EU servers</span>
+              </p>
+              <p className="max-w-3xl mx-auto leading-relaxed">
+                We never sell your data to third parties. You have full control over your personal information with rights to access, export, modify, and permanently delete your data at any time. All data processing complies with GDPR, CCPA, and international privacy regulations. 
+                <Link href="/privacy" className="text-primary hover:underline ml-1">Learn more about our privacy practices</Link>.
+              </p>
             </div>
           </div>
         </div>

@@ -832,6 +832,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Waitlist API (public endpoint - no auth required)
+  app.post("/api/waitlist", csrfProtection, async (req, res) => {
+    try {
+      const { insertWaitlistSchema } = await import("@shared/schema");
+      const parsed = insertWaitlistSchema.parse(req.body);
+
+      // Create in database
+      const entry = await storage.createWaitlist(parsed);
+
+      // Sync to Airtable (non-blocking)
+      const { airtableService } = await import("./lib/airtable");
+      airtableService.createWaitlistRecord(parsed).then((airtableId) => {
+        if (airtableId && entry.id) {
+          // Optionally update database with Airtable ID (silent fail)
+          console.log(`[Waitlist] Created Airtable record ${airtableId} for entry ${entry.id}`);
+        }
+      }).catch((error) => {
+        console.error("[Waitlist] Airtable sync failed (non-critical):", error);
+      });
+
+      res.status(201).json({ message: "Successfully joined waitlist", id: entry.id });
+    } catch (error: any) {
+      console.error("Waitlist submission error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(500).json({ message: "Failed to join waitlist" });
+    }
+  });
+
+  // Bug Report API (public endpoint - no auth required) - Supports file upload
+  app.post("/api/bug-report", csrfProtection, upload.single('screenshot'), async (req, res) => {
+    try {
+      let screenshotUrl = '';
+      
+      // Upload screenshot to object storage if provided
+      if (req.file) {
+        const { vaultStorage } = await import("./lib/object-storage-vault");
+        const fileName = `bug-reports/${Date.now()}-${req.file.originalname}`;
+        screenshotUrl = await vaultStorage.uploadFile(
+          Buffer.from(req.file.buffer),
+          fileName,
+          req.file.mimetype
+        );
+      }
+
+      // Parse and validate request body
+      const { insertBugReportSchema } = await import("@shared/schema");
+      const bugData: any = {
+        name: req.body.name || null,
+        email: req.body.email || null,
+        description: req.body.description,
+        affectedModule: req.body.affectedModule,
+        contactConsent: req.body.contactConsent === 'true' || req.body.contactConsent === true
+      };
+      
+      // Only include screenshotUrl if a file was uploaded
+      if (screenshotUrl) {
+        bugData.screenshotUrl = screenshotUrl;
+      }
+      
+      const parsed = insertBugReportSchema.parse(bugData);
+
+      // Create in database
+      const report = await storage.createBugReport(parsed);
+
+      // Sync to Airtable (non-blocking)
+      const { airtableService } = await import("./lib/airtable");
+      airtableService.createBugReportRecord({
+        name: parsed.name,
+        email: parsed.email,
+        description: parsed.description,
+        affectedModule: parsed.affectedModule,
+        screenshotUrl: parsed.screenshotUrl,
+        contactConsent: parsed.contactConsent
+      }).then((airtableId) => {
+        if (airtableId && report.id) {
+          console.log(`[Bug Report] Created Airtable record ${airtableId} for report ${report.id}`);
+        }
+      }).catch((error) => {
+        console.error("[Bug Report] Airtable sync failed (non-critical):", error);
+      });
+
+      res.status(201).json({ message: "Bug report submitted", id: report.id });
+    } catch (error: any) {
+      console.error("Bug report submission error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(500).json({ message: "Failed to submit bug report" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

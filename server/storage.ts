@@ -1,6 +1,7 @@
 import { 
   users, clients, invoices, trips, documents, clientNotes, workspaces, jurisdictionRules,
   vaultDocuments, vaultAuditLogs, documentRetentionJobs, securityAuditLogs,
+  waitlist, bugReports,
   type User, type InsertUser, type Client, type InsertClient,
   type Invoice, type InsertInvoice, type Trip, type InsertTrip,
   type Document, type InsertDocument, type ClientNote, type InsertClientNote,
@@ -8,7 +9,9 @@ import {
   type VaultDocument, type InsertVaultDocument,
   type VaultAuditLog, type InsertVaultAuditLog,
   type DocumentRetentionJob, type InsertDocumentRetentionJob,
-  type SecurityAuditLog, type InsertSecurityAuditLog
+  type SecurityAuditLog, type InsertSecurityAuditLog,
+  type Waitlist, type InsertWaitlist,
+  type BugReport, type InsertBugReport
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, count, or, desc, inArray, isNull, and } from "drizzle-orm";
@@ -76,6 +79,14 @@ export interface IStorage {
   // Security Audit Logs
   createSecurityAuditLog(log: InsertSecurityAuditLog): Promise<SecurityAuditLog>;
   getSecurityAuditLogs(userId?: number): Promise<SecurityAuditLog[]>;
+
+  // Waitlist
+  createWaitlist(entry: InsertWaitlist): Promise<Waitlist>;
+  getWaitlistEntries(): Promise<Waitlist[]>;
+
+  // Bug Reports
+  createBugReport(report: InsertBugReport): Promise<BugReport>;
+  getBugReports(): Promise<BugReport[]>;
 
   sessionStore: session.Store;
 }
@@ -344,6 +355,24 @@ export class DatabaseStorage implements IStorage {
       return db.select().from(securityAuditLogs).where(eq(securityAuditLogs.userId, userId)).orderBy(desc(securityAuditLogs.timestamp));
     }
     return db.select().from(securityAuditLogs).orderBy(desc(securityAuditLogs.timestamp));
+  }
+
+  async createWaitlist(entry: InsertWaitlist): Promise<Waitlist> {
+    const [newEntry] = await db.insert(waitlist).values(entry).returning();
+    return newEntry;
+  }
+
+  async getWaitlistEntries(): Promise<Waitlist[]> {
+    return db.select().from(waitlist).orderBy(desc(waitlist.createdAt));
+  }
+
+  async createBugReport(report: InsertBugReport): Promise<BugReport> {
+    const [newReport] = await db.insert(bugReports).values(report).returning();
+    return newReport;
+  }
+
+  async getBugReports(): Promise<BugReport[]> {
+    return db.select().from(bugReports).orderBy(desc(bugReports.createdAt));
   }
 }
 

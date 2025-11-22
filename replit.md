@@ -32,6 +32,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+**November 22, 2025** - Landing Page Enhancements:
+- PricingSection component with Monthly/Annual toggle showing "Save 20%" indicator
+- WaitlistForm with Airtable integration for early-bird signups
+- BugReportForm with screenshot upload support using object storage
+- Updated footer with GDPR compliance text and privacy-first messaging
+- Database tables: waitlist, bug_reports with Airtable sync integration
+- API endpoints: POST /api/waitlist, POST /api/bug-report with CSRF protection and file upload support
+- Environment variable guardrails in Airtable service (checks for AIRTABLE_BASE_ID, AIRTABLE_TOKEN)
+- Fully integrated into Landing.tsx with professional UI and form validation
+
 **November 21, 2025** - Security Hardening (PRODUCTION-READY):
 - CSRF Protection: Session-based CSRF tokens for all state-changing routes (POST, PATCH, DELETE)
 - Frontend CSRF Integration: Automatic token fetching and injection in all API requests (JSON + multipart)
