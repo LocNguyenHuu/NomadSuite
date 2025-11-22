@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => void }) => {
   const [location] = useLocation();
@@ -115,6 +116,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </h1>
             </div>
             <div className="flex items-center gap-3">
+              <LanguageSwitcher />
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium leading-none">{user?.name}</p>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
