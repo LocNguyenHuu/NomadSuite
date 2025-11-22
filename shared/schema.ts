@@ -284,14 +284,11 @@ export const waitlist = pgTable("waitlist", {
 });
 
 // Bug Reports
-export const BugModuleEnum = pgEnum("bug_module_enum", ['Pricing', 'Waitlist', 'Form', 'Other']);
-
 export const bugReports = pgTable("bug_reports", {
   id: serial("id").primaryKey(),
   name: text("name"),
   email: text("email"),
   description: text("description").notNull(),
-  affectedModule: BugModuleEnum("affected_module").notNull(),
   screenshotUrl: text("screenshot_url"), // Object storage URL if uploaded
   contactConsent: boolean("contact_consent").notNull().default(false),
   airtableRecordId: text("airtable_record_id"),

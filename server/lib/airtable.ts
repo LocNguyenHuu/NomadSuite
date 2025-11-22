@@ -101,7 +101,6 @@ class AirtableService {
     name?: string;
     email?: string;
     description: string;
-    affectedModule: string;
     screenshotUrl?: string;
     contactConsent: boolean;
   }): Promise<string | null> {
@@ -116,14 +115,17 @@ class AirtableService {
         'Name': data.name || 'Anonymous',
         'Email': data.email || '',
         'Description': data.description,
-        'Affected Module': data.affectedModule,
         'Contact Consent': data.contactConsent,
         'Created At': new Date().toISOString(),
       };
       
-      // Only include Screenshot URL if present
+      // Handle screenshot as Airtable Attachment field
       if (data.screenshotUrl) {
-        fields['Screenshot URL'] = data.screenshotUrl;
+        fields['Attachments'] = [
+          {
+            url: data.screenshotUrl
+          }
+        ];
       }
       
       const record: AirtableRecord = { fields };

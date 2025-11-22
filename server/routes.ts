@@ -884,7 +884,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: req.body.name || null,
         email: req.body.email || null,
         description: req.body.description,
-        affectedModule: req.body.affectedModule,
         contactConsent: req.body.contactConsent === 'true' || req.body.contactConsent === true
       };
       
@@ -904,7 +903,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: parsed.name,
         email: parsed.email,
         description: parsed.description,
-        affectedModule: parsed.affectedModule,
         screenshotUrl: parsed.screenshotUrl,
         contactConsent: parsed.contactConsent
       }).then((airtableId) => {
