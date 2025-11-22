@@ -1,5 +1,12 @@
-// Test script to verify Airtable integration with dummy data
-// Run with: tsx test-airtable.ts
+#!/usr/bin/env tsx
+/**
+ * Airtable Integration Test Script
+ * 
+ * This script creates test data for Waitlist and Bug Reports, then verifies
+ * both database storage and Airtable sync.
+ * 
+ * Usage: tsx scripts/test-airtable-integration.ts
+ */
 
 interface TestResult {
   type: 'waitlist' | 'bug-report';
@@ -59,31 +66,18 @@ async function testWaitlist(): Promise<TestResult[]> {
 
       if (response.ok) {
         const data = await response.json();
-        results.push({
-          type: 'waitlist',
-          success: true,
-          id: data.id
-        });
-        console.log(`✓ Waitlist entry created: ${entry.name} (ID: ${data.id})`);
+        results.push({ type: 'waitlist', success: true, id: data.id });
+        console.log(`✓ Waitlist: ${entry.name} (ID: ${data.id})`);
       } else {
         const error = await response.text();
-        results.push({
-          type: 'waitlist',
-          success: false,
-          error
-        });
-        console.error(`✗ Failed to create waitlist entry for ${entry.name}: ${error}`);
+        results.push({ type: 'waitlist', success: false, error });
+        console.error(`✗ Waitlist failed: ${entry.name} - ${error}`);
       }
     } catch (error: any) {
-      results.push({
-        type: 'waitlist',
-        success: false,
-        error: error.message
-      });
-      console.error(`✗ Error creating waitlist entry for ${entry.name}:`, error.message);
+      results.push({ type: 'waitlist', success: false, error: error.message });
+      console.error(`✗ Error: ${entry.name} - ${error.message}`);
     }
     
-    // Small delay to avoid rate limiting
     await new Promise(resolve => setTimeout(resolve, 500));
   }
 
@@ -126,31 +120,18 @@ async function testBugReports(): Promise<TestResult[]> {
 
       if (response.ok) {
         const data = await response.json();
-        results.push({
-          type: 'bug-report',
-          success: true,
-          id: data.id
-        });
-        console.log(`✓ Bug report created: ${report.name || 'Anonymous'} (ID: ${data.id})`);
+        results.push({ type: 'bug-report', success: true, id: data.id });
+        console.log(`✓ Bug Report: ${report.name || 'Anonymous'} (ID: ${data.id})`);
       } else {
         const error = await response.text();
-        results.push({
-          type: 'bug-report',
-          success: false,
-          error
-        });
-        console.error(`✗ Failed to create bug report for ${report.name || 'Anonymous'}: ${error}`);
+        results.push({ type: 'bug-report', success: false, error });
+        console.error(`✗ Bug Report failed: ${report.name || 'Anonymous'} - ${error}`);
       }
     } catch (error: any) {
-      results.push({
-        type: 'bug-report',
-        success: false,
-        error: error.message
-      });
-      console.error(`✗ Error creating bug report for ${report.name || 'Anonymous'}:`, error.message);
+      results.push({ type: 'bug-report', success: false, error: error.message });
+      console.error(`✗ Error: ${report.name || 'Anonymous'} - ${error.message}`);
     }
     
-    // Small delay to avoid rate limiting
     await new Promise(resolve => setTimeout(resolve, 500));
   }
 
@@ -158,7 +139,7 @@ async function testBugReports(): Promise<TestResult[]> {
 }
 
 async function main() {
-  console.log('\n🧪 Testing Airtable Integration\n');
+  console.log('\n🧪 Airtable Integration Test\n');
   console.log('='.repeat(60));
   
   console.log('\n📋 Creating Waitlist Entries...\n');
@@ -167,7 +148,7 @@ async function main() {
   console.log('\n🐛 Creating Bug Reports...\n');
   const bugResults = await testBugReports();
   
-  console.log('\n='.repeat(60));
+  console.log('\n' + '='.repeat(60));
   console.log('\n📊 Summary:\n');
   
   const waitlistSuccess = waitlistResults.filter(r => r.success).length;
@@ -176,11 +157,21 @@ async function main() {
   console.log(`Waitlist: ${waitlistSuccess}/${waitlistResults.length} successful`);
   console.log(`Bug Reports: ${bugSuccess}/${bugResults.length} successful`);
   
-  console.log('\n✅ Database entries created successfully!');
-  console.log('📮 Check your Airtable base for synced records:');
-  console.log('   - Waitlist table should have 3 new entries');
-  console.log('   - Bug Reports table should have 3 new entries');
-  console.log('\n💡 Note: Airtable sync runs in the background. Check server logs for any sync errors.');
+  if (waitlistSuccess === waitlistResults.length && bugSuccess === bugResults.length) {
+    console.log('\n✅ All tests passed! Database entries created successfully.');
+    console.log('\n📮 Next steps:');
+    console.log('1. Check your PostgreSQL database for new entries');
+    console.log('2. Check your Airtable base for synced records:');
+    console.log('   - Waitlist table should have 3 new entries');
+    console.log('   - Bug Reports table should have 3 new entries');
+    console.log('3. Check server logs for Airtable sync status:');
+    console.log('   Look for "[Waitlist] Created Airtable record..." messages');
+  } else {
+    console.log('\n⚠️  Some tests failed. Check the errors above.');
+  }
+  
+  console.log('\n💡 Note: Airtable sync runs in the background.');
+  console.log('   If you see errors, check AIRTABLE_FINAL_SETUP.md for troubleshooting.\n');
 }
 
 main().catch(console.error);

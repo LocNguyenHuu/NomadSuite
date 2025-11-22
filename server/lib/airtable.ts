@@ -75,7 +75,6 @@ class AirtableService {
           'Use Case': data.useCase || '',
           'Referral Code': data.referralCode || '',
           'Email Consent': data.emailConsent,
-          'Created At': new Date().toISOString(),
         },
       };
 
@@ -115,8 +114,7 @@ class AirtableService {
         'Name': data.name || 'Anonymous',
         'Email': data.email || '',
         'Description': data.description,
-        'Contact Consent': data.contactConsent,
-        'Created At': new Date().toISOString(),
+        'Contact Consent': data.contactConsent ? 'Yes' : 'No',
       };
       
       // Handle screenshot as Airtable Attachment field

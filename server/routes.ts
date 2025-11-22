@@ -843,7 +843,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Sync to Airtable (non-blocking)
       const { airtableService } = await import("./lib/airtable");
-      airtableService.createWaitlistRecord(parsed).then((airtableId) => {
+      airtableService.createWaitlistRecord({
+        name: parsed.name,
+        email: parsed.email,
+        country: parsed.country || undefined,
+        role: parsed.role,
+        useCase: parsed.useCase || undefined,
+        referralCode: parsed.referralCode || undefined,
+        emailConsent: parsed.emailConsent ?? true
+      }).then((airtableId) => {
         if (airtableId && entry.id) {
           // Optionally update database with Airtable ID (silent fail)
           console.log(`[Waitlist] Created Airtable record ${airtableId} for entry ${entry.id}`);
@@ -869,9 +877,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Upload screenshot to object storage if provided
       if (req.file) {
-        const { vaultStorage } = await import("./lib/object-storage-vault");
+        const { publicObjectStorage } = await import("./lib/object-storage-public");
         const fileName = `bug-reports/${Date.now()}-${req.file.originalname}`;
-        screenshotUrl = await vaultStorage.uploadFile(
+        screenshotUrl = await publicObjectStorage.uploadPublicFile(
           Buffer.from(req.file.buffer),
           fileName,
           req.file.mimetype
@@ -900,11 +908,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Sync to Airtable (non-blocking)
       const { airtableService } = await import("./lib/airtable");
       airtableService.createBugReportRecord({
-        name: parsed.name,
-        email: parsed.email,
+        name: parsed.name || undefined,
+        email: parsed.email || undefined,
         description: parsed.description,
-        screenshotUrl: parsed.screenshotUrl,
-        contactConsent: parsed.contactConsent
+        screenshotUrl: parsed.screenshotUrl || undefined,
+        contactConsent: parsed.contactConsent ?? false
       }).then((airtableId) => {
         if (airtableId && report.id) {
           console.log(`[Bug Report] Created Airtable record ${airtableId} for report ${report.id}`);
