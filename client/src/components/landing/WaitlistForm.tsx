@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { getCsrfToken } from '@/lib/api';
+import { Star } from 'lucide-react';
 
 interface WaitlistFormData {
   name: string;
@@ -74,25 +75,22 @@ export default function WaitlistForm() {
       <section id="waitlist" className="py-20 bg-blue-50 transition-all duration-500">
         <div className="container mx-auto px-4 max-w-2xl">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-              </span>
-              MVP Phase - Validating Idea
+            <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <Star className="h-4 w-4" />
+              Optional - Founding Member Perks
             </div>
-            <p className="text-gray-600 max-w-xl mx-auto">
-              We're verifying demand before launch. Join our waitlist to help us validate the idea and get exclusive early access.
+            <p className="text-gray-600 max-w-2xl mx-auto text-base">
+              Already using NomadSuite for free? Great! Join our founding member waitlist to lock in special perks, priority support, and exclusive discounts when we launch paid tiers.
             </p>
           </div>
-          <Card className="border-2 border-blue-200">
+          <Card className="border-2 border-purple-200">
             <CardContent className="pt-12 pb-12 text-center">
               <div className="text-6xl mb-6">🎉</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                You're on the waitlist!
+                You're on the founding member list!
               </h3>
               <p className="text-gray-600 mb-6">
-                We'll send you an email when we launch with exclusive founding member pricing.
+                We'll notify you with exclusive founding member perks when we launch paid tiers. Keep enjoying all features free in the meantime!
               </p>
               <Button onClick={() => setIsSuccess(false)} variant="outline">
                 Join another person
@@ -108,22 +106,19 @@ export default function WaitlistForm() {
     <section id="waitlist" className="py-20 bg-blue-50 transition-all duration-500">
       <div className="container mx-auto px-4 max-w-2xl">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-            </span>
-            MVP Phase - Validating Idea
+          <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <Star className="h-4 w-4" />
+            Optional - Founding Member Perks
           </div>
-          <p className="text-gray-600 max-w-xl mx-auto">
-            We're verifying demand before launch. Join our waitlist to help us validate the idea and get exclusive early access.
+          <p className="text-gray-600 max-w-2xl mx-auto text-base">
+            Already using NomadSuite for free? Great! Join our founding member waitlist to lock in special perks, priority support, and exclusive discounts when we launch paid tiers.
           </p>
         </div>
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold">Join the waitlist</CardTitle>
+            <CardTitle className="text-3xl font-bold">Founding Member Waitlist</CardTitle>
             <CardDescription className="text-lg mt-2">
-              Be among the first to experience NomadSuite with exclusive early-bird pricing
+              Get exclusive perks and discounts when we transition from free MVP to paid plans
             </CardDescription>
           </CardHeader>
           

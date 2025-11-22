@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -9,10 +9,10 @@ import { pricingTiers } from '@/data/pricing';
 export default function PricingSection() {
   const [isAnnual, setIsAnnual] = useState(false);
 
-  const handleCtaClick = (tierName: string) => {
+  const handleCtaClick = (tierName: string, isWaitlist: boolean = false) => {
     if (tierName === 'Enterprise') {
       window.location.href = 'mailto:sales@nomadsuite.com';
-    } else {
+    } else if (isWaitlist) {
       const waitlistSection = document.getElementById('waitlist');
       if (waitlistSection) {
         waitlistSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -23,6 +23,8 @@ export default function PricingSection() {
           }, 2000);
         }, 800);
       }
+    } else {
+      window.location.href = '/register';
     }
   };
 
@@ -34,8 +36,11 @@ export default function PricingSection() {
           <h2 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl mb-4">
             Simple, transparent pricing
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            Choose the plan that's right for you. No hidden fees. Cancel anytime.
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-4">
+            <span className="font-semibold text-green-600">🎉 All plans are FREE during MVP testing</span> • Full features unlocked
+          </p>
+          <p className="text-base text-gray-500 max-w-xl mx-auto mb-8">
+            Join the waitlist for founding member perks when we launch paid tiers
           </p>
           
           {/* Billing Toggle */}
@@ -112,16 +117,28 @@ export default function PricingSection() {
                   </ul>
                 </CardContent>
                 
-                <CardFooter>
+                <CardFooter className="flex-col gap-3">
                   <Button
                     className="w-full"
                     variant={tier.popular ? 'default' : 'outline'}
                     size="lg"
-                    onClick={() => handleCtaClick(tier.name)}
+                    onClick={() => handleCtaClick(tier.name, false)}
                     data-testid={`button-${tier.name.toLowerCase()}-cta`}
                   >
-                    {tier.cta}
+                    {tier.name === 'Enterprise' ? tier.cta : 'Start Free Now'}
                   </Button>
+                  {tier.name !== 'Enterprise' && (
+                    <Button
+                      className="w-full"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCtaClick(tier.name, true)}
+                      data-testid={`button-${tier.name.toLowerCase()}-waitlist`}
+                    >
+                      <Star className="mr-2 h-4 w-4" />
+                      Join Waitlist for Perks
+                    </Button>
+                  )}
                 </CardFooter>
               </Card>
             );

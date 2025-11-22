@@ -9,7 +9,6 @@ import { SEO, StructuredData } from '@/components/SEO';
 import PricingSection from '@/components/landing/PricingSection';
 import WaitlistForm from '@/components/landing/WaitlistForm';
 import BugReportForm from '@/components/landing/BugReportForm';
-import PublicLanguageSwitcher from '@/components/PublicLanguageSwitcher';
 // @ts-ignore
 import heroImage from '@assets/generated_images/A_minimal,_modern_hero_illustration_for_a_digital_nomad_app._f04ea532.png';
 
@@ -248,27 +247,54 @@ export default function Landing() {
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4">
-            <PublicLanguageSwitcher />
             <Link href="/login">
               <Button variant="ghost" className="font-medium hover:bg-primary/5 text-sm sm:text-base h-9 sm:h-10 px-3 sm:px-4" data-testid="button-login">Log In</Button>
             </Link>
             <Link href="/register">
               <Button className="font-medium shadow-md hover:shadow-lg transition-all text-sm sm:text-base h-9 sm:h-10 px-3 sm:px-4" data-testid="button-get-started">
-                Sign Up Free
+                Start Free
               </Button>
             </Link>
           </div>
         </div>
       </nav>
 
+      {/* Announcement Banner */}
+      <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+        <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center sm:text-left">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+              </span>
+              <span className="font-semibold text-sm sm:text-base">🎉 MVP is LIVE!</span>
+            </div>
+            <p className="text-xs sm:text-sm font-medium">
+              Full-featured app available now • 100% free during testing • All features unlocked
+            </p>
+            <Link href="/register">
+              <Button size="sm" variant="secondary" className="bg-white text-green-700 hover:bg-white/90 text-xs sm:text-sm font-semibold">
+                Try It Free →
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Section 1: Hero */}
       <section className="relative pt-12 sm:pt-16 md:pt-28 pb-16 sm:pb-20 md:pb-36 overflow-hidden bg-gradient-to-b from-background via-primary/5 to-background">
         <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-[size:32px_32px]" />
         <div className="container mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center relative z-10">
           <div className="space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-left duration-700">
-            <div className="inline-block">
-              <div className="bg-primary/10 text-primary px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold">
-                ✨ Trusted by 10,000+ digital nomads
+            <div className="flex flex-col gap-3">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold w-fit">
+                <Check className="h-4 w-4" />
+                <span>Available Now • Sign Up & Start Free</span>
+              </div>
+              <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium w-fit">
+                <Star className="h-3.5 w-3.5" />
+                <span>Join waitlist for exclusive founding member perks</span>
               </div>
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-heading font-bold leading-[1.1] tracking-tight text-foreground">
@@ -278,17 +304,20 @@ export default function Landing() {
               </span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-lg leading-relaxed font-light">
-              Client CRM, invoices, travel & visa tracking, and tax-residency alerts—all from one powerful web-app.
+              Client CRM, invoices, travel & visa tracking, and tax-residency alerts—all from one powerful web-app. <span className="font-semibold text-foreground">Use it free today.</span>
             </p>
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 pt-2 sm:pt-4">
               <Link href="/register">
                 <Button size="lg" className="w-full sm:w-auto h-12 sm:h-14 px-8 sm:px-10 text-base sm:text-lg rounded-full shadow-xl hover:shadow-2xl transition-all hover:scale-105 bg-gradient-to-r from-primary to-purple-600" data-testid="button-hero-cta">
-                  Start Free Trial <ArrowRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
+                  Start Using It Free <ArrowRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto h-12 sm:h-14 px-8 sm:px-10 text-base sm:text-lg rounded-full border-2 hover:bg-primary/5" data-testid="button-demo">
-                Watch Demo
-              </Button>
+              <a href="#waitlist">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto h-12 sm:h-14 px-8 sm:px-10 text-base sm:text-lg rounded-full border-2 hover:bg-primary/5 hover:border-purple-600" data-testid="button-waitlist">
+                  <Star className="mr-2 h-4 sm:h-5 w-4 sm:w-5" />
+                  Join Waitlist for Perks
+                </Button>
+              </a>
             </div>
             
             {/* Trust Badges */}
