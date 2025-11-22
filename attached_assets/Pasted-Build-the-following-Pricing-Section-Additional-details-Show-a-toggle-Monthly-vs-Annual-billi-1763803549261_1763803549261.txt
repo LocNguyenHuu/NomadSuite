@@ -1,0 +1,61 @@
+Build the following:
+Pricing Section
+Additional details:
+•	Show a toggle: Monthly vs Annual billing. When Annual selected, indicate “Save 20%” or show discounted annual price.
+•	Highlight the PRO plan as “Most Popular”.
+•	Include a small note underneath: “No hidden fees. Cancel anytime.”
+Waitlist Form Section
+Title: “Join the waitlist & lock in founding pricing”
+Form fields:
+•	Name (text, required)
+•	Email (email, required)
+•	Country (text or dropdown)
+•	Role (select: “Digital Nomad”, “Freelancer”, “Agency/Team”, “Other”)
+•	Use Case (textarea: “How do you plan to use NomadSuite?”)
+•	Referral Code (text, optional)
+•	Consent checkbox: “I agree to receive emails about NomadSuite” (required)
+Form behaviour:
+•	On submit: disable submit button while processing.
+•	After successful submission: show message “Thank you! You’re on the waitlist 🎉”
+•	On error: show message “Something went wrong, please try again.”
+•	Backend writes a new record into an Airtable base.
+•	Read Airtable API token from process.env.AIRTABLE_TOKEN
+•	Table name: “Waitlist”
+•	On submit:
+o	Prevent default
+o	POST JSON to /api/waitlist
+o	Show success or error message
+o	Disable submit button while loading
+
+
+Footer / Trust & Privacy Section
+•	Include small text: “GDPR compliant | EU data hosting available”
+•	Links: Privacy Policy, Terms of Service, Contact, “Found a bug?” (opens bug report form section)
+•	Minimal design, aligned center, subdued colour.
+Bug Report Section
+Form fields:
+•	Name (text)
+•	Email (email)
+•	Bug description (textarea)
+•	Affected module (select: “Pricing”, “Waitlist”, “Form”, “Other”)
+•	Screenshot / optional file upload (optional)
+•	Consent checkbox: “I agree to send this report and be contacted if needed” (required)
+Form behaviour:
+•	On submit: disable submit button while processing.
+•	After successful submission: show message “Thank you! Bug report submitted.”
+•	On error: show message “Something went wrong, please try again.”
+•	Backend writes a new record into Airtable.
+•	Read Airtable API token from process.env.AIRTABLE_TOKEN
+•	Table name: “Bug Report”
+•	On submit:
+o	Prevent default
+o	POST JSON to /api/bugreport
+o	Show success or error message
+o	Disable submit button while loading
+Design / UX Notes
+•	Use a clean, modern, responsive layout.
+•	The pricing table should appear horizontally on desktop, stacked vertically on mobile.
+•	Use visual highlight (colour, border, badge) for the PRO plan.
+•	The hero section should include imagery or background that evokes remote/global mobility, digital nomads.
+•	Smooth scroll navigation from hero CTAs to sections.
+•	Form(s) are centered, with clear labels and placeholders; mobile-friendly.
