@@ -97,7 +97,7 @@ export default function WaitlistForm() {
       <div className="container mx-auto px-4 max-w-2xl">
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold">Join the waitlist & lock in founding pricing</CardTitle>
+            <CardTitle className="text-3xl font-bold">Join the waitlist</CardTitle>
             <CardDescription className="text-lg mt-2">
               Be among the first to experience NomadSuite with exclusive early-bird pricing
             </CardDescription>

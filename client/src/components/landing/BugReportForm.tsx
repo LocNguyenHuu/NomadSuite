@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -15,17 +14,15 @@ interface BugReportFormData {
   name?: string;
   email?: string;
   description: string;
-  affectedModule: string;
   contactConsent: boolean;
   screenshot?: FileList;
 }
 
 export default function BugReportForm() {
-  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<BugReportFormData>();
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<BugReportFormData>();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedModule, setSelectedModule] = useState('');
 
   const onSubmit = async (data: BugReportFormData) => {
     setIsSubmitting(true);
@@ -36,7 +33,6 @@ export default function BugReportForm() {
       if (data.name) formData.append('name', data.name);
       if (data.email) formData.append('email', data.email);
       formData.append('description', data.description);
-      formData.append('affectedModule', data.affectedModule);
       formData.append('contactConsent', String(data.contactConsent));
       
       if (data.screenshot && data.screenshot.length > 0) {
@@ -129,32 +125,6 @@ export default function BugReportForm() {
             )}
           </div>
 
-          {/* Affected Module */}
-          <div>
-            <Label htmlFor="affectedModule">Affected Module *</Label>
-            <Select
-              value={selectedModule}
-              onValueChange={(value) => {
-                setSelectedModule(value);
-                setValue('affectedModule', value);
-              }}
-            >
-              <SelectTrigger className="mt-1" data-testid="select-bug-module">
-                <SelectValue placeholder="Select module" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Pricing">Pricing</SelectItem>
-                <SelectItem value="Waitlist">Waitlist</SelectItem>
-                <SelectItem value="Form">Form</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-            <input type="hidden" {...register('affectedModule', { required: 'Please select a module' })} />
-            {errors.affectedModule && (
-              <p className="text-sm text-red-600 mt-1">{errors.affectedModule.message}</p>
-            )}
-          </div>
-
           {/* Bug Description */}
           <div>
             <Label htmlFor="description">Bug Description *</Label>
@@ -189,18 +159,13 @@ export default function BugReportForm() {
           <div className="flex items-start gap-3">
             <Checkbox
               id="contactConsent"
-              {...register('contactConsent', {
-                required: 'You must agree to be contacted',
-              })}
+              {...register('contactConsent')}
               data-testid="checkbox-bug-consent"
             />
             <div className="flex-1">
               <Label htmlFor="contactConsent" className="text-sm font-normal cursor-pointer">
-                I agree to send this report and be contacted if needed *
+                I agree to send this report and be contacted if needed
               </Label>
-              {errors.contactConsent && (
-                <p className="text-sm text-red-600 mt-1">{errors.contactConsent.message}</p>
-              )}
             </div>
           </div>
 
