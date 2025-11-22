@@ -46,9 +46,9 @@ const changePasswordSchema = z.object({
 
 // Settings update schema
 const updateSettingsSchema = z.object({
-  primaryLanguage: z.enum(["en", "de", "fr"]).optional(),
+  primaryLanguage: z.enum(["en", "de", "fr", "vi", "ja", "zh"]).optional(),
   defaultCurrency: z.string().optional(),
-  defaultInvoiceLanguage: z.enum(["en", "de", "fr"]).optional(),
+  defaultInvoiceLanguage: z.enum(["en", "de", "fr", "vi", "ja", "zh"]).optional(),
   timezone: z.string().optional(),
   dateFormat: z.enum(["MM/DD/YYYY", "DD/MM/YYYY", "DD.MM.YYYY"]).optional(),
   invoicePrefix: z.string().min(1, "Invoice prefix cannot be empty").optional(),

@@ -14,9 +14,9 @@ import { Loader2, Globe, DollarSign, FileText } from "lucide-react";
 import type { User as UserType } from "@shared/schema";
 
 const settingsSchema = z.object({
-  primaryLanguage: z.enum(["en", "de", "fr"]),
+  primaryLanguage: z.enum(["en", "de", "fr", "vi", "ja", "zh"]),
   defaultCurrency: z.string().min(1, "Currency is required"),
-  defaultInvoiceLanguage: z.enum(["en", "de", "fr"]),
+  defaultInvoiceLanguage: z.enum(["en", "de", "fr", "vi", "ja", "zh"]),
   timezone: z.string().min(1, "Timezone is required"),
   dateFormat: z.enum(["MM/DD/YYYY", "DD/MM/YYYY", "DD.MM.YYYY"]),
   invoicePrefix: z.string().min(1, "Invoice prefix is required"),
@@ -28,6 +28,9 @@ const LANGUAGES = [
   { value: "en", label: "English" },
   { value: "de", label: "Deutsch (German)" },
   { value: "fr", label: "Français (French)" },
+  { value: "vi", label: "Tiếng Việt (Vietnamese)" },
+  { value: "ja", label: "日本語 (Japanese)" },
+  { value: "zh", label: "中文 (Chinese)" },
 ];
 
 const CURRENCIES = [
@@ -101,9 +104,9 @@ export default function Settings() {
   const form = useForm<SettingsForm>({
     resolver: zodResolver(settingsSchema),
     values: user ? {
-      primaryLanguage: (user.primaryLanguage || "en") as "en" | "de" | "fr",
+      primaryLanguage: (user.primaryLanguage || "en") as "en" | "de" | "fr" | "vi" | "ja" | "zh",
       defaultCurrency: user.defaultCurrency || "USD",
-      defaultInvoiceLanguage: (user.defaultInvoiceLanguage || "en") as "en" | "de" | "fr",
+      defaultInvoiceLanguage: (user.defaultInvoiceLanguage || "en") as "en" | "de" | "fr" | "vi" | "ja" | "zh",
       timezone: user.timezone || "UTC",
       dateFormat: (user.dateFormat || "MM/DD/YYYY") as "MM/DD/YYYY" | "DD/MM/YYYY" | "DD.MM.YYYY",
       invoicePrefix: user.invoicePrefix || "NS-",
@@ -151,7 +154,7 @@ export default function Settings() {
                 <Label htmlFor="primaryLanguage">Primary Language</Label>
                 <Select
                   value={form.watch("primaryLanguage")}
-                  onValueChange={(value) => form.setValue("primaryLanguage", value as "en" | "de" | "fr")}
+                  onValueChange={(value) => form.setValue("primaryLanguage", value as "en" | "de" | "fr" | "vi" | "ja" | "zh")}
                 >
                   <SelectTrigger id="primaryLanguage" data-testid="select-primary-language">
                     <SelectValue />
@@ -261,7 +264,7 @@ export default function Settings() {
                 <Label htmlFor="defaultInvoiceLanguage">Default Invoice Language</Label>
                 <Select
                   value={form.watch("defaultInvoiceLanguage")}
-                  onValueChange={(value) => form.setValue("defaultInvoiceLanguage", value as "en" | "de" | "fr")}
+                  onValueChange={(value) => form.setValue("defaultInvoiceLanguage", value as "en" | "de" | "fr" | "vi" | "ja" | "zh")}
                 >
                   <SelectTrigger id="defaultInvoiceLanguage" data-testid="select-default-invoice-language">
                     <SelectValue />
