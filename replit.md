@@ -32,6 +32,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+**November 22, 2025** - Multi-Language Support Expansion (6 Languages):
+- Extended language support from 3 to 6 languages: English (EN), German (DE), French (FR), Vietnamese (VI), Japanese (JA), Chinese (ZH)
+- Updated Settings page with all 6 language options for Primary Language and Default Invoice Language
+- Added complete invoice translations for Vietnamese, Japanese, and Chinese (i18n-invoice.ts)
+- Updated backend validation schemas to accept all 6 language codes
+- Locale-specific date formatting: vi-VN, ja-JP, zh-CN
+- Locale-specific currency formatting with Intl.NumberFormat for all languages
+- Settings page displays language names in native script (Tiếng Việt, 日本語, 中文)
+
 **November 22, 2025** - Airtable CRM Integration (PRODUCTION-READY):
 - Full Airtable API integration for Waitlist and Bug Reports with automatic background sync
 - Non-blocking Airtable sync ensures no user-facing delays (database-first approach)
@@ -135,7 +144,7 @@ Preferred communication style: Simple, everyday language.
 
 **Multi-Country Invoice Compliance**: Supports country-specific invoice requirements (e.g., Germany, France, UK, Canada, US) with dynamic form validation, compliance hints, and multi-currency support.
 
-**Multi-Language Invoice PDFs**: Full i18n support for invoice PDFs in English (EN), German (DE), and French (FR). Language-aware field labels, date formatting (locale-specific), currency formatting, compliance text, and payment terms. Language selection automatically defaults to client's jurisdiction language.
+**Multi-Language Invoice PDFs**: Full i18n support for invoice PDFs in 6 languages: English (EN), German (DE), French (FR), Vietnamese (VI), Japanese (JA), and Chinese (ZH). Language-aware field labels, date formatting (locale-specific), currency formatting, compliance text, and payment terms. Language selection automatically defaults to client's jurisdiction language.
 
 **Automatic Invoice Numbering**: Invoices are auto-numbered in NS-{year}-{incremental} format (e.g., NS-2025-00012), with sequential numbering per user per year.
 
