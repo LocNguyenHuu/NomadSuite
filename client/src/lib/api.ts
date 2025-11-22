@@ -19,7 +19,7 @@ export async function apiRequest<T = any>(
   headers.set('Content-Type', 'application/json');
 
   if (needsCsrf && csrfToken) {
-    headers.set('csrf-token', csrfToken);
+    headers.set('X-CSRF-Token', csrfToken);
   }
 
   const response = await fetch(url, {
@@ -50,7 +50,7 @@ export async function apiRequestFormData<T = any>(
   const headers = new Headers(options.headers);
   
   if (csrfToken) {
-    headers.set('csrf-token', csrfToken);
+    headers.set('X-CSRF-Token', csrfToken);
   }
 
   const response = await fetch(url, {
