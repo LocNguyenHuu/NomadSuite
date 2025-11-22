@@ -25,6 +25,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { AdminRoute } from "@/lib/admin-route";
 import { CsrfProvider } from "@/lib/csrf";
+import { LandingI18nProvider } from "@/contexts/LandingI18nContext";
 import { useEffect } from "react";
 import { setCsrfToken } from "@/lib/api";
 
@@ -73,13 +74,15 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <CsrfProvider>
-          <CsrfInitializer />
-          <AuthProvider>
-            <Toaster />
-            <Router />
-          </AuthProvider>
-        </CsrfProvider>
+        <LandingI18nProvider>
+          <CsrfProvider>
+            <CsrfInitializer />
+            <AuthProvider>
+              <Toaster />
+              <Router />
+            </AuthProvider>
+          </CsrfProvider>
+        </LandingI18nProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

@@ -9,6 +9,8 @@ import { SEO, StructuredData } from '@/components/SEO';
 import PricingSection from '@/components/landing/PricingSection';
 import WaitlistForm from '@/components/landing/WaitlistForm';
 import BugReportForm from '@/components/landing/BugReportForm';
+import PublicLanguageSwitcher from '@/components/PublicLanguageSwitcher';
+import { useLandingI18n } from '@/contexts/LandingI18nContext';
 // @ts-ignore
 import heroImage from '@assets/generated_images/A_minimal,_modern_hero_illustration_for_a_digital_nomad_app._f04ea532.png';
 
@@ -52,6 +54,7 @@ const testimonials = [
 ];
 
 export default function Landing() {
+  const { t } = useLandingI18n();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
   useEffect(() => {
@@ -247,12 +250,13 @@ export default function Landing() {
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4">
+            <PublicLanguageSwitcher />
             <Link href="/login">
-              <Button variant="ghost" className="font-medium hover:bg-primary/5 text-sm sm:text-base h-9 sm:h-10 px-3 sm:px-4" data-testid="button-login">Log In</Button>
+              <Button variant="ghost" className="font-medium hover:bg-primary/5 text-sm sm:text-base h-9 sm:h-10 px-3 sm:px-4" data-testid="button-login">{t('nav.login')}</Button>
             </Link>
             <Link href="/register">
               <Button className="font-medium shadow-md hover:shadow-lg transition-all text-sm sm:text-base h-9 sm:h-10 px-3 sm:px-4" data-testid="button-get-started">
-                Start Free
+                {t('nav.signup')}
               </Button>
             </Link>
           </div>
@@ -268,14 +272,14 @@ export default function Landing() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
               </span>
-              <span className="font-semibold text-sm sm:text-base">🎉 MVP is LIVE!</span>
+              <span className="font-semibold text-sm sm:text-base">{t('banner.badge')}</span>
             </div>
             <p className="text-xs sm:text-sm font-medium">
-              Full-featured app available now • 100% free during testing • All features unlocked
+              {t('banner.text')}
             </p>
             <Link href="/register">
               <Button size="sm" variant="secondary" className="bg-white text-green-700 hover:bg-white/90 text-xs sm:text-sm font-semibold">
-                Try It Free →
+                {t('banner.cta')}
               </Button>
             </Link>
           </div>
@@ -290,32 +294,32 @@ export default function Landing() {
             <div className="flex flex-col gap-3">
               <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold w-fit">
                 <Check className="h-4 w-4" />
-                <span>Available Now • Sign Up & Start Free</span>
+                <span>{t('hero.badgeAvailable')}</span>
               </div>
               <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium w-fit">
                 <Star className="h-3.5 w-3.5" />
-                <span>Join waitlist for exclusive founding member perks</span>
+                <span>{t('hero.badgeWaitlist')}</span>
               </div>
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-heading font-bold leading-[1.1] tracking-tight text-foreground">
-              Run your freelance business and global lifestyle—
+              {t('hero.title1')}
               <span className="bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent animate-gradient">
-                effortlessly
+                {t('hero.title2')}
               </span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-lg leading-relaxed font-light">
-              Client CRM, invoices, travel & visa tracking, and tax-residency alerts—all from one powerful web-app. <span className="font-semibold text-foreground">Use it free today.</span>
+              {t('hero.subtitle')} <span className="font-semibold text-foreground">{t('hero.subtitleBold')}</span>
             </p>
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 pt-2 sm:pt-4">
               <Link href="/register">
                 <Button size="lg" className="w-full sm:w-auto h-12 sm:h-14 px-8 sm:px-10 text-base sm:text-lg rounded-full shadow-xl hover:shadow-2xl transition-all hover:scale-105 bg-gradient-to-r from-primary to-purple-600" data-testid="button-hero-cta">
-                  Start Using It Free <ArrowRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
+                  {t('hero.ctaPrimary')} <ArrowRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
                 </Button>
               </Link>
               <a href="#waitlist">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto h-12 sm:h-14 px-8 sm:px-10 text-base sm:text-lg rounded-full border-2 hover:bg-primary/5 hover:border-purple-600" data-testid="button-waitlist">
                   <Star className="mr-2 h-4 sm:h-5 w-4 sm:w-5" />
-                  Join Waitlist for Perks
+                  {t('hero.ctaWaitlist')}
                 </Button>
               </a>
             </div>
@@ -324,15 +328,15 @@ export default function Landing() {
             <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6 pt-4 sm:pt-6 text-xs sm:text-sm font-medium text-muted-foreground">
               <div className="flex items-center gap-2 bg-muted/50 px-3 sm:px-4 py-2 rounded-lg">
                 <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                <span className="text-xs sm:text-sm">40+ countries</span>
+                <span className="text-xs sm:text-sm">{t('hero.trust1')}</span>
               </div>
               <div className="flex items-center gap-2 bg-muted/50 px-3 sm:px-4 py-2 rounded-lg">
                 <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                <span className="text-xs sm:text-sm">Bank-level encryption</span>
+                <span className="text-xs sm:text-sm">{t('hero.trust2')}</span>
               </div>
               <div className="flex items-center gap-2 bg-muted/50 px-3 sm:px-4 py-2 rounded-lg">
                 <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                <span className="text-xs sm:text-sm">No credit card</span>
+                <span className="text-xs sm:text-sm">{t('hero.trust3')}</span>
               </div>
             </div>
           </div>

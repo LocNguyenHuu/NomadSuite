@@ -5,8 +5,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { pricingTiers } from '@/data/pricing';
+import { useLandingI18n } from '@/contexts/LandingI18nContext';
 
 export default function PricingSection() {
+  const { t } = useLandingI18n();
   const [isAnnual, setIsAnnual] = useState(false);
 
   const handleCtaClick = (tierName: string, isWaitlist: boolean = false) => {
@@ -34,19 +36,19 @@ export default function PricingSection() {
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl mb-4">
-            Simple, transparent pricing
+            {t('pricing.title')}
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-4">
-            <span className="font-semibold text-green-600">🎉 All plans are FREE during MVP testing</span> • Full features unlocked
+            <span className="font-semibold text-green-600">{t('pricing.freeBadge')}</span> • {t('pricing.freeText')}
           </p>
           <p className="text-base text-gray-500 max-w-xl mx-auto mb-8">
-            Join the waitlist for founding member perks when we launch paid tiers
+            {t('pricing.waitlistHint')}
           </p>
           
           {/* Billing Toggle */}
           <div className="flex items-center justify-center gap-3">
             <Label htmlFor="billing-toggle" className={!isAnnual ? 'font-semibold' : ''}>
-              Monthly
+              {t('pricing.monthly')}
             </Label>
             <Switch
               id="billing-toggle"
@@ -55,11 +57,11 @@ export default function PricingSection() {
               data-testid="toggle-billing"
             />
             <Label htmlFor="billing-toggle" className={isAnnual ? 'font-semibold' : ''}>
-              Annual
+              {t('pricing.annually')}
             </Label>
             {isAnnual && (
               <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
-                Save 20%
+                {t('pricing.save')}
               </span>
             )}
           </div>
@@ -125,7 +127,7 @@ export default function PricingSection() {
                     onClick={() => handleCtaClick(tier.name, false)}
                     data-testid={`button-${tier.name.toLowerCase()}-cta`}
                   >
-                    {tier.name === 'Enterprise' ? tier.cta : 'Start Free Now'}
+                    {tier.name === 'Enterprise' ? tier.cta : t('pricing.ctaStart')}
                   </Button>
                   {tier.name !== 'Enterprise' && (
                     <Button
@@ -136,7 +138,7 @@ export default function PricingSection() {
                       data-testid={`button-${tier.name.toLowerCase()}-waitlist`}
                     >
                       <Star className="mr-2 h-4 w-4" />
-                      Join Waitlist for Perks
+                      {t('pricing.ctaWaitlist')}
                     </Button>
                   )}
                 </CardFooter>

@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { getCsrfToken } from '@/lib/api';
 import { Star } from 'lucide-react';
+import { useLandingI18n } from '@/contexts/LandingI18nContext';
 
 interface WaitlistFormData {
   name: string;
@@ -22,6 +23,7 @@ interface WaitlistFormData {
 }
 
 export default function WaitlistForm() {
+  const { t } = useLandingI18n();
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<WaitlistFormData>({
     defaultValues: {
       emailConsent: true,
@@ -50,19 +52,19 @@ export default function WaitlistForm() {
       });
 
       if (!response.ok) {
-        throw new Error('Something went wrong, please try again.');
+        throw new Error(t('waitlist.toast.errorDefault'));
       }
 
       setIsSuccess(true);
       reset();
       toast({
-        title: "Thank you! You're on the waitlist 🎉",
-        description: "We'll notify you when we launch with exclusive founding member pricing.",
+        title: t('waitlist.toast.successTitle'),
+        description: t('waitlist.toast.successDesc'),
       });
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Something went wrong, please try again.',
+        title: t('waitlist.toast.errorTitle'),
+        description: error.message || t('waitlist.toast.errorDefault'),
         variant: 'destructive',
       });
     } finally {
@@ -77,23 +79,23 @@ export default function WaitlistForm() {
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Star className="h-4 w-4" />
-              Optional - Founding Member Perks
+              {t('waitlist.badge')}
             </div>
             <p className="text-gray-600 max-w-2xl mx-auto text-base">
-              Already using NomadSuite for free? Great! Join our founding member waitlist to lock in special perks, priority support, and exclusive discounts when we launch paid tiers.
+              {t('waitlist.intro')}
             </p>
           </div>
           <Card className="border-2 border-purple-200">
             <CardContent className="pt-12 pb-12 text-center">
               <div className="text-6xl mb-6">🎉</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                You're on the founding member list!
+                {t('waitlist.successTitle')}
               </h3>
               <p className="text-gray-600 mb-6">
-                We'll notify you with exclusive founding member perks when we launch paid tiers. Keep enjoying all features free in the meantime!
+                {t('waitlist.successText')}
               </p>
               <Button onClick={() => setIsSuccess(false)} variant="outline">
-                Join another person
+                {t('waitlist.successButton')}
               </Button>
             </CardContent>
           </Card>
@@ -108,17 +110,17 @@ export default function WaitlistForm() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <Star className="h-4 w-4" />
-            Optional - Founding Member Perks
+            {t('waitlist.badge')}
           </div>
           <p className="text-gray-600 max-w-2xl mx-auto text-base">
-            Already using NomadSuite for free? Great! Join our founding member waitlist to lock in special perks, priority support, and exclusive discounts when we launch paid tiers.
+            {t('waitlist.intro')}
           </p>
         </div>
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold">Founding Member Waitlist</CardTitle>
+            <CardTitle className="text-3xl font-bold">{t('waitlist.title')}</CardTitle>
             <CardDescription className="text-lg mt-2">
-              Get exclusive perks and discounts when we transition from free MVP to paid plans
+              {t('waitlist.subtitle')}
             </CardDescription>
           </CardHeader>
           
@@ -126,11 +128,11 @@ export default function WaitlistForm() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Name */}
               <div>
-                <Label htmlFor="name">Name *</Label>
+                <Label htmlFor="name">{t('waitlist.name')} {t('waitlist.required')}</Label>
                 <Input
                   id="name"
-                  {...register('name', { required: 'Name is required' })}
-                  placeholder="Your full name"
+                  {...register('name', { required: t('waitlist.validation.nameRequired') })}
+                  placeholder={t('waitlist.placeholders.name')}
                   className="mt-1"
                   data-testid="input-waitlist-name"
                 />
@@ -141,18 +143,18 @@ export default function WaitlistForm() {
 
               {/* Email */}
               <div>
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">{t('waitlist.email')} {t('waitlist.required')}</Label>
                 <Input
                   id="email"
                   type="email"
                   {...register('email', {
-                    required: 'Email is required',
+                    required: t('waitlist.validation.emailRequired'),
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Invalid email address',
+                      message: t('waitlist.validation.emailInvalid'),
                     },
                   })}
-                  placeholder="you@example.com"
+                  placeholder={t('waitlist.placeholders.email')}
                   className="mt-1"
                   data-testid="input-waitlist-email"
                 />
@@ -163,11 +165,11 @@ export default function WaitlistForm() {
 
               {/* Country */}
               <div>
-                <Label htmlFor="country">Country</Label>
+                <Label htmlFor="country">{t('waitlist.country')}</Label>
                 <Input
                   id="country"
                   {...register('country')}
-                  placeholder="e.g., Portugal, Thailand, etc."
+                  placeholder={t('waitlist.placeholders.country')}
                   className="mt-1"
                   data-testid="input-waitlist-country"
                 />
@@ -175,7 +177,7 @@ export default function WaitlistForm() {
 
               {/* Role */}
               <div>
-                <Label htmlFor="role">What best describes you? *</Label>
+                <Label htmlFor="role">{t('waitlist.role')} {t('waitlist.required')}</Label>
                 <Select
                   value={selectedRole}
                   onValueChange={(value) => {
@@ -184,7 +186,7 @@ export default function WaitlistForm() {
                   }}
                 >
                   <SelectTrigger className="mt-1" data-testid="select-waitlist-role">
-                    <SelectValue placeholder="Select your role" />
+                    <SelectValue placeholder={t('waitlist.placeholders.role')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Digital Nomad">Digital Nomad</SelectItem>
@@ -193,7 +195,7 @@ export default function WaitlistForm() {
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
-                <input type="hidden" {...register('role', { required: 'Please select a role' })} />
+                <input type="hidden" {...register('role', { required: t('waitlist.validation.roleRequired') })} />
                 {errors.role && (
                   <p className="text-sm text-red-600 mt-1">{errors.role.message}</p>
                 )}
@@ -201,11 +203,11 @@ export default function WaitlistForm() {
 
               {/* Use Case */}
               <div>
-                <Label htmlFor="useCase">How do you plan to use NomadSuite?</Label>
+                <Label htmlFor="useCase">{t('waitlist.useCase')}</Label>
                 <Textarea
                   id="useCase"
                   {...register('useCase')}
-                  placeholder="Tell us about your business and travel needs..."
+                  placeholder={t('waitlist.placeholders.useCase')}
                   rows={4}
                   className="mt-1"
                   data-testid="textarea-waitlist-usecase"
@@ -214,11 +216,11 @@ export default function WaitlistForm() {
 
               {/* Referral Code */}
               <div>
-                <Label htmlFor="referralCode">Referral Code (optional)</Label>
+                <Label htmlFor="referralCode">{t('waitlist.referral')}</Label>
                 <Input
                   id="referralCode"
                   {...register('referralCode')}
-                  placeholder="Enter code if you have one"
+                  placeholder={t('waitlist.placeholders.referral')}
                   className="mt-1"
                   data-testid="input-waitlist-referral"
                 />
@@ -229,14 +231,14 @@ export default function WaitlistForm() {
                 <Checkbox
                   id="emailConsent"
                   {...register('emailConsent', {
-                    required: 'You must agree to receive updates',
+                    required: t('waitlist.validation.emailConsentRequired'),
                   })}
                   defaultChecked={true}
                   data-testid="checkbox-email-consent"
                 />
                 <div className="flex-1">
                   <Label htmlFor="emailConsent" className="text-sm font-normal cursor-pointer">
-                    I agree to receive emails about NomadSuite *
+                    {t('waitlist.emailConsent')} {t('waitlist.required')}
                   </Label>
                   {errors.emailConsent && (
                     <p className="text-sm text-red-600 mt-1">{errors.emailConsent.message}</p>
@@ -252,7 +254,7 @@ export default function WaitlistForm() {
                 disabled={isSubmitting}
                 data-testid="button-waitlist-submit"
               >
-                {isSubmitting ? 'Joining waitlist...' : 'Join the waitlist'}
+                {isSubmitting ? t('waitlist.submitting') : t('waitlist.submit')}
               </Button>
             </form>
           </CardContent>
