@@ -8,7 +8,7 @@ import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveCo
 import { SEO, StructuredData } from '@/components/SEO';
 import PricingSection from '@/components/landing/PricingSection';
 import WaitlistForm from '@/components/landing/WaitlistForm';
-import BugReportForm from '@/components/landing/BugReportForm';
+import BugReportSection from '@/components/landing/BugReportSection';
 import PublicLanguageSwitcher from '@/components/PublicLanguageSwitcher';
 import { useLandingI18n } from '@/contexts/LandingI18nContext';
 // @ts-ignore
@@ -721,8 +721,8 @@ export default function Landing() {
       {/* Section 10: Waitlist Form */}
       <WaitlistForm />
 
-      {/* Section 11: Bug Report Form */}
-      <BugReportForm />
+      {/* Section 11: Bug Report Section - MVP Testing */}
+      <BugReportSection />
 
       {/* Footer */}
       <footer className="py-16 md:py-20 bg-background border-t">
