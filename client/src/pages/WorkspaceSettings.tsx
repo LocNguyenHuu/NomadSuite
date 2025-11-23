@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import AppLayout from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,23 +57,20 @@ export default function WorkspaceSettings() {
 
   if (!workspace) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Loading workspace settings...</p>
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Loading workspace settings...</p>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="space-y-8 max-w-3xl">
-        <div>
-          <h2 className="text-3xl font-heading font-bold tracking-tight">Workspace Settings</h2>
-          <p className="text-muted-foreground">Configure your workspace defaults and preferences.</p>
-        </div>
+    <div className="space-y-8 max-w-3xl">
+      <div>
+        <h2 className="text-3xl font-heading font-bold tracking-tight">Workspace Settings</h2>
+        <p className="text-muted-foreground">Configure your workspace defaults and preferences.</p>
+      </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -174,13 +170,12 @@ export default function WorkspaceSettings() {
             </CardContent>
           </Card>
 
-          <div className="flex justify-end">
-            <Button type="submit" data-testid="button-save-settings">
-              Save Changes
-            </Button>
-          </div>
-        </form>
-      </div>
-    </AppLayout>
+        <div className="flex justify-end">
+          <Button type="submit" data-testid="button-save-settings">
+            Save Changes
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }

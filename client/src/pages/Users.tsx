@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import AppLayout from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { 
   Table, 
@@ -93,10 +92,9 @@ export default function Users() {
   const userCount = users.filter(u => u.role === 'user').length;
 
   return (
-    <AppLayout>
-      <div className="space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
             <h2 className="text-3xl font-heading font-bold tracking-tight">Team Members</h2>
             <p className="text-muted-foreground">Manage user roles and permissions for your workspace.</p>
           </div>
@@ -206,7 +204,6 @@ export default function Users() {
             </TableBody>
           </Table>
         </div>
-      </div>
 
       <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
         <AlertDialogContent>
@@ -224,6 +221,6 @@ export default function Users() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppLayout>
+    </div>
   );
 }
