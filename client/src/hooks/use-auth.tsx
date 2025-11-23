@@ -87,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: async () => {
       queryClient.setQueryData(["/api/user"], null);
       await refreshCsrfToken(); // Refresh CSRF token after logout
+      window.location.href = "/"; // Redirect to home page
     },
     onError: (error: Error) => {
       toast({
