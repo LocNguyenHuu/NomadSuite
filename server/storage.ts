@@ -34,6 +34,7 @@ export interface IStorage {
   // Clients
   getClient(id: number): Promise<Client | undefined>;
   getClients(userId: number): Promise<Client[]>;
+  getWorkspaceClients(workspaceId: number): Promise<(Client & { userName: string })[]>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: number, client: Partial<InsertClient>): Promise<Client>;
   
@@ -43,6 +44,7 @@ export interface IStorage {
   
   // Invoices
   getInvoices(userId: number): Promise<Invoice[]>;
+  getWorkspaceInvoices(workspaceId: number): Promise<(Invoice & { userName: string; clientName: string })[]>;
   getInvoice(id: number): Promise<Invoice | undefined>;
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
   updateInvoice(id: number, invoice: Partial<InsertInvoice>): Promise<Invoice>;
@@ -61,6 +63,7 @@ export interface IStorage {
 
   // Admin
   getAdminStats(workspaceId: number): Promise<{ totalUsers: number; totalClients: number; totalInvoices: number; totalTrips: number }>;
+  getAdminRevenueStats(workspaceId: number): Promise<{ totalRevenue: number; paidRevenue: number; pendingRevenue: number; overdueRevenue: number; revenueByMonth: Array<{ month: string; revenue: number }>; revenueByUser: Array<{ userId: number; userName: string; revenue: number }> }>;
   getAllUsers(): Promise<User[]>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
   deleteUser(id: number): Promise<void>;
@@ -130,6 +133,30 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(clients).where(eq(clients.userId, userId));
   }
 
+  async getWorkspaceClients(workspaceId: number): Promise<(Client & { userName: string })[]> {
+    const result = await db
+      .select({
+        id: clients.id,
+        userId: clients.userId,
+        name: clients.name,
+        email: clients.email,
+        phone: clients.phone,
+        company: clients.company,
+        address: clients.address,
+        country: clients.country,
+        taxId: clients.taxId,
+        status: clients.status,
+        createdAt: clients.createdAt,
+        userName: users.name,
+      })
+      .from(clients)
+      .innerJoin(users, eq(clients.userId, users.id))
+      .where(eq(users.workspaceId, workspaceId))
+      .orderBy(desc(clients.createdAt));
+    
+    return result as (Client & { userName: string })[];
+  }
+
   async createClient(client: InsertClient): Promise<Client> {
     const [newClient] = await db.insert(clients).values(client).returning();
     return newClient;
@@ -159,6 +186,38 @@ export class DatabaseStorage implements IStorage {
 
   async getInvoices(userId: number): Promise<Invoice[]> {
     return db.select().from(invoices).where(eq(invoices.userId, userId));
+  }
+
+  async getWorkspaceInvoices(workspaceId: number): Promise<(Invoice & { userName: string; clientName: string })[]> {
+    const result = await db
+      .select({
+        id: invoices.id,
+        userId: invoices.userId,
+        clientId: invoices.clientId,
+        invoiceNumber: invoices.invoiceNumber,
+        issueDate: invoices.issueDate,
+        dueDate: invoices.dueDate,
+        status: invoices.status,
+        currency: invoices.currency,
+        subtotal: invoices.subtotal,
+        taxAmount: invoices.taxAmount,
+        total: invoices.total,
+        items: invoices.items,
+        notes: invoices.notes,
+        termsAndConditions: invoices.termsAndConditions,
+        language: invoices.language,
+        complianceData: invoices.complianceData,
+        createdAt: invoices.createdAt,
+        userName: users.name,
+        clientName: clients.name,
+      })
+      .from(invoices)
+      .innerJoin(users, eq(invoices.userId, users.id))
+      .leftJoin(clients, eq(invoices.clientId, clients.id))
+      .where(eq(users.workspaceId, workspaceId))
+      .orderBy(desc(invoices.createdAt));
+    
+    return result as (Invoice & { userName: string; clientName: string })[];
   }
 
   async getInvoice(id: number): Promise<Invoice | undefined> {
@@ -229,6 +288,68 @@ export class DatabaseStorage implements IStorage {
       totalClients: Number(clientCount.count),
       totalInvoices: Number(invoiceCount.count),
       totalTrips: Number(tripCount.count),
+    };
+  }
+
+  async getAdminRevenueStats(workspaceId: number) {
+    const workspaceUserIds = await db.select({ id: users.id, name: users.name }).from(users).where(eq(users.workspaceId, workspaceId));
+    const userIds = workspaceUserIds.map(u => u.id);
+    
+    if (userIds.length === 0) {
+      return {
+        totalRevenue: 0,
+        paidRevenue: 0,
+        pendingRevenue: 0,
+        overdueRevenue: 0,
+        revenueByMonth: [],
+        revenueByUser: [],
+      };
+    }
+    
+    const workspaceInvoices = await db.select().from(invoices).where(inArray(invoices.userId, userIds));
+    
+    const totalRevenue = workspaceInvoices.reduce((sum, inv) => sum + inv.total, 0);
+    const paidRevenue = workspaceInvoices.filter(inv => inv.status === 'Paid').reduce((sum, inv) => sum + inv.total, 0);
+    const pendingRevenue = workspaceInvoices.filter(inv => inv.status === 'Sent').reduce((sum, inv) => sum + inv.total, 0);
+    const overdueRevenue = workspaceInvoices.filter(inv => inv.status === 'Overdue').reduce((sum, inv) => sum + inv.total, 0);
+    
+    // Revenue by month (last 6 months)
+    const revenueByMonth: Array<{ month: string; revenue: number }> = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const monthRevenue = workspaceInvoices
+        .filter(inv => {
+          const invDate = new Date(inv.issueDate);
+          const invMonthKey = `${invDate.getFullYear()}-${String(invDate.getMonth() + 1).padStart(2, '0')}`;
+          return invMonthKey === monthKey && inv.status === 'Paid';
+        })
+        .reduce((sum, inv) => sum + inv.total, 0);
+      
+      revenueByMonth.push({ month: monthKey, revenue: monthRevenue });
+    }
+    
+    // Revenue by user
+    const revenueByUser = workspaceUserIds.map(user => {
+      const userRevenue = workspaceInvoices
+        .filter(inv => inv.userId === user.id && inv.status === 'Paid')
+        .reduce((sum, inv) => sum + inv.total, 0);
+      
+      return {
+        userId: user.id,
+        userName: user.name,
+        revenue: userRevenue,
+      };
+    }).filter(u => u.revenue > 0);
+    
+    return {
+      totalRevenue,
+      paidRevenue,
+      pendingRevenue,
+      overdueRevenue,
+      revenueByMonth,
+      revenueByUser,
     };
   }
 

@@ -252,6 +252,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(stats);
   });
 
+  app.get("/api/admin/revenue-stats", requireAdmin, async (req, res) => {
+    const workspaceId = req.user!.workspaceId;
+    if (!workspaceId) {
+      return res.status(400).send("User not associated with a workspace");
+    }
+    const revenueStats = await storage.getAdminRevenueStats(workspaceId);
+    res.json(revenueStats);
+  });
+
+  app.get("/api/admin/clients", requireAdmin, async (req, res) => {
+    const workspaceId = req.user!.workspaceId;
+    if (!workspaceId) {
+      return res.status(400).send("User not associated with a workspace");
+    }
+    const clients = await storage.getWorkspaceClients(workspaceId);
+    res.json(clients);
+  });
+
+  app.get("/api/admin/invoices", requireAdmin, async (req, res) => {
+    const workspaceId = req.user!.workspaceId;
+    if (!workspaceId) {
+      return res.status(400).send("User not associated with a workspace");
+    }
+    const invoices = await storage.getWorkspaceInvoices(workspaceId);
+    res.json(invoices);
+  });
+
   // Clients
   app.get("/api/clients", requireAuth, async (req, res) => {
     const clients = await storage.getClients(req.user!.id);
