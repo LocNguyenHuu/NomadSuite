@@ -54,9 +54,9 @@ export default function AdminInvoices() {
 
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = 
-      invoice.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
-      invoice.clientName?.toLowerCase().includes(search.toLowerCase()) ||
-      invoice.userName.toLowerCase().includes(search.toLowerCase());
+      (invoice.invoiceNumber ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (invoice.clientName ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (invoice.userName ?? '').toLowerCase().includes(search.toLowerCase());
     
     const matchesStatus = statusFilter === "All" || invoice.status === statusFilter;
     const matchesUser = userFilter === "All" || invoice.userName === userFilter;

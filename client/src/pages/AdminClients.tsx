@@ -45,11 +45,11 @@ export default function AdminClients() {
 
   const filteredClients = clients.filter(client => {
     const matchesSearch = 
-      client.name.toLowerCase().includes(search.toLowerCase()) ||
-      client.email?.toLowerCase().includes(search.toLowerCase()) ||
-      client.company?.toLowerCase().includes(search.toLowerCase()) ||
-      client.country.toLowerCase().includes(search.toLowerCase()) ||
-      client.userName.toLowerCase().includes(search.toLowerCase());
+      (client.name ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (client.email ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (client.company ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (client.country ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (client.userName ?? '').toLowerCase().includes(search.toLowerCase());
     
     const matchesStatus = statusFilter === "All" || client.status === statusFilter;
     const matchesUser = userFilter === "All" || client.userName === userFilter;
