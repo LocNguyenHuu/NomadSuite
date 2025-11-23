@@ -1,17 +1,27 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, Users, Briefcase, FileText, Plane, Search } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2, Users, Briefcase, FileText, Plane, Search, DollarSign, TrendingUp, AlertCircle, Clock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 
 interface AdminStats {
   totalUsers: number;
   totalClients: number;
   totalInvoices: number;
   totalTrips: number;
+}
+
+interface RevenueStats {
+  totalRevenue: number;
+  paidRevenue: number;
+  pendingRevenue: number;
+  overdueRevenue: number;
+  revenueByMonth: Array<{ month: string; revenue: number }>;
+  revenueByUser: Array<{ userId: number; userName: string; revenue: number }>;
 }
 
 interface User {
@@ -30,6 +40,10 @@ export default function AdminDashboard() {
     queryKey: ['/api/admin/stats'],
   });
 
+  const { data: revenueStats, isLoading: loadingRevenue } = useQuery<RevenueStats>({
+    queryKey: ['/api/admin/revenue-stats'],
+  });
+
   const { data: users, isLoading: loadingUsers } = useQuery<User[]>({
     queryKey: ['/api/admin/users'],
   });
@@ -42,7 +56,22 @@ export default function AdminDashboard() {
     user.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loadingStats || loadingUsers) {
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount / 100);
+  };
+
+  const formatMonthLabel = (monthKey: string) => {
+    const [year, month] = monthKey.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    return format(date, 'MMM yyyy');
+  };
+
+  if (loadingStats || loadingUsers || loadingRevenue) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -50,10 +79,18 @@ export default function AdminDashboard() {
     );
   }
 
+  const revenueChartData = revenueStats?.revenueByMonth.map(item => ({
+    month: formatMonthLabel(item.month),
+    revenue: item.revenue / 100,
+  })) || [];
+
   return (
     <div className="space-y-8" data-testid="admin-dashboard-container">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold font-heading" data-testid="admin-page-title">Admin Dashboard</h1>
+        <div>
+          <h1 className="text-3xl font-bold font-heading" data-testid="admin-page-title">Admin Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Workspace-wide analytics and management</p>
+        </div>
         <Badge variant="outline" className="text-sm px-3 py-1" data-testid="system-status-badge">System Status: Operational</Badge>
       </div>
 
@@ -88,6 +125,106 @@ export default function AdminDashboard() {
           testId="stat-trips"
         />
       </div>
+
+      {/* Revenue Analytics */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(revenueStats?.totalRevenue || 0)}</div>
+            <p className="text-xs text-muted-foreground">All invoices combined</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Paid Revenue</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(revenueStats?.paidRevenue || 0)}</div>
+            <p className="text-xs text-muted-foreground">Successfully collected</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Revenue</CardTitle>
+            <Clock className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{formatCurrency(revenueStats?.pendingRevenue || 0)}</div>
+            <p className="text-xs text-muted-foreground">Awaiting payment</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Overdue Revenue</CardTitle>
+            <AlertCircle className="h-4 w-4 text-destructive" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-destructive">{formatCurrency(revenueStats?.overdueRevenue || 0)}</div>
+            <p className="text-xs text-muted-foreground">Past due date</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Revenue Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Revenue Trend (Last 6 Months)</CardTitle>
+          <CardDescription>Paid invoices only</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={revenueChartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip 
+                formatter={(value: number) => formatCurrency(value * 100)}
+                labelStyle={{ color: 'hsl(var(--foreground))' }}
+              />
+              <Legend />
+              <Bar dataKey="revenue" fill="hsl(var(--primary))" name="Revenue ($)" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Top Earners */}
+      {revenueStats && revenueStats.revenueByUser.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Earners</CardTitle>
+            <CardDescription>Revenue by team member (paid invoices)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead className="text-right">Revenue</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {revenueStats.revenueByUser
+                  .sort((a, b) => b.revenue - a.revenue)
+                  .map((user) => (
+                    <TableRow key={user.userId}>
+                      <TableCell className="font-medium">{user.userName}</TableCell>
+                      <TableCell className="text-right font-semibold">{formatCurrency(user.revenue)}</TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Users Table */}
       <Card>

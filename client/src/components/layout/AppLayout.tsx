@@ -13,7 +13,8 @@ import {
   Shield,
   Building2,
   MapPin,
-  User
+  User,
+  Briefcase
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -33,6 +34,8 @@ const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => v
     { href: '/app/documents', icon: FileCheck, label: 'Documents' },
     ...(user?.role === 'admin' ? [
       { href: '/app/admin', icon: Shield, label: 'Admin Dashboard' },
+      { href: '/app/admin/clients', icon: Briefcase, label: 'All Clients' },
+      { href: '/app/admin/invoices', icon: FileText, label: 'All Invoices' },
       { href: '/app/users', icon: UsersIcon, label: 'Team Members' },
       { href: '/app/workspace', icon: Building2, label: 'Workspace' },
     ] : []),

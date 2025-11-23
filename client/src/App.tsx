@@ -19,6 +19,8 @@ import AuthPage from "@/pages/auth-page";
 import Settings from "@/pages/Settings";
 import Profile from "@/pages/Profile";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminClients from "@/pages/AdminClients";
+import AdminInvoices from "@/pages/AdminInvoices";
 import Users from "@/pages/Users";
 import WorkspaceSettings from "@/pages/WorkspaceSettings";
 import { AuthProvider } from "@/hooks/use-auth";
@@ -62,6 +64,8 @@ function Router() {
 
       {/* Admin Routes */}
       <AdminRoute path="/app/admin" component={AdminDashboard} />
+      <AdminRoute path="/app/admin/clients" component={AdminClients} />
+      <AdminRoute path="/app/admin/invoices" component={AdminInvoices} />
       <AdminRoute path="/app/users" component={Users} />
       <AdminRoute path="/app/workspace" component={WorkspaceSettings} />
       
