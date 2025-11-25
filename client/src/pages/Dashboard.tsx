@@ -8,6 +8,7 @@ import { useTrips } from '@/hooks/use-trips';
 import { DollarSign, Users, Calendar, AlertTriangle, FileText } from 'lucide-react';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { differenceInDays } from 'date-fns';
+import { useAppI18n } from '@/contexts/AppI18nContext';
 
 const data = [
   { name: 'Jan', total: 2500 },
@@ -20,6 +21,7 @@ const data = [
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t } = useAppI18n();
   const { clients } = useClients();
   const { invoices } = useInvoices();
   const { trips } = useTrips();
@@ -60,26 +62,26 @@ export default function Dashboard() {
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-heading font-bold tracking-tight">Dashboard</h2>
-            <p className="text-muted-foreground">Welcome back, {user?.name}. Here's your overview.</p>
+            <h2 className="text-3xl font-heading font-bold tracking-tight">{t('dashboard.title')}</h2>
+            <p className="text-muted-foreground">{t('dashboard.welcome')}, {user?.name}. {t('dashboard.overview')}.</p>
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <StatCard 
-            title="Total Revenue" 
+            title={t('dashboard.totalRevenue')} 
             value={`$${totalRevenue.toLocaleString()}`} 
             icon={DollarSign} 
             desc="+20.1% from last month"
           />
           <StatCard 
-            title="Active Clients" 
+            title={t('dashboard.activeClients')} 
             value={activeClients.toString()} 
             icon={Users} 
             desc={`${leadClients} leads in pipeline`}
           />
           <StatCard 
-            title="Overdue Invoices" 
+            title={t('dashboard.pendingInvoices')} 
             value={overdueInvoices.toString()} 
             icon={AlertTriangle} 
             desc={`${overduePercentage}% of clients affected`}
@@ -92,7 +94,7 @@ export default function Dashboard() {
             desc="Successful engagements"
           />
           <StatCard 
-            title="Days in Country" 
+            title={t('dashboard.daysInCountry')} 
             value={daysInCountry.toString()} 
             icon={Calendar} 
             desc={currentTrip ? `${currentTrip.country}` : "Not traveling"}

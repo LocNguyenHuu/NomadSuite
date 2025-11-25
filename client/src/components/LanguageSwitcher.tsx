@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { getCsrfToken } from '@/lib/api';
+import { useAppI18n, type AppLanguage } from '@/contexts/AppI18nContext';
 
 const LANGUAGES = [
   { code: 'en', flag: '🇬🇧', name: 'English' },
@@ -25,6 +26,7 @@ export default function LanguageSwitcher() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { setLanguage: setAppLanguage } = useAppI18n();
   const [isLoading, setIsLoading] = React.useState(false);
 
   const currentLanguage = LANGUAGES.find(lang => lang.code === (user?.primaryLanguage || 'en')) || LANGUAGES[0];
@@ -56,10 +58,13 @@ export default function LanguageSwitcher() {
       queryClient.setQueryData(['/api/user'], updatedUser);
       await queryClient.invalidateQueries({ queryKey: ['/api/user'] });
 
+      // Update app UI language immediately
+      setAppLanguage(languageCode as AppLanguage);
+
       const selectedLanguage = LANGUAGES.find(lang => lang.code === languageCode);
       toast({
-        title: 'Language preference saved',
-        description: `Your default language is now ${selectedLanguage?.name}. This will be used for invoices and PDFs.`,
+        title: 'Language updated',
+        description: `App language changed to ${selectedLanguage?.name}`,
       });
     } catch (error: any) {
       toast({

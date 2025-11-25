@@ -28,6 +28,7 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import { AdminRoute } from "@/lib/admin-route";
 import { CsrfProvider } from "@/lib/csrf";
 import { LandingI18nProvider } from "@/contexts/LandingI18nContext";
+import { AppI18nProvider } from "@/contexts/AppI18nContext";
 import { useEffect } from "react";
 import { setCsrfToken } from "@/lib/api";
 
@@ -82,8 +83,10 @@ function App() {
           <CsrfProvider>
             <CsrfInitializer />
             <AuthProvider>
-              <Toaster />
-              <Router />
+              <AppI18nProvider>
+                <Toaster />
+                <Router />
+              </AppI18nProvider>
             </AuthProvider>
           </CsrfProvider>
         </LandingI18nProvider>

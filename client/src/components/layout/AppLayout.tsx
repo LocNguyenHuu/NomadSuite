@@ -21,26 +21,28 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { useAppI18n } from '@/contexts/AppI18nContext';
 
 const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => void }) => {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
+  const { t } = useAppI18n();
   
   const navItems = [
-    { href: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { href: '/app/clients', icon: UsersIcon, label: 'Clients' },
-    { href: '/app/invoices', icon: FileText, label: 'Invoices' },
-    { href: '/app/travel', icon: Plane, label: 'Travel Log' },
-    { href: '/app/documents', icon: FileCheck, label: 'Documents' },
+    { href: '/app/dashboard', icon: LayoutDashboard, label: t('nav.dashboard') },
+    { href: '/app/clients', icon: UsersIcon, label: t('nav.clients') },
+    { href: '/app/invoices', icon: FileText, label: t('nav.invoices') },
+    { href: '/app/travel', icon: Plane, label: t('nav.travelLog') },
+    { href: '/app/documents', icon: FileCheck, label: t('nav.documents') },
     ...(user?.role === 'admin' ? [
-      { href: '/app/admin', icon: Shield, label: 'Admin Dashboard' },
-      { href: '/app/admin/clients', icon: Briefcase, label: 'All Clients' },
-      { href: '/app/admin/invoices', icon: FileText, label: 'All Invoices' },
-      { href: '/app/users', icon: UsersIcon, label: 'Team Members' },
-      { href: '/app/workspace', icon: Building2, label: 'Workspace' },
+      { href: '/app/admin', icon: Shield, label: t('nav.adminDashboard') },
+      { href: '/app/admin/clients', icon: Briefcase, label: t('nav.allClients') },
+      { href: '/app/admin/invoices', icon: FileText, label: t('nav.allInvoices') },
+      { href: '/app/users', icon: UsersIcon, label: t('nav.teamMembers') },
+      { href: '/app/workspace', icon: Building2, label: t('nav.workspace') },
     ] : []),
-    { href: '/app/profile', icon: User, label: 'Profile' },
-    { href: '/app/settings', icon: Settings, label: 'Settings' },
+    { href: '/app/profile', icon: User, label: t('nav.profile') },
+    { href: '/app/settings', icon: Settings, label: t('nav.settings') },
   ];
 
   return (
@@ -82,7 +84,7 @@ const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => v
           onClick={() => logoutMutation.mutate()}
         >
           <LogOut className="h-4 w-4" />
-          Sign Out
+          {t('common.signOut')}
         </Button>
       </div>
     </div>
