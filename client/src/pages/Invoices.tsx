@@ -23,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Download, Info, Globe, Mail, Search, Filter, Edit, Trash2 } from 'lucide-react';
+import { Plus, Download, Info, Globe, Mail, Search, Filter, Edit, Trash2, Check, ChevronsUpDown } from 'lucide-react';
 import { useInvoices } from '@/hooks/use-invoices';
 import { useClients } from '@/hooks/use-clients';
 import { InsertInvoice, JurisdictionRule, User } from '@shared/schema';
@@ -33,6 +33,9 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { InvoiceExportDialog } from '@/components/InvoiceExportDialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 
 export default function Invoices() {
   const { invoices, createInvoiceAsync } = useInvoices();
@@ -50,6 +53,7 @@ export default function Invoices() {
   const [editingInvoice, setEditingInvoice] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<any>(null);
+  const [clientComboboxOpen, setClientComboboxOpen] = useState(false);
   
   const { data: jurisdictions = [] } = useQuery<JurisdictionRule[]>({ 
     queryKey: ['/api/jurisdictions'] 
@@ -254,18 +258,65 @@ export default function Invoices() {
                     name="clientId"
                     control={control}
                     render={({ field }) => (
-                      <Select onValueChange={(value) => { field.onChange(value); setSelectedClientId(value); }} value={field.value?.toString()}>
-                        <SelectTrigger data-testid="select-client">
-                          <SelectValue placeholder="Select client" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clients.map((client) => (
-                            <SelectItem key={client.id} value={client.id.toString()}>
-                              {client.name} ({client.country})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Popover open={clientComboboxOpen} onOpenChange={setClientComboboxOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={clientComboboxOpen}
+                            className="w-full justify-between"
+                            data-testid="select-client"
+                          >
+                            {field.value ? (
+                              <div className="flex flex-col items-start text-left">
+                                <span className="font-medium">
+                                  {clients.find((client) => client.id.toString() === field.value?.toString())?.name}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {clients.find((client) => client.id.toString() === field.value?.toString())?.country}
+                                </span>
+                              </div>
+                            ) : (
+                              "Search clients..."
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[400px] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search clients by name or country..." />
+                            <CommandList>
+                              <CommandEmpty>No clients found.</CommandEmpty>
+                              <CommandGroup>
+                                {clients.map((client) => (
+                                  <CommandItem
+                                    key={client.id}
+                                    value={`${client.name} ${client.country} ${client.email}`}
+                                    onSelect={() => {
+                                      field.onChange(client.id.toString());
+                                      setSelectedClientId(client.id.toString());
+                                      setClientComboboxOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        field.value?.toString() === client.id.toString() ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">{client.name}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {client.country} • {client.email}
+                                      </span>
+                                    </div>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     )}
                   />
                 </div>
