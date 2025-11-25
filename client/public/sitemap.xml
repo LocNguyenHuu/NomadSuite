@@ -6,22 +6,36 @@
   <!-- Landing Page -->
   <url>
     <loc>https://nomadsuite.io/</loc>
-    <lastmod>2025-01-01</lastmod>
+    <lastmod>2025-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <!-- Blog -->
   <url>
     <loc>https://nomadsuite.io/blog</loc>
-    <lastmod>2024-12-15</lastmod>
+    <lastmod>2025-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  <!-- Pricing -->
+  <!-- Help Center -->
   <url>
-    <loc>https://nomadsuite.io/#pricing</loc>
-    <lastmod>2025-01-01</lastmod>
+    <loc>https://nomadsuite.io/help</loc>
+    <lastmod>2025-01-15</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
+  </url>
+  <!-- Privacy Policy -->
+  <url>
+    <loc>https://nomadsuite.io/privacy</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <!-- Terms of Service -->
+  <url>
+    <loc>https://nomadsuite.io/terms</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
   </url>
 </urlset>
