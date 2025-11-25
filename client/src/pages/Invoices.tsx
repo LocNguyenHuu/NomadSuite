@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Download, Info, Globe, Mail, Search, Filter, Edit, Trash2 } from 'lucide-react';
 import { useInvoices } from '@/hooks/use-invoices';
@@ -47,6 +48,8 @@ export default function Invoices() {
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<any>(null);
   
   const { data: jurisdictions = [] } = useQuery<JurisdictionRule[]>({ 
     queryKey: ['/api/jurisdictions'] 
@@ -99,6 +102,18 @@ export default function Invoices() {
       toast({ title: "Invoice updated successfully" });
       setEditDialogOpen(false);
       setEditingInvoice(null);
+    },
+  });
+
+  const deleteInvoiceMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest('DELETE', `/api/invoices/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
+      toast({ title: "Invoice deleted successfully" });
+      setDeleteDialogOpen(false);
+      setInvoiceToDelete(null);
     },
   });
 
@@ -186,6 +201,17 @@ export default function Invoices() {
       notesToClient: invoice.notesToClient || '',
     });
     setEditDialogOpen(true);
+  };
+
+  const confirmDelete = (invoice: any) => {
+    setInvoiceToDelete(invoice);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteInvoice = () => {
+    if (invoiceToDelete) {
+      deleteInvoiceMutation.mutate(invoiceToDelete.id);
+    }
   };
 
   return (
@@ -451,6 +477,15 @@ export default function Invoices() {
                       >
                         <Mail className="h-4 w-4" />
                       </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                        onClick={() => confirmDelete(invoice)}
+                        data-testid={`button-delete-invoice-${invoice.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -568,6 +603,29 @@ export default function Invoices() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete invoice <strong>{invoiceToDelete?.invoiceNumber}</strong>.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteInvoice}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-delete-invoice"
+            >
+              {deleteInvoiceMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Export Dialog */}
       <InvoiceExportDialog
