@@ -51,12 +51,15 @@ export default function LanguageSwitcher() {
       }
 
       const updatedUser = await response.json();
+      
+      // Update cache and refetch to ensure consistency
       queryClient.setQueryData(['/api/user'], updatedUser);
+      await queryClient.invalidateQueries({ queryKey: ['/api/user'] });
 
       const selectedLanguage = LANGUAGES.find(lang => lang.code === languageCode);
       toast({
-        title: 'Language updated',
-        description: `Language changed to ${selectedLanguage?.name}`,
+        title: 'Language preference saved',
+        description: `Your default language is now ${selectedLanguage?.name}. This will be used for invoices and PDFs.`,
       });
     } catch (error: any) {
       toast({
