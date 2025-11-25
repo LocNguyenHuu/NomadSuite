@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Download, Info, Globe, Mail, Search, Filter } from 'lucide-react';
+import { Plus, Download, Info, Globe, Mail, Search, Filter, Edit, Trash2 } from 'lucide-react';
 import { useInvoices } from '@/hooks/use-invoices';
 import { useClients } from '@/hooks/use-clients';
 import { InsertInvoice, JurisdictionRule, User } from '@shared/schema';
@@ -45,6 +45,8 @@ export default function Invoices() {
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<any>(null);
   
   const { data: jurisdictions = [] } = useQuery<JurisdictionRule[]>({ 
     queryKey: ['/api/jurisdictions'] 
@@ -55,6 +57,7 @@ export default function Invoices() {
   });
 
   const { register, handleSubmit, control, reset, watch, setValue } = useForm<Omit<InsertInvoice, 'clientId'> & { clientId: string }>();
+  const { register: registerEdit, handleSubmit: handleEditSubmit, reset: resetEdit, setValue: setEditValue, control: controlEdit } = useForm();
 
   const selectedClient = clients.find(c => c.id.toString() === selectedClientId);
   const selectedJurisdiction = jurisdictions.find(j => j.country === selectedCountry);
@@ -84,6 +87,19 @@ export default function Invoices() {
     const matchesStatus = statusFilter === 'All' || invoice.status === statusFilter;
     
     return matchesSearch && matchesStatus;
+  });
+
+  const updateInvoiceMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const res = await apiRequest('PATCH', `/api/invoices/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
+      toast({ title: "Invoice updated successfully" });
+      setEditDialogOpen(false);
+      setEditingInvoice(null);
+    },
   });
 
   const onSubmit = async (data: any) => {
@@ -116,6 +132,60 @@ export default function Invoices() {
     } catch (error) {
       console.error('Failed to create invoice:', error);
     }
+  };
+
+  const onEditSubmit = (data: any) => {
+    if (!editingInvoice) return;
+    
+    const updateData: any = {};
+
+    // Only include changed fields
+    if (data.status && data.status !== editingInvoice.status) {
+      updateData.status = data.status;
+    }
+
+    if (data.dueDate) {
+      const newDueDate = data.dueDate; // Keep as yyyy-MM-dd string
+      const existingDueDate = format(new Date(editingInvoice.dueDate), 'yyyy-MM-dd');
+      if (newDueDate !== existingDueDate) {
+        // Send as Date object - the server will handle conversion
+        updateData.dueDate = new Date(data.dueDate + 'T12:00:00Z');
+      }
+    }
+
+    if (data.notesToClient !== (editingInvoice.notesToClient || '')) {
+      updateData.notesToClient = data.notesToClient || null;
+    }
+
+    if (data.amount && parseFloat(data.amount) !== (editingInvoice.amount / 100)) {
+      const amountInCents = Math.round(parseFloat(data.amount) * 100);
+      updateData.amount = amountInCents;
+    }
+
+    if (data.currency && data.currency !== editingInvoice.currency) {
+      updateData.currency = data.currency;
+    }
+
+    // Only send update if there are actual changes
+    if (Object.keys(updateData).length === 0) {
+      toast({ title: "No changes detected" });
+      setEditDialogOpen(false);
+      return;
+    }
+
+    updateInvoiceMutation.mutate({ id: editingInvoice.id, data: updateData });
+  };
+
+  const openEditDialog = (invoice: any) => {
+    setEditingInvoice(invoice);
+    resetEdit({
+      amount: (invoice.amount / 100).toString(),
+      currency: invoice.currency,
+      status: invoice.status,
+      dueDate: format(new Date(invoice.dueDate), 'yyyy-MM-dd'),
+      notesToClient: invoice.notesToClient || '',
+    });
+    setEditDialogOpen(true);
   };
 
   return (
@@ -350,6 +420,15 @@ export default function Invoices() {
                         variant="ghost" 
                         size="icon" 
                         className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => openEditDialog(invoice)}
+                        data-testid={`button-edit-invoice-${invoice.id}`}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => {
                           setSelectedInvoiceId(invoice.id);
                           setExportMode('pdf');
@@ -394,6 +473,101 @@ export default function Invoices() {
           </Table>
         </div>
       </div>
+
+      {/* Edit Invoice Dialog */}
+      {editingInvoice && (
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edit Invoice {editingInvoice.invoiceNumber}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-amount">Amount</Label>
+                  <Input 
+                    id="edit-amount" 
+                    type="number"
+                    step="0.01"
+                    {...registerEdit('amount', { required: true })} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-currency">Currency</Label>
+                  <Controller
+                    name="currency"
+                    control={controlEdit}
+                    defaultValue={editingInvoice.currency}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="USD">USD</SelectItem>
+                          <SelectItem value="EUR">EUR</SelectItem>
+                          <SelectItem value="GBP">GBP</SelectItem>
+                          <SelectItem value="CAD">CAD</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-status">Status</Label>
+                  <Controller
+                    name="status"
+                    control={controlEdit}
+                    defaultValue={editingInvoice.status}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Draft">Draft</SelectItem>
+                          <SelectItem value="Sent">Sent</SelectItem>
+                          <SelectItem value="Paid">Paid</SelectItem>
+                          <SelectItem value="Overdue">Overdue</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-dueDate">Due Date</Label>
+                  <Input 
+                    id="edit-dueDate" 
+                    type="date"
+                    {...registerEdit('dueDate', { required: true })} 
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-notesToClient">Notes to Client</Label>
+                <Input 
+                  id="edit-notesToClient" 
+                  {...registerEdit('notesToClient')} 
+                  placeholder="Optional notes for this invoice"
+                />
+              </div>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updateInvoiceMutation.isPending}>
+                  {updateInvoiceMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Export Dialog */}
       <InvoiceExportDialog
