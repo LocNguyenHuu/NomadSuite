@@ -119,12 +119,12 @@ export default function Invoices() {
 
   const onSubmit = async (data: any) => {
     try {
-      const amountInCents = parseInt(data.amount) * 100; // Convert to cents
+      const amountInCents = Math.round(parseFloat(data.amount) * 100); // Convert to cents with proper precision
       await createInvoiceAsync({ 
         clientId: parseInt(data.clientId),
         amount: amountInCents,
         currency: data.currency || 'USD',
-        dueDate: new Date(data.dueDate),
+        dueDate: data.dueDate, // Send as yyyy-MM-dd string to avoid timezone issues
         status: 'Sent',
         items: [{
           description: 'Consulting Services',
@@ -163,8 +163,8 @@ export default function Invoices() {
       const newDueDate = data.dueDate; // Keep as yyyy-MM-dd string
       const existingDueDate = format(new Date(editingInvoice.dueDate), 'yyyy-MM-dd');
       if (newDueDate !== existingDueDate) {
-        // Send as Date object - the server will handle conversion
-        updateData.dueDate = new Date(data.dueDate + 'T12:00:00Z');
+        // Send as yyyy-MM-dd string to avoid timezone issues
+        updateData.dueDate = data.dueDate;
       }
     }
 
