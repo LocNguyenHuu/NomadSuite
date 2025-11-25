@@ -30,7 +30,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, MoreHorizontal, Mail, FileText, LayoutGrid, List as ListIcon, MapPin, Calendar, Trash2 } from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Mail, FileText, LayoutGrid, List as ListIcon, MapPin, Calendar, Trash2, Edit } from 'lucide-react';
 import { useClients } from '@/hooks/use-clients';
 import { InsertClient, Client, Invoice } from '@shared/schema';
 import { useQuery } from '@tanstack/react-query';
@@ -41,7 +41,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,8 +62,12 @@ export default function Clients() {
   const [open, setOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [location, setLocation] = useLocation();
+  const { toast } = useToast();
   const { register, handleSubmit, reset } = useForm<InsertClient>();
+  const { register: registerEdit, handleSubmit: handleEditSubmit, reset: resetEdit, control: controlEdit } = useForm();
 
   const totalClients = clients.length;
   const activeClients = clients.filter(c => c.status === 'Active').length;
@@ -87,6 +94,26 @@ export default function Clients() {
     return matchesSearch && matchesStatus && matchesCountry;
   });
 
+  const updateClientMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const res = await apiRequest('PATCH', `/api/clients/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/clients'] });
+      toast({ title: "Client updated successfully" });
+      setEditDialogOpen(false);
+      setEditingClient(null);
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update client",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    },
+  });
+
   const onSubmit = async (data: any) => {
     try {
       await createClientAsync({ ...data, status: 'Lead' });
@@ -95,6 +122,58 @@ export default function Clients() {
     } catch (error) {
       console.error('Failed to create client:', error);
     }
+  };
+
+  const onEditSubmit = (data: any) => {
+    if (!editingClient) return;
+    
+    const updateData: any = {};
+
+    // Only include changed fields
+    if (data.name && data.name.trim() !== editingClient.name) {
+      updateData.name = data.name.trim();
+    }
+
+    if (data.email && data.email.trim() !== editingClient.email) {
+      updateData.email = data.email.trim();
+    }
+
+    if (data.country && data.country.trim() !== editingClient.country) {
+      updateData.country = data.country.trim();
+    }
+
+    if (data.status && data.status !== editingClient.status) {
+      updateData.status = data.status;
+    }
+
+    // Handle notes: only update if actually changed (comparing normalized empty values)
+    const normalizedNewNotes = data.notes?.trim() || null;
+    const normalizedExistingNotes = editingClient.notes?.trim() || null;
+    if (normalizedNewNotes !== normalizedExistingNotes) {
+      updateData.notes = normalizedNewNotes;
+    }
+
+    // Only send update if there are actual changes
+    if (Object.keys(updateData).length === 0) {
+      toast({ title: "No changes detected" });
+      setEditDialogOpen(false);
+      return;
+    }
+
+    updateClientMutation.mutate({ id: editingClient.id, data: updateData });
+  };
+
+  const openEditDialog = (client: Client, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingClient(client);
+    resetEdit({
+      name: client.name,
+      email: client.email,
+      country: client.country,
+      status: client.status,
+      notes: client.notes || '',
+    });
+    setEditDialogOpen(true);
   };
 
   const handleDeleteClick = (client: Client, e: React.MouseEvent) => {
@@ -302,6 +381,9 @@ export default function Clients() {
                             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setLocation(`/app/clients/${client.id}`); }}>
                               View Details
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={(e) => openEditDialog(client, e)}>
+                              <Edit className="mr-2 h-4 w-4" /> Edit Client
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); /* TODO: Invoice */ }}>
                               <FileText className="mr-2 h-4 w-4" /> Create Invoice
                             </DropdownMenuItem>
@@ -369,6 +451,9 @@ export default function Clients() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent>
+                                                <DropdownMenuItem onClick={(e) => openEditDialog(client, e)}>
+                                                    <Edit className="mr-2 h-3 w-3" /> Edit
+                                                </DropdownMenuItem>
                                                 <DropdownMenuLabel>Move to...</DropdownMenuLabel>
                                                 {['Lead', 'Proposal', 'Active', 'Completed'].filter(s => s !== status).map(s => (
                                                     <DropdownMenuItem key={s} onClick={(e) => {
@@ -396,6 +481,90 @@ export default function Clients() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Edit Client Dialog */}
+      {editingClient && (
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edit Client</DialogTitle>
+              <DialogDescription>Update client information</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Name *</Label>
+                  <Input 
+                    id="edit-name" 
+                    {...registerEdit('name', { required: true })} 
+                    data-testid="input-edit-client-name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-email">Email *</Label>
+                  <Input 
+                    id="edit-email" 
+                    type="email"
+                    {...registerEdit('email', { required: true })} 
+                    data-testid="input-edit-client-email"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-country">Country *</Label>
+                  <Input 
+                    id="edit-country" 
+                    {...registerEdit('country', { required: true })} 
+                    data-testid="input-edit-client-country"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-status">Status</Label>
+                  <Controller
+                    name="status"
+                    control={controlEdit}
+                    defaultValue={editingClient.status}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger data-testid="select-edit-client-status">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Lead">Lead</SelectItem>
+                          <SelectItem value="Proposal">Proposal</SelectItem>
+                          <SelectItem value="Active">Active</SelectItem>
+                          <SelectItem value="Completed">Completed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-notes">Notes</Label>
+                <Input 
+                  id="edit-notes" 
+                  {...registerEdit('notes')} 
+                  placeholder="Optional notes about this client"
+                  data-testid="input-edit-client-notes"
+                />
+              </div>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updateClientMutation.isPending} data-testid="button-save-client-edit">
+                  {updateClientMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
