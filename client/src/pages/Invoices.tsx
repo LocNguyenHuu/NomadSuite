@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Download, Info, Globe, Mail } from 'lucide-react';
+import { Plus, Download, Info, Globe, Mail, Search, Filter } from 'lucide-react';
 import { useInvoices } from '@/hooks/use-invoices';
 import { useClients } from '@/hooks/use-clients';
 import { InsertInvoice, JurisdictionRule, User } from '@shared/schema';
@@ -43,6 +43,8 @@ export default function Invoices() {
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportMode, setExportMode] = useState<'pdf' | 'email'>('pdf');
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('All');
   
   const { data: jurisdictions = [] } = useQuery<JurisdictionRule[]>({ 
     queryKey: ['/api/jurisdictions'] 
@@ -71,6 +73,18 @@ export default function Invoices() {
     return clients.find(c => c.id === id)?.name || 'Unknown Client';
   };
 
+  // Filter invoices based on search and status
+  const filteredInvoices = invoices.filter(invoice => {
+    const clientName = getClientName(invoice.clientId);
+    const matchesSearch = 
+      (invoice.invoiceNumber ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      clientName.toLowerCase().includes(search.toLowerCase()) ||
+      (invoice.country ?? '').toLowerCase().includes(search.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'All' || invoice.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   const onSubmit = async (data: any) => {
     try {
@@ -264,6 +278,34 @@ export default function Invoices() {
           </Dialog>
         </div>
 
+        {/* Search and Filters */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search by invoice number, client, or country..." 
+              className="pl-9"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              data-testid="input-search-invoices"
+            />
+          </div>
+          
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full md:w-48" data-testid="select-status-filter">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">All Statuses</SelectItem>
+              <SelectItem value="Draft">Draft</SelectItem>
+              <SelectItem value="Sent">Sent</SelectItem>
+              <SelectItem value="Paid">Paid</SelectItem>
+              <SelectItem value="Overdue">Overdue</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
           <Table>
             <TableHeader className="bg-muted/50">
@@ -278,7 +320,7 @@ export default function Invoices() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invoices.map((invoice) => (
+              {filteredInvoices.map((invoice) => (
                 <TableRow key={invoice.id} className="group" data-testid={`row-invoice-${invoice.id}`}>
                   <TableCell className="font-mono font-medium" data-testid={`text-invoice-number-${invoice.id}`}>{invoice.invoiceNumber}</TableCell>
                   <TableCell>
@@ -334,10 +376,17 @@ export default function Invoices() {
                   </TableCell>
                 </TableRow>
               ))}
+              {filteredInvoices.length === 0 && invoices.length > 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                    No invoices match your search criteria.
+                  </TableCell>
+                </TableRow>
+              )}
               {invoices.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                    No invoices found.
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                    No invoices found. Create your first invoice to get started.
                   </TableCell>
                 </TableRow>
               )}
