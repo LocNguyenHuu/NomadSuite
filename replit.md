@@ -1,176 +1,102 @@
 # NomadSuite - Digital Nomad Business Management Platform
 
 ## Overview
-
-NomadSuite is a full-stack web application for freelancers and digital nomads, designed to manage business operations while ensuring compliance with international travel and tax regulations. It integrates CRM, invoicing, travel tracking, visa management, and document storage into a single workspace, targeting remote professionals who need to manage client relationships, revenue, tax residency, visa deadlines, and critical documents across multiple countries.
+NomadSuite is a full-stack web application designed for freelancers and digital nomads to manage business operations while ensuring compliance with international travel and tax regulations. It integrates CRM, invoicing, travel tracking, visa management, and document storage into a single platform. The platform aims to help remote professionals manage client relationships, revenue, tax residency, visa deadlines, and critical documents across multiple countries.
 
 ## User Preferences
-
 Preferred communication style: Simple, everyday language.
 
-## Testing
+## Internationalization & Language Switching
 
-**Comprehensive Test Data Seeding**: The `server/seed-test-data.ts` script populates the database with realistic test data across all tables:
+NomadSuite has **two separate language systems** with different scopes and behaviors:
 
-**Test Users** (all passwords: `123123`):
-- `admin` - Alex Admin (Admin, Workspace 1, DE-based freelancer)
-- `sarah` - Sarah Designer (User, Workspace 1, US-based designer in PT)
-- `marco` - Marco Developer (Admin, Workspace 2, IT-based developer in ES)
-- `emma` - Emma Consultant (User, Workspace 2, GB-based consultant in TH)
-- `lisa` - Lisa Writer (User, Workspace 3, CA-based writer in MX)
+### Landing Page (Public) - Full Multi-Language UI
+- **Scope**: Entire landing page UI (hero, pricing, waitlist, etc.)
+- **Languages**: 6 languages supported (EN, DE, FR, VI, JA, ZH)
+- **Implementation**: `LandingI18nContext` with `landingTranslations` object
+- **Storage**: Client-side localStorage (`nomadsuite_landing_language`)
+- **Component**: `PublicLanguageSwitcher` in navigation header
+- **Behavior**: Real-time UI updates when language is changed
+- **User Experience**: Complete translation of all landing page content
 
-**Data Per User**:
-- 4 clients (different countries and statuses: active, lead, proposal, completed)
-- 4 client notes (meetings, calls, emails, system notes)
-- 4 invoices (various statuses: paid, sent, draft, overdue; multiple currencies)
-- 5 trips (travel history plus current location)
-- 4 documents (passport, visa, contracts, tax certificates)
+### Logged-In App Pages - English UI Only
+- **Scope**: Dashboard, Clients, Invoices, Travel, Documents, Settings pages
+- **Languages**: English UI only (no translation system implemented)
+- **Implementation**: User's `primaryLanguage` stored in database
+- **Storage**: PostgreSQL `users` table (`primaryLanguage` field)
+- **Component**: `LanguageSwitcher` in app header
+- **Behavior**: Updates user preference in database, does NOT change UI language
+- **User Experience**: Language preference saved for invoice/PDF generation only
+- **Use Cases**: 
+  - Invoice PDF generation (uses `user.defaultInvoiceLanguage` or `primaryLanguage`)
+  - Date formatting in invoices (locale-specific)
+  - Currency formatting in invoices (locale-specific)
+  
+**Important**: When logged-in users change their language preference, the toast message clarifies: "Your default language is now [Language]. This will be used for invoices and PDFs." The app UI remains in English.
 
-**Total Test Data**: 5 users, 20 clients, 20 notes, 20 invoices, 25 trips, 20 documents
-
-**Running Seed Script**: `tsx server/seed-test-data.ts` (clears existing data and creates fresh test data)
-
-## Recent Updates
-
-**November 22, 2025** - Language Switcher & Landing Page UX Improvements:
-- Added LanguageSwitcher component to navigation header with flag icons for quick language switching
-- Language switcher uses queryClient.setQueryData for immediate UI updates without page reload
-- Pricing section buttons now scroll to waitlist section with smooth animation (MVP validation flow)
-- Waitlist section enhanced with "MVP Phase - Validating Idea" badge and pulsing indicator
-- Added pulse-scale CSS animation for visual feedback when scrolling to waitlist
-- Improved error handling in language switcher with specific backend error messages
-
-**November 22, 2025** - Multi-Language Support Expansion (6 Languages):
-- Extended language support from 3 to 6 languages: English (EN), German (DE), French (FR), Vietnamese (VI), Japanese (JA), Chinese (ZH)
-- Updated Settings page with all 6 language options for Primary Language and Default Invoice Language
-- Added complete invoice translations for Vietnamese, Japanese, and Chinese (i18n-invoice.ts)
-- Updated backend validation schemas to accept all 6 language codes
-- Locale-specific date formatting: vi-VN, ja-JP, zh-CN
-- Locale-specific currency formatting with Intl.NumberFormat for all languages
-- Settings page displays language names in native script (Tiếng Việt, 日本語, 中文)
-
-**November 22, 2025** - Airtable CRM Integration (PRODUCTION-READY):
-- Full Airtable API integration for Waitlist and Bug Reports with automatic background sync
-- Non-blocking Airtable sync ensures no user-facing delays (database-first approach)
-- Database tables: waitlist (role enum: Digital Nomad, Freelancer, Agency/Team, Other), bug_reports
-- API endpoints: POST /api/waitlist, POST /api/bug-report with CSRF protection
-- Airtable field mapping: Title Case (Name, Email, Country, Role, Use Case, Referral Code, Email Consent, Contact Consent, Attachments)
-- Bug report screenshot upload to object storage with Airtable Attachment field integration
-- Comprehensive test script: scripts/test-airtable-integration.ts
-- Setup documentation: AIRTABLE_FINAL_SETUP.md with field configuration and troubleshooting
-- Environment variables: AIRTABLE_BASE_ID, AIRTABLE_TOKEN (stored as secrets)
-- Error handling: Non-critical Airtable failures logged without affecting user experience
-
-**November 21, 2025** - Security Hardening (PRODUCTION-READY):
-- CSRF Protection: Session-based CSRF tokens for all state-changing routes (POST, PATCH, DELETE)
-- Frontend CSRF Integration: Automatic token fetching and injection in all API requests (JSON + multipart)
-- Authentication Rate Limiting: 10 requests per 15 minutes per IP for /api/login and /api/register (prevents brute force)
-- Security Audit Logging Schema: Database table for tracking auth events and critical operations (integration pending)
-- Comprehensive Security Roadmap: 7-phase implementation plan in SECURITY_ROADMAP.md
-- Protected Routes: 20+ endpoints with CSRF protection (auth, users, workspace, clients, invoices, trips, documents, vault)
-- Security Headers: Helmet middleware with HSTS, CSP, X-Content-Type-Options, X-Frame-Options
-- Global Rate Limiting: 1000 requests per 15 minutes per IP for all routes
-
-**November 21, 2025** - GDPR-Compliant Document Vault (PRODUCTION-READY):
-- Full-featured encrypted document storage with AES-256-GCM encryption for metadata
-- Server-side file type validation using magic bytes (prevents MIME spoofing attacks)
-- EU-region only object storage with 5-minute signed download URLs
-- Comprehensive security: strict metadata validation, SHA-256 file integrity verification, server-side immutable values
-- GDPR compliance: 10-year retention cap, soft delete with hard delete scheduling, minimal audit logging
-- Retention policies: on_expiry, after_upload (1-120 months), indefinite (max 10 years)
-- Privacy-preserving audit logs: upload, download_link, user_delete actions tracked
-- Workspace-level encryption key isolation (single key MVP, KMS integration planned)
-- Complete vault UI: upload form with drag-and-drop, document grid, download, and delete
-- All security vulnerabilities fixed: metadata tampering, hash integrity, MIME spoofing
-- Database: vault_documents, vault_audit_logs, document_retention_jobs tables
-- API endpoints: POST/GET/DELETE /api/vault/documents, GET /api/vault/documents/:id/download
-- Libraries: server/lib/encryption.ts, server/lib/object-storage-vault.ts, server/lib/audit.ts
-
-**November 21, 2025** - Settings Module:
-- Complete user preferences system with primary language (EN/DE/FR), default currency, default invoice language, timezone, date format, and custom invoice prefix
-- Settings page with Language & Regional Settings and Invoice Settings sections
-- API endpoint: PATCH /api/user/settings with strict Zod validation (enum constraints for language/date format)
-- Invoice creation automatically uses user's default currency, language, and custom invoice prefix
-- Invoice numbering function updated to accept custom prefix parameter (generateInvoiceNumber)
-- Invoice form simplified: removed manual invoice number input, auto-generation with user prefix
-
-**November 21, 2025** - Authentication + Account Module:
-- Extended user schema with bank info fields (bankName, accountNumber, iban, swift) for invoice payment details
-- New Profile page with tabs for Personal Info, Business Info, Bank Details, and Security (change password)
-- API endpoints: PATCH /api/user/profile, POST /api/user/change-password with Zod validation
-- Security: Strict validation prevents empty name/email, filters undefined fields, validates passwords (min 6 chars)
-- Added Profile link to sidebar navigation
+**Future Enhancement**: Implementing full i18n for logged-in app pages would require:
+1. Creating an App-level i18n context (similar to `LandingI18nContext`)
+2. Adding translation objects for all app pages
+3. Wrapping strings in translation function calls (`t('key')`)
+4. Syncing language preference between database and UI state
 
 ## System Architecture
 
 ### Frontend
-
 **Framework**: React with TypeScript (Vite).
-**UI**: Shadcn UI (Radix UI, Tailwind CSS) with custom theming and fonts.
+**UI**: Shadcn UI (Radix UI, Tailwind CSS) with custom theming.
 **Routing**: Wouter for client-side routing, including protected and role-based access.
 **State Management**: TanStack Query for server state; React Context for authentication.
 **Form Handling**: React Hook Form with Zod for validation.
-**Key Design Patterns**: Custom hooks for data fetching, protected/admin route wrappers, shared `AppLayout` for consistent navigation.
+**Key Design Patterns**: Custom hooks for data fetching, protected/admin route wrappers, shared `AppLayout`.
 
 ### Backend
-
 **Framework**: Express.js (Node.js, TypeScript).
 **Authentication**: Passport.js with Local Strategy; `express-session` using PostgreSQL for session storage. Scrypt for password hashing.
-**API Design**: RESTful API (`/api/`) with custom authentication (`requireAuth`) and authorization (`requireAdmin`) middleware.
-**Key Design Decisions**: Session-based authentication over JWT, trust proxy enabled, abstract storage layer for database operations.
+**API Design**: RESTful API with custom authentication (`requireAuth`) and authorization (`requireAdmin`) middleware.
+**Key Design Decisions**: Session-based authentication, trust proxy enabled, abstract storage layer for database operations.
 
 ### Data
-
 **ORM**: Drizzle ORM.
 **Database**: PostgreSQL (Neon serverless driver).
-**Schema Design**: Multi-tenant workspace model, role-based access control, relational model with foreign keys, and timestamp tracking.
-**Core Entities**: Workspaces, Users, Clients (CRM with pipeline), Invoices (multi-country compliance, JSON items), Jurisdiction Rules (country-specific invoice requirements), Trips (travel log), Documents (metadata), Client Notes.
+**Schema Design**: Multi-tenant workspace model, role-based access control, relational model with foreign keys.
+**Core Entities**: Workspaces, Users, Clients, Invoices, Jurisdiction Rules, Trips, Documents, Client Notes.
 **Validation**: Drizzle-Zod for runtime insert validation.
 
 ### Authentication & Authorization
-
-**Flow**: User credentials -> Passport verification -> Scrypt password validation -> Server-side session creation -> Session cookie for persistence.
-**Levels**: Public, Authenticated (`/app/*`), Admin Only (user management, workspace settings).
-**Security**: Hashed passwords, timing-safe comparisons, environment variable session secrets, trust proxy.
+**Flow**: User credentials -> Passport verification -> Scrypt password validation -> Server-side session creation -> Session cookie.
+**Levels**: Public, Authenticated (`/app/*`), Admin Only.
+**Security**: Hashed passwords, timing-safe comparisons, environment variable session secrets, trust proxy, CSRF protection, authentication rate limiting.
 
 ### API Structure
-
-**Resource Endpoints**: `/api/user`, `/api/users`, `/api/workspace`, `/api/clients`, `/api/clients/:id/notes`, `/api/invoices`, `/api/jurisdictions`, `/api/jurisdictions/:country`, `/api/trips`, `/api/documents`, `/api/admin/*`.
+**Resource Endpoints**: `/api/user`, `/api/users`, `/api/workspace`, `/api/clients`, `/api/invoices`, `/api/jurisdictions`, `/api/trips`, `/api/documents`, `/api/admin/*`, `/api/vault/*`, `/api/waitlist`, `/api/bug-report`.
 **Authentication Endpoints**: `/api/register`, `/api/login`, `/api/logout`.
 **Error Handling**: Consistent HTTP status codes and messages.
 
 ### Frontend Routing Strategy
-
 **Public Routes**: Landing, login, register.
 **Protected Routes**: All app routes requiring authentication.
 **Admin Routes**: Protected routes requiring admin role.
-**Layout**: `AppLayout` for consistent UI across application routes.
+**Layout**: `AppLayout` for consistent UI.
 
 ### Key Features
-
-**Travel & Residency Tracking**: Comprehensive travel log with automatic tax residency calculations (183-day rule per country), Schengen 90/180 rolling window tracker, trip validation (overlap prevention), visual calendar view with country color-coding, and lifetime travel summary statistics. All calculations run automatically on the backend.
-
-**Multi-Country Invoice Compliance**: Supports country-specific invoice requirements (e.g., Germany, France, UK, Canada, US) with dynamic form validation, compliance hints, and multi-currency support.
-
-**Multi-Language Invoice PDFs**: Full i18n support for invoice PDFs in 6 languages: English (EN), German (DE), French (FR), Vietnamese (VI), Japanese (JA), and Chinese (ZH). Language-aware field labels, date formatting (locale-specific), currency formatting, compliance text, and payment terms. Language selection automatically defaults to client's jurisdiction language.
-
-**Automatic Invoice Numbering**: Invoices are auto-numbered in NS-{year}-{incremental} format (e.g., NS-2025-00012), with sequential numbering per user per year.
-
-**Real-Time FX Rates**: Currency exchange rates fetched from exchangerate.host API with 1-hour caching for accurate multi-currency invoicing.
-
-**Automatic Overdue Detection**: Invoices automatically marked as "Overdue" when past due date, with real-time status updates on fetch.
-
-**Invoice PDF Export and Email**: Server-side PDF generation using PDFKit with multi-country compliance, detailed line items (quantity, unit price, subtotal, tax), and email functionality via Resend with PDF attachments.
+- **Travel & Residency Tracking**: Comprehensive travel log with automatic tax residency calculations (183-day rule, Schengen 90/180), visual calendar.
+- **Multi-Country Invoice Compliance**: Supports country-specific invoice requirements with dynamic validation and multi-currency support.
+- **Multi-Language Invoice PDFs**: Full i18n support for invoice PDFs in 6 languages (EN, DE, FR, VI, JA, ZH) with locale-specific formatting.
+- **Automatic Invoice Numbering**: Invoices auto-numbered in `NS-{year}-{incremental}` format.
+- **Real-Time FX Rates**: Currency exchange rates fetched from exchangerate.host API with 1-hour caching.
+- **Automatic Overdue Detection**: Invoices automatically marked as "Overdue".
+- **Invoice PDF Export and Email**: Server-side PDF generation using PDFKit, email functionality via Resend.
+- **GDPR-Compliant Document Vault**: Encrypted document storage (AES-256-GCM), server-side file type validation, 5-minute signed download URLs, retention policies.
+- **User Settings Module**: User preferences for primary language, default currency, default invoice language, timezone, date format, and custom invoice prefix.
+- **Airtable CRM Integration**: For Waitlist and Bug Reports with automatic background sync.
 
 ### Notable Design Decisions
-
 - No dedicated file storage service (placeholder URLs for documents).
-- Resend for email integration (requires `RESEND_API_KEY`).
-- No payment processing integration yet.
-- PostgreSQL for session storage.
-- Neon serverless PostgreSQL for database.
+- Resend for email integration.
+- PostgreSQL for session storage, Neon for database.
 - Invoice amounts stored as integers for multi-currency flexibility.
-- Server-side PDF generation for control over layout and compliance.
+- Server-side PDF generation for layout and compliance control.
 
 ## External Dependencies
 
@@ -183,7 +109,6 @@ Preferred communication style: Simple, everyday language.
 ### Database & ORM
 - **@neondatabase/serverless**: Serverless PostgreSQL driver.
 - **drizzle-orm**, **drizzle-kit**: ORM and CLI tools.
-- **ws**: WebSocket library.
 
 ### Authentication
 - **passport**, **passport-local**: Authentication middleware.
@@ -194,7 +119,6 @@ Preferred communication style: Simple, everyday language.
 - **@shadcn/ui**: Pre-styled components.
 - **lucide-react**: Icons.
 - **tailwindcss**: CSS framework.
-- **class-variance-authority**, **clsx**, **tailwind-merge**: Styling utilities.
 
 ### Form & Validation
 - **react-hook-form**: Form state.
@@ -208,18 +132,13 @@ Preferred communication style: Simple, everyday language.
 ### Date & Time
 - **date-fns**: Date utility library.
 
-### Development Tools
-- **tsx**: TypeScript execution.
-- **esbuild**: JavaScript bundler.
-- **@replit/vite-plugin-***: Replit-specific plugins.
-
-### Styling
-- **postcss**, **autoprefixer**: CSS processing.
-- **@tailwindcss/vite**: Tailwind CSS Vite plugin.
-
-### Charts & Visualization
-- **recharts**: Charting library.
-
 ### Other Utilities
 - **nanoid**: Unique ID generation.
 - **sonner**: Toast notifications.
+- **PDFKit**: PDF generation.
+- **Resend**: Email service.
+- **exchangerate.host**: FX rate API.
+- **Airtable**: CRM integration.
+- **helmet**: Security headers.
+- **express-rate-limit**: Rate limiting.
+- **csurf**: CSRF protection.
