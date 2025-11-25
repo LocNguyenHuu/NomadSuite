@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRoute, useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
@@ -10,10 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Client, ClientNote, InsertClientNote, Invoice, Trip, Document } from '@shared/schema';
-import { Loader2, ArrowLeft, Phone, Mail, MapPin, Calendar, FileText, Plane, Plus, Clock } from 'lucide-react';
+import { Client, ClientNote, InsertClientNote, Invoice, Trip, Document, InsertClient } from '@shared/schema';
+import { Loader2, ArrowLeft, Phone, Mail, MapPin, Calendar, FileText, Plane, Plus, Clock, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 
@@ -22,6 +24,7 @@ export default function ClientDetail() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const clientId = parseInt(params?.id || '0');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: client, isLoading: clientLoading } = useQuery<Client>({
     queryKey: [`/api/clients/${clientId}`],
@@ -81,7 +84,34 @@ export default function ClientDetail() {
     },
   });
 
+  const updateClientMutation = useMutation({
+    mutationFn: async (data: Partial<InsertClient>) => {
+      const res = await apiRequest('PATCH', `/api/clients/${clientId}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/clients/${clientId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/clients'] });
+      toast({ title: "Client updated successfully" });
+      setEditDialogOpen(false);
+    },
+  });
+
   const { register: registerNote, handleSubmit: handleNoteSubmit, reset: resetNote } = useForm<InsertClientNote>();
+  const { register: registerEdit, handleSubmit: handleEditSubmit, reset: resetEdit } = useForm<Partial<InsertClient>>();
+
+  // Reset edit form when client data loads or dialog opens
+  useEffect(() => {
+    if (client && editDialogOpen) {
+      resetEdit({
+        name: client.name,
+        email: client.email,
+        country: client.country,
+        notes: client.notes || '',
+        status: client.status,
+      });
+    }
+  }, [client, editDialogOpen, resetEdit]);
 
   const onNoteSubmit = (data: any) => {
     createNoteMutation.mutate({
@@ -90,6 +120,10 @@ export default function ClientDetail() {
       type: data.type || 'Note',
       date: new Date().toISOString(), // Ensure date is sent
     });
+  };
+
+  const onEditSubmit = (data: any) => {
+    updateClientMutation.mutate(data);
   };
 
   if (clientLoading) {
@@ -143,6 +177,10 @@ export default function ClientDetail() {
             </div>
             
             <div className="flex items-center gap-3">
+              <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+                <Edit className="mr-2 h-4 w-4" /> Edit
+              </Button>
+              
               <Select 
                 defaultValue={client.status} 
                 onValueChange={(val) => updateStatusMutation.mutate(val)}
@@ -298,6 +336,83 @@ export default function ClientDetail() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Edit Client Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Client</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Client Name *</Label>
+                <Input 
+                  id="edit-name" 
+                  {...registerEdit('name', { required: true })} 
+                  placeholder="Acme Corp"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email *</Label>
+                <Input 
+                  id="edit-email" 
+                  type="email"
+                  {...registerEdit('email', { required: true })} 
+                  placeholder="contact@acme.com"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-country">Country *</Label>
+                <Input 
+                  id="edit-country" 
+                  {...registerEdit('country', { required: true })} 
+                  placeholder="United States"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-status">Status *</Label>
+                <Select 
+                  onValueChange={(val) => registerEdit('status').onChange({ target: { value: val, name: 'status' } } as any)}
+                  defaultValue={client.status}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Lead">Lead</SelectItem>
+                    <SelectItem value="Proposal">Proposal</SelectItem>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-notes">Notes</Label>
+              <Textarea 
+                id="edit-notes" 
+                {...registerEdit('notes')} 
+                placeholder="Add any notes about this client..."
+                className="min-h-[100px]"
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updateClientMutation.isPending}>
+                {updateClientMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
