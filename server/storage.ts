@@ -37,6 +37,7 @@ export interface IStorage {
   getWorkspaceClients(workspaceId: number): Promise<(Client & { userName: string })[]>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: number, client: Partial<InsertClient>): Promise<Client>;
+  deleteClient(id: number): Promise<void>;
   
   // Client Notes
   getClientNotes(clientId: number): Promise<ClientNote[]>;
@@ -173,6 +174,10 @@ export class DatabaseStorage implements IStorage {
       throw new Error("Client not found");
     }
     return updatedClient;
+  }
+
+  async deleteClient(id: number): Promise<void> {
+    await db.delete(clients).where(eq(clients.id, id));
   }
 
   async getClientNotes(clientId: number): Promise<ClientNote[]> {

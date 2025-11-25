@@ -315,6 +315,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(client);
   });
 
+  app.delete("/api/clients/:id", requireAuth, csrfProtection, async (req, res) => {
+    const clientId = parseInt(req.params.id);
+    const existingClient = await storage.getClient(clientId);
+    
+    if (!existingClient || existingClient.userId !== req.user!.id) {
+      return res.status(404).send("Client not found");
+    }
+
+    await storage.deleteClient(clientId);
+    res.status(204).send();
+  });
+
   app.get("/api/clients/:id/notes", requireAuth, async (req, res) => {
     const clientId = parseInt(req.params.id);
     const existingClient = await storage.getClient(clientId);

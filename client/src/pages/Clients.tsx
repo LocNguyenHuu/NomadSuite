@@ -16,10 +16,21 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter
+  DialogFooter,
+  DialogDescription
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, MoreHorizontal, Mail, FileText, LayoutGrid, List as ListIcon, MapPin, Calendar } from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Mail, FileText, LayoutGrid, List as ListIcon, MapPin, Calendar, Trash2 } from 'lucide-react';
 import { useClients } from '@/hooks/use-clients';
 import { InsertClient, Client, Invoice } from '@shared/schema';
 import { useQuery } from '@tanstack/react-query';
@@ -39,13 +50,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format } from 'date-fns';
 
 export default function Clients() {
-  const { clients, createClientAsync, updateClient } = useClients();
+  const { clients, createClientAsync, updateClient, deleteClientAsync } = useClients();
   const { data: invoices } = useQuery<Invoice[]>({ queryKey: ['/api/invoices'] });
   
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [countryFilter, setCountryFilter] = useState<string>('all');
   const [open, setOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
   const [location, setLocation] = useLocation();
   const { register, handleSubmit, reset } = useForm<InsertClient>();
 
@@ -81,6 +94,24 @@ export default function Clients() {
       reset();
     } catch (error) {
       console.error('Failed to create client:', error);
+    }
+  };
+
+  const handleDeleteClick = (client: Client, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setClientToDelete(client);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (clientToDelete) {
+      try {
+        await deleteClientAsync(clientToDelete.id);
+        setDeleteDialogOpen(false);
+        setClientToDelete(null);
+      } catch (error) {
+        console.error('Failed to delete client:', error);
+      }
     }
   };
 
@@ -268,11 +299,17 @@ export default function Clients() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => setLocation(`/app/clients/${client.id}`)}>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setLocation(`/app/clients/${client.id}`); }}>
                               View Details
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); /* TODO: Invoice */ }}>
                               <FileText className="mr-2 h-4 w-4" /> Create Invoice
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive focus:text-destructive"
+                              onClick={(e) => handleDeleteClick(client, e)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete Client
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -359,6 +396,24 @@ export default function Clients() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <strong>{clientToDelete?.name}</strong> and all associated data. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setClientToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete Client
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }

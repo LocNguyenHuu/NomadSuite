@@ -29,6 +29,15 @@ export function useClients() {
     },
   });
 
+  const deleteClientMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest('DELETE', `/api/clients/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/clients'] });
+    },
+  });
+
   return {
     clients: clients || [],
     isLoading,
@@ -36,5 +45,7 @@ export function useClients() {
     createClientAsync: createClientMutation.mutateAsync,
     updateClient: updateClientMutation.mutate,
     updateClientAsync: updateClientMutation.mutateAsync,
+    deleteClient: deleteClientMutation.mutate,
+    deleteClientAsync: deleteClientMutation.mutateAsync,
   };
 }
