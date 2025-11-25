@@ -34,7 +34,7 @@ import { useToast } from '@/hooks/use-toast';
 import { InvoiceExportDialog } from '@/components/InvoiceExportDialog';
 
 export default function Invoices() {
-  const { invoices, createInvoice } = useInvoices();
+  const { invoices, createInvoiceAsync } = useInvoices();
   const { clients } = useClients();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -72,32 +72,36 @@ export default function Invoices() {
   };
 
 
-  const onSubmit = (data: any) => {
-    const amountInCents = parseInt(data.amount) * 100; // Convert to cents
-    createInvoice({ 
-      clientId: parseInt(data.clientId),
-      amount: amountInCents,
-      currency: data.currency || 'USD',
-      dueDate: new Date(data.dueDate).toISOString(),
-      status: 'Sent',
-      items: [{
-        description: 'Consulting Services',
-        quantity: 1,
-        unitPrice: amountInCents,
-        subtotal: amountInCents,
-        tax: 0
-      }],
-      tax: 0,
-      country: selectedCountry,
-      language: data.language || 'en',
-      reverseCharge: data.reverseCharge || false,
-      customerVatId: data.customerVatId || undefined,
-      complianceChecked: true
-    });
-    setOpen(false);
-    reset();
-    setSelectedClientId('');
-    setSelectedCountry('');
+  const onSubmit = async (data: any) => {
+    try {
+      const amountInCents = parseInt(data.amount) * 100; // Convert to cents
+      await createInvoiceAsync({ 
+        clientId: parseInt(data.clientId),
+        amount: amountInCents,
+        currency: data.currency || 'USD',
+        dueDate: new Date(data.dueDate),
+        status: 'Sent',
+        items: [{
+          description: 'Consulting Services',
+          quantity: 1,
+          unitPrice: amountInCents,
+          subtotal: amountInCents,
+          tax: 0
+        }],
+        tax: 0,
+        country: selectedCountry,
+        language: data.language || 'en',
+        reverseCharge: data.reverseCharge || false,
+        customerVatId: data.customerVatId || undefined,
+        complianceChecked: true
+      });
+      setOpen(false);
+      reset();
+      setSelectedClientId('');
+      setSelectedCountry('');
+    } catch (error) {
+      console.error('Failed to create invoice:', error);
+    }
   };
 
   return (

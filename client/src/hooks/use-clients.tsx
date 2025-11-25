@@ -33,6 +33,8 @@ export function useClients() {
     clients: clients || [],
     isLoading,
     createClient: createClientMutation.mutate,
+    createClientAsync: createClientMutation.mutateAsync,
     updateClient: updateClientMutation.mutate,
+    updateClientAsync: updateClientMutation.mutateAsync,
   };
 }

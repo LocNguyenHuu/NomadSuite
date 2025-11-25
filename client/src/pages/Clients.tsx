@@ -39,7 +39,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format } from 'date-fns';
 
 export default function Clients() {
-  const { clients, createClient, updateClient } = useClients();
+  const { clients, createClientAsync, updateClient } = useClients();
   const { data: invoices } = useQuery<Invoice[]>({ queryKey: ['/api/invoices'] });
   
   const [search, setSearch] = useState('');
@@ -74,10 +74,14 @@ export default function Clients() {
     return matchesSearch && matchesStatus && matchesCountry;
   });
 
-  const onSubmit = (data: any) => {
-    createClient({ ...data, status: 'Lead' });
-    setOpen(false);
-    reset();
+  const onSubmit = async (data: any) => {
+    try {
+      await createClientAsync({ ...data, status: 'Lead' });
+      setOpen(false);
+      reset();
+    } catch (error) {
+      console.error('Failed to create client:', error);
+    }
   };
 
   return (
