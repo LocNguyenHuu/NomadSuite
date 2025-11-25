@@ -36,8 +36,10 @@ import { InvoiceExportDialog } from '@/components/InvoiceExportDialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
+import { useAppI18n } from '@/contexts/AppI18nContext';
 
 export default function Invoices() {
+  const { t } = useAppI18n();
   const { invoices, createInvoiceAsync } = useInvoices();
   const { clients } = useClients();
   const { toast } = useToast();
@@ -223,7 +225,7 @@ export default function Invoices() {
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-heading font-bold tracking-tight">Invoices</h2>
+            <h2 className="text-3xl font-heading font-bold tracking-tight">{t('invoices.title')}</h2>
             <p className="text-muted-foreground">Track payments and outstanding balances.</p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>

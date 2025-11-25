@@ -31,6 +31,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { getCsrfToken } from '@/lib/api';
+import { useAppI18n } from '@/contexts/AppI18nContext';
 
 interface VaultDocument {
   id: number;
@@ -59,6 +60,7 @@ interface UploadFormData {
 }
 
 export default function Documents() {
+  const { t } = useAppI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -221,7 +223,7 @@ export default function Documents() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-heading font-bold tracking-tight">Document Vault</h2>
+            <h2 className="text-3xl font-heading font-bold tracking-tight">{t('documents.title')}</h2>
             <p className="text-muted-foreground">GDPR-compliant encrypted storage for your sensitive documents.</p>
           </div>
           <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>

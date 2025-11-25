@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, User, Building, CreditCard, Lock } from "lucide-react";
 import type { User as UserType } from "@shared/schema";
+import { useAppI18n } from "@/contexts/AppI18nContext";
 
 const personalInfoSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -49,6 +50,7 @@ type BankInfo = z.infer<typeof bankInfoSchema>;
 type PasswordForm = z.infer<typeof passwordSchema>;
 
 export default function Profile() {
+  const { t } = useAppI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("personal");
@@ -187,7 +189,7 @@ export default function Profile() {
     <AppLayout>
       <div className="space-y-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Profile Settings</h1>
+          <h1 className="text-3xl font-bold mb-2">{t('profile.title')}</h1>
           <p className="text-muted-foreground">
             Manage your account settings and business information
           </p>
@@ -197,19 +199,19 @@ export default function Profile() {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="personal" data-testid="tab-personal">
             <User className="h-4 w-4 mr-2" />
-            Personal
+            {t('profile.personalInfo')}
           </TabsTrigger>
           <TabsTrigger value="business" data-testid="tab-business">
             <Building className="h-4 w-4 mr-2" />
-            Business
+            {t('profile.businessInfo')}
           </TabsTrigger>
           <TabsTrigger value="bank" data-testid="tab-bank">
             <CreditCard className="h-4 w-4 mr-2" />
-            Bank Info
+            {t('profile.bankDetails')}
           </TabsTrigger>
           <TabsTrigger value="security" data-testid="tab-security">
             <Lock className="h-4 w-4 mr-2" />
-            Security
+            {t('profile.security')}
           </TabsTrigger>
         </TabsList>
 

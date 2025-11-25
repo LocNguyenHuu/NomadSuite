@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Globe, DollarSign, FileText } from "lucide-react";
 import type { User as UserType } from "@shared/schema";
+import { useAppI18n } from "@/contexts/AppI18nContext";
 
 const settingsSchema = z.object({
   primaryLanguage: z.enum(["en", "de", "fr", "vi", "ja", "zh"]),
@@ -65,6 +66,7 @@ const TIMEZONES = [
 ];
 
 export default function Settings() {
+  const { t } = useAppI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -131,7 +133,7 @@ export default function Settings() {
     <AppLayout>
       <div className="space-y-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Settings</h1>
+          <h1 className="text-3xl font-bold mb-2">{t('settings.title')}</h1>
           <p className="text-muted-foreground">
             Manage your preferences and default settings
           </p>
@@ -143,7 +145,7 @@ export default function Settings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="h-5 w-5" />
-                Language & Regional Settings
+                {t('settings.languageRegional')}
               </CardTitle>
               <CardDescription>
                 Set your preferred language, timezone, and date format
@@ -229,7 +231,7 @@ export default function Settings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Invoice Settings
+                {t('settings.invoiceSettings')}
               </CardTitle>
               <CardDescription>
                 Configure default invoice preferences

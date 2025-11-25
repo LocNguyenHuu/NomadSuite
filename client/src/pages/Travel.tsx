@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { InsertTrip } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
+import { useAppI18n } from '@/contexts/AppI18nContext';
 
 interface CountryDays {
   country: string;
@@ -48,6 +49,7 @@ interface TravelSummary {
 }
 
 export default function Travel() {
+  const { t } = useAppI18n();
   const { trips, createTrip } = useTrips();
   const [open, setOpen] = useState(false);
   const { register, handleSubmit, reset } = useForm<InsertTrip>();
@@ -98,7 +100,7 @@ export default function Travel() {
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-heading font-bold tracking-tight">Travel Log</h2>
+            <h2 className="text-3xl font-heading font-bold tracking-tight">{t('travel.title')}</h2>
             <p className="text-muted-foreground">Monitor your residency status and visa limits.</p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>

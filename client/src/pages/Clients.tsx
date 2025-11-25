@@ -51,8 +51,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link, useLocation } from 'wouter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
+import { useAppI18n } from '@/contexts/AppI18nContext';
 
 export default function Clients() {
+  const { t } = useAppI18n();
   const { clients, createClientAsync, updateClient, deleteClientAsync } = useClients();
   const { data: invoices } = useQuery<Invoice[]>({ queryKey: ['/api/invoices'] });
   
@@ -199,7 +201,7 @@ export default function Clients() {
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-heading font-bold tracking-tight">Clients</h2>
+            <h2 className="text-3xl font-heading font-bold tracking-tight">{t('clients.title')}</h2>
             <p className="text-muted-foreground">Manage your relationships and pipeline.</p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
