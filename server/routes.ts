@@ -467,6 +467,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(updatedInvoice);
   });
 
+  // DELETE /api/invoices/:id - Delete an invoice
+  app.delete("/api/invoices/:id", requireAuth, csrfProtection, async (req, res) => {
+    const invoiceId = parseInt(req.params.id);
+    const existingInvoice = await storage.getInvoice(invoiceId);
+    
+    if (!existingInvoice || existingInvoice.userId !== req.user!.id) {
+      return res.status(404).send("Invoice not found");
+    }
+
+    await storage.deleteInvoice(invoiceId);
+    res.status(204).send();
+  });
+
   // PDF Download
   app.get("/api/invoices/:id/pdf", requireAuth, async (req, res) => {
     const invoiceId = parseInt(req.params.id);

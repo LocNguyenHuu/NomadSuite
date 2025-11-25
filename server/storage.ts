@@ -49,6 +49,7 @@ export interface IStorage {
   getInvoice(id: number): Promise<Invoice | undefined>;
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
   updateInvoice(id: number, invoice: Partial<InsertInvoice>): Promise<Invoice>;
+  deleteInvoice(id: number): Promise<void>;
   
   // Trips
   getTrips(userId: number): Promise<Trip[]>;
@@ -252,6 +253,10 @@ export class DatabaseStorage implements IStorage {
       throw new Error("Invoice not found");
     }
     return updatedInvoice;
+  }
+
+  async deleteInvoice(id: number): Promise<void> {
+    await db.delete(invoices).where(eq(invoices.id, id));
   }
 
   async getTrips(userId: number): Promise<Trip[]> {
