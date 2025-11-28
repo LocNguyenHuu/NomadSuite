@@ -3,8 +3,14 @@ import { Link } from 'wouter';
 import { Globe, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SEO } from '@/components/SEO';
+import PublicLanguageSwitcher from '@/components/PublicLanguageSwitcher';
+import { useLandingI18n } from '@/contexts/LandingI18nContext';
+import { legalTranslations, type LandingLanguage } from '@/data/legalTranslations';
 
 export default function PrivacyPolicy() {
+  const { language } = useLandingI18n();
+  const legal = legalTranslations[language as LandingLanguage];
+  
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEO 
@@ -22,12 +28,15 @@ export default function PrivacyPolicy() {
               <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">NomadSuite</span>
             </div>
           </Link>
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back-home">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </Button>
-          </Link>
+          <div className="flex items-center gap-4">
+            <PublicLanguageSwitcher />
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back-home">
+                <ArrowLeft className="h-4 w-4" />
+                {legal.common.backToHome}
+              </Button>
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -35,8 +44,8 @@ export default function PrivacyPolicy() {
       <div className="flex-1 py-16 sm:py-20">
         <div className="container mx-auto px-4 sm:px-6 max-w-4xl">
           <div className="mb-12">
-            <h1 className="text-4xl md:text-5xl font-heading font-bold mb-4">Privacy Policy</h1>
-            <p className="text-muted-foreground text-lg">Last updated: November 20, 2025</p>
+            <h1 className="text-4xl md:text-5xl font-heading font-bold mb-4">{legal.privacy.title}</h1>
+            <p className="text-muted-foreground text-lg">{legal.privacy.lastUpdated}</p>
           </div>
 
           <div className="prose prose-slate dark:prose-invert max-w-none space-y-8">
@@ -259,12 +268,12 @@ export default function PrivacyPolicy() {
 
           <div className="mt-16 pt-8 border-t text-center">
             <p className="text-sm text-muted-foreground mb-4">
-              By using NomadSuite, you acknowledge that you have read and understood this Privacy Policy.
+              {legal.privacy.acknowledgment}
             </p>
             <Link href="/">
               <Button variant="outline" size="lg" className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
-                Back to Home
+                {legal.common.backToHome}
               </Button>
             </Link>
           </div>
