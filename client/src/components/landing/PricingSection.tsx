@@ -66,7 +66,7 @@ export default function PricingSection() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {pricingTiers.map((tier) => {
             const isLifetime = tier.oneTimePrice !== undefined;
             const isYearly = tier.annualPrice > 0 && tier.monthlyPrice === 0 && !tier.oneTimePrice;
