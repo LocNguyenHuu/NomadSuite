@@ -4,6 +4,7 @@ export interface PricingTier {
   monthlyPrice: number;
   annualPrice: number;
   oneTimePrice?: number;
+  savingsPercentage?: number;
   popular?: boolean;
   featured?: boolean;
   limitedOffer?: string;
@@ -31,6 +32,7 @@ export const pricingTiers: PricingTier[] = [
     description: 'For serious digital nomads',
     monthlyPrice: 29,
     annualPrice: 278,
+    savingsPercentage: 20,
     popular: true,
     features: [
       'Unlimited clients',
@@ -44,13 +46,29 @@ export const pricingTiers: PricingTier[] = [
     cta: 'Start Free Trial',
   },
   {
+    name: 'Yearly',
+    description: 'Save with annual billing',
+    monthlyPrice: 0,
+    annualPrice: 149,
+    savingsPercentage: 57,
+    features: [
+      'Everything in Nomad Pro',
+      'Annual prepayment (best value)',
+      'Save $199 vs monthly billing',
+      'Export to CSV & PDF',
+      'Encrypted document vault',
+      'Priority email support',
+    ],
+    cta: 'Get Yearly Plan',
+  },
+  {
     name: 'Lifetime',
     description: 'Early-bird special offer',
     monthlyPrice: 0,
     annualPrice: 0,
-    oneTimePrice: 49,
+    oneTimePrice: 79,
     featured: true,
-    limitedOffer: 'Only 200 spots available',
+    limitedOffer: 'Only 100 spots available',
     features: [
       'Everything in Nomad Pro',
       'One-time payment, forever access',

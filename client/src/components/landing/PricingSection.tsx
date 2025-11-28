@@ -66,12 +66,13 @@ export default function PricingSection() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
           {pricingTiers.map((tier) => {
             const isLifetime = tier.oneTimePrice !== undefined;
+            const isYearly = tier.annualPrice > 0 && tier.monthlyPrice === 0 && !tier.oneTimePrice;
             const price = isLifetime 
               ? tier.oneTimePrice 
-              : (isAnnual ? Math.round(tier.annualPrice / 12) : tier.monthlyPrice);
+              : (isYearly ? tier.annualPrice : (isAnnual ? Math.round(tier.annualPrice / 12) : tier.monthlyPrice));
             
             return (
               <Card
@@ -114,13 +115,22 @@ export default function PricingSection() {
                       </span>
                       {isLifetime ? (
                         <span className="text-gray-600">one-time</span>
+                      ) : isYearly ? (
+                        <span className="text-gray-600">/year</span>
                       ) : price === 0 ? (
                         <span className="text-gray-600">forever</span>
                       ) : (
                         <span className="text-gray-600">/month</span>
                       )}
                     </div>
-                    {!isLifetime && isAnnual && tier.annualPrice > 0 && (
+                    {tier.savingsPercentage && (
+                      <p className="text-sm font-semibold mt-2 flex items-center gap-1">
+                        <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-green-700">
+                          Save {tier.savingsPercentage}%
+                        </span>
+                      </p>
+                    )}
+                    {!isLifetime && !isYearly && isAnnual && tier.annualPrice > 0 && (
                       <p className="text-sm text-gray-500 mt-1">
                         Billed ${tier.annualPrice} annually
                       </p>
