@@ -19,26 +19,35 @@ NomadSuite has **two separate language systems** with different scopes and behav
 - **Behavior**: Real-time UI updates when language is changed
 - **User Experience**: Complete translation of all landing page content
 
-### Logged-In App Pages - English UI Only
-- **Scope**: Dashboard, Clients, Invoices, Travel, Documents, Settings pages
-- **Languages**: English UI only (no translation system implemented)
-- **Implementation**: User's `primaryLanguage` stored in database
-- **Storage**: PostgreSQL `users` table (`primaryLanguage` field)
+### Logged-In App Pages - Full Multi-Language UI
+- **Scope**: Dashboard, Clients, Invoices, Travel, Documents, Settings, Profile pages
+- **Languages**: 6 languages supported (EN, DE, FR, VI, JA, ZH)
+- **Implementation**: `AppI18nContext` with `appTranslations` object, synced with user's `primaryLanguage`
+- **Storage**: PostgreSQL `users` table (`primaryLanguage` field), synced to React context
 - **Component**: `LanguageSwitcher` in app header
-- **Behavior**: Updates user preference in database, does NOT change UI language
-- **User Experience**: Language preference saved for invoice/PDF generation only
-- **Use Cases**: 
-  - Invoice PDF generation (uses `user.defaultInvoiceLanguage` or `primaryLanguage`)
-  - Date formatting in invoices (locale-specific)
-  - Currency formatting in invoices (locale-specific)
-  
-**Important**: When logged-in users change their language preference, the toast message clarifies: "Your default language is now [Language]. This will be used for invoices and PDFs." The app UI remains in English.
+- **Behavior**: Updates user preference in database AND changes UI language in real-time
+- **User Experience**: Complete translation of all app page content
+- **Translation Categories**:
+  - `common.*` - Shared UI elements (buttons, actions, status messages)
+  - `nav.*` - Navigation menu items
+  - `dashboard.*` - Dashboard metrics and quick actions
+  - `clients.*` - Client management and CRM
+  - `invoices.*` - Invoice management and statuses
+  - `travel.*` - Travel log and residency tracking
+  - `documents.*` - Document vault and types
+  - `settings.*` - User settings and preferences
+  - `profile.*` - Profile and security settings
 
-**Future Enhancement**: Implementing full i18n for logged-in app pages would require:
-1. Creating an App-level i18n context (similar to `LandingI18nContext`)
-2. Adding translation objects for all app pages
-3. Wrapping strings in translation function calls (`t('key')`)
-4. Syncing language preference between database and UI state
+### Feedback System (Landing Page)
+- **Component**: `FeedbackSection` (combines bug reports and feature requests)
+- **UI**: Tabbed interface with orange theme for bugs, purple for features
+- **Forms**: 
+  - Bug Report: description, name, email, screenshot upload, contact consent
+  - Feature Request: title, category dropdown, priority dropdown, description, name, email, contact consent
+- **API Endpoints**: `/api/bug-report`, `/api/feature-request`
+- **Database**: `bug_reports` and `feature_requests` tables with Airtable sync
+- **Categories**: Invoicing, Clients/CRM, Travel Tracking, Visa/Tax Alerts, Documents, UI/UX, Integrations, Other
+- **Priorities**: Nice to have, Would use regularly, Critical for my workflow
 
 ## System Architecture
 
