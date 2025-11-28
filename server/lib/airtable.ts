@@ -115,11 +115,10 @@ class AirtableService {
         'Name': data.name || 'Anonymous',
         'Email': data.email || '',
         'Description': data.description,
-        'Contact Consent': data.contactConsent, // Boolean for Checkbox
-        'Created At': new Date().toISOString().split('T')[0], // Date format: YYYY-MM-DD
+        'Contact Consent': data.contactConsent,
+        'Created At': new Date().toISOString().split('T')[0],
       };
       
-      // Handle screenshot as Airtable Attachment field
       if (data.screenshotUrl) {
         fields['Attachments'] = [
           {
@@ -144,6 +143,54 @@ class AirtableService {
       return null;
     } catch (error) {
       console.error('[Airtable] Failed to create bug report record:', error);
+      return null;
+    }
+  }
+
+  async createFeatureRequestRecord(data: {
+    name?: string;
+    email?: string;
+    title: string;
+    description: string;
+    category: string;
+    priority?: string;
+    contactConsent: boolean;
+  }): Promise<string | null> {
+    try {
+      const baseId = process.env.AIRTABLE_BASE_ID;
+      if (!baseId) {
+        console.warn('[Airtable] No AIRTABLE_BASE_ID configured - skipping feature request sync');
+        return null;
+      }
+      
+      const fields: Record<string, any> = {
+        'Name': data.name || 'Anonymous',
+        'Email': data.email || '',
+        'Title': data.title,
+        'Description': data.description,
+        'Category': data.category,
+        'Priority': data.priority || 'Nice to have',
+        'Contact Consent': data.contactConsent,
+        'Status': 'New',
+        'Created At': new Date().toISOString().split('T')[0],
+      };
+      
+      const record: AirtableRecord = { fields };
+
+      const response = await this.request<{ records: AirtableResponse[] }>(
+        baseId,
+        'Feature Requests',
+        'POST',
+        { records: [record] }
+      );
+
+      if (response && response.records && response.records[0]) {
+        return response.records[0].id;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('[Airtable] Failed to create feature request record:', error);
       return null;
     }
   }

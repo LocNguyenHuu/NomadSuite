@@ -295,6 +295,38 @@ export const bugReports = pgTable("bug_reports", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Feature Requests
+export const FeatureCategoryEnum = pgEnum("feature_category_enum", [
+  'Invoicing',
+  'Clients/CRM',
+  'Travel Tracking',
+  'Visa/Tax Alerts',
+  'Documents',
+  'UI/UX',
+  'Integrations',
+  'Other'
+]);
+
+export const FeaturePriorityEnum = pgEnum("feature_priority_enum", [
+  'Nice to have',
+  'Would use regularly',
+  'Critical for my workflow'
+]);
+
+export const featureRequests = pgTable("feature_requests", {
+  id: serial("id").primaryKey(),
+  name: text("name"),
+  email: text("email"),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: FeatureCategoryEnum("category").notNull(),
+  priority: FeaturePriorityEnum("priority"),
+  contactConsent: boolean("contact_consent").notNull().default(false),
+  status: text("status").notNull().default("New"), // New, Under Review, Planned, In Progress, Completed, Declined
+  airtableRecordId: text("airtable_record_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const workspacesRelations = relations(workspaces, ({ many }) => ({
   users: many(users),
@@ -457,3 +489,14 @@ export const insertBugReportSchema = createInsertSchema(bugReports).omit({
 
 export type BugReport = typeof bugReports.$inferSelect;
 export type InsertBugReport = z.infer<typeof insertBugReportSchema>;
+
+// Feature Request schemas
+export const insertFeatureRequestSchema = createInsertSchema(featureRequests).omit({
+  id: true,
+  status: true,
+  airtableRecordId: true,
+  createdAt: true,
+});
+
+export type FeatureRequest = typeof featureRequests.$inferSelect;
+export type InsertFeatureRequest = z.infer<typeof insertFeatureRequestSchema>;

@@ -1,7 +1,7 @@
 import { 
   users, clients, invoices, trips, documents, clientNotes, workspaces, jurisdictionRules,
   vaultDocuments, vaultAuditLogs, documentRetentionJobs, securityAuditLogs,
-  waitlist, bugReports,
+  waitlist, bugReports, featureRequests,
   type User, type InsertUser, type Client, type InsertClient,
   type Invoice, type InsertInvoice, type Trip, type InsertTrip,
   type Document, type InsertDocument, type ClientNote, type InsertClientNote,
@@ -11,7 +11,8 @@ import {
   type DocumentRetentionJob, type InsertDocumentRetentionJob,
   type SecurityAuditLog, type InsertSecurityAuditLog,
   type Waitlist, type InsertWaitlist,
-  type BugReport, type InsertBugReport
+  type BugReport, type InsertBugReport,
+  type FeatureRequest, type InsertFeatureRequest
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, count, or, desc, inArray, isNull, and } from "drizzle-orm";
@@ -92,6 +93,10 @@ export interface IStorage {
   // Bug Reports
   createBugReport(report: InsertBugReport): Promise<BugReport>;
   getBugReports(): Promise<BugReport[]>;
+
+  // Feature Requests
+  createFeatureRequest(request: InsertFeatureRequest): Promise<FeatureRequest>;
+  getFeatureRequests(): Promise<FeatureRequest[]>;
 
   sessionStore: session.Store;
 }
@@ -504,6 +509,15 @@ export class DatabaseStorage implements IStorage {
 
   async getBugReports(): Promise<BugReport[]> {
     return db.select().from(bugReports).orderBy(desc(bugReports.createdAt));
+  }
+
+  async createFeatureRequest(request: InsertFeatureRequest): Promise<FeatureRequest> {
+    const [newRequest] = await db.insert(featureRequests).values(request).returning();
+    return newRequest;
+  }
+
+  async getFeatureRequests(): Promise<FeatureRequest[]> {
+    return db.select().from(featureRequests).orderBy(desc(featureRequests.createdAt));
   }
 }
 

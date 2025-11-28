@@ -987,6 +987,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Feature Request API (public endpoint - no auth required)
+  app.post("/api/feature-request", async (req, res) => {
+    try {
+      const { insertFeatureRequestSchema } = await import("@shared/schema");
+      const parsed = insertFeatureRequestSchema.parse(req.body);
+
+      // Create in database
+      const request = await storage.createFeatureRequest(parsed);
+
+      // Sync to Airtable (non-blocking)
+      const { airtableService } = await import("./lib/airtable");
+      airtableService.createFeatureRequestRecord({
+        name: parsed.name || undefined,
+        email: parsed.email || undefined,
+        title: parsed.title,
+        description: parsed.description,
+        category: parsed.category,
+        priority: parsed.priority || undefined,
+        contactConsent: parsed.contactConsent ?? false
+      }).then((airtableId) => {
+        if (airtableId && request.id) {
+          console.log(`[Feature Request] Created Airtable record ${airtableId} for request ${request.id}`);
+        }
+      }).catch((error) => {
+        console.error("[Feature Request] Airtable sync failed (non-critical):", error);
+      });
+
+      res.status(201).json({ message: "Feature request submitted", id: request.id });
+    } catch (error: any) {
+      console.error("Feature request submission error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(500).json({ message: "Failed to submit feature request" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
