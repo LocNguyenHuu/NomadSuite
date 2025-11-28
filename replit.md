@@ -11,13 +11,21 @@ Preferred communication style: Simple, everyday language.
 NomadSuite has **two separate language systems** with different scopes and behaviors:
 
 ### Landing Page (Public) - Full Multi-Language UI
-- **Scope**: Entire landing page UI (hero, pricing, waitlist, etc.)
+- **Scope**: Entire landing page UI (hero, pricing, waitlist, FAQ, etc.)
 - **Languages**: 6 languages supported (EN, DE, FR, VI, JA, ZH)
 - **Implementation**: `LandingI18nContext` with `landingTranslations` object
 - **Storage**: Client-side localStorage (`nomadsuite_landing_language`)
 - **Component**: `PublicLanguageSwitcher` in navigation header
 - **Behavior**: Real-time UI updates when language is changed
 - **User Experience**: Complete translation of all landing page content
+- **FAQ Translations**: 12 FAQ items fully translated in all 6 languages (`client/src/data/faqTranslations.ts`)
+
+### Legal Pages - Partial Multi-Language UI
+- **Scope**: Privacy Policy and Terms of Service pages
+- **Languages**: 6 languages for UI elements (titles, navigation)
+- **Implementation**: `legalTranslations.ts` for page titles and UI elements
+- **Content**: Legal body content remains in English (professional legal translation recommended for full localization)
+- **Component**: `PublicLanguageSwitcher` in navigation header
 
 ### Logged-In App Pages - Full Multi-Language UI
 - **Scope**: Dashboard, Clients, Invoices, Travel, Documents, Settings, Profile pages
