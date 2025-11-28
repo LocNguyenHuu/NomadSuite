@@ -3,7 +3,10 @@ export interface PricingTier {
   description: string;
   monthlyPrice: number;
   annualPrice: number;
+  oneTimePrice?: number;
   popular?: boolean;
+  featured?: boolean;
+  limitedOffer?: string;
   features: string[];
   cta: string;
 }
@@ -15,47 +18,47 @@ export const pricingTiers: PricingTier[] = [
     monthlyPrice: 0,
     annualPrice: 0,
     features: [
-      'Up to 5 clients',
-      'Basic invoicing',
-      'Travel tracking',
-      '1 GB document storage',
-      'Email support',
+      'Up to 3 clients',
+      'Up to 5 invoices/month',
+      'Travel days log',
+      'Basic document storage',
+      'Community support',
     ],
-    cta: 'Get Started',
+    cta: 'Start Free',
   },
   {
-    name: 'Pro',
+    name: 'Nomad Pro',
     description: 'For serious digital nomads',
     monthlyPrice: 29,
-    annualPrice: 278, // 20% off (29 * 12 * 0.8 = 278.4)
+    annualPrice: 278,
     popular: true,
     features: [
       'Unlimited clients',
-      'Multi-currency invoicing',
-      'Tax residency calculator',
-      'Visa deadline tracking',
-      'Encrypted document vault (10 GB)',
+      'Unlimited invoices',
+      'Travel tracking with per-country breakdown',
+      'Visa & tax residency alerts',
+      'Export to CSV & PDF',
+      'Encrypted document vault',
       'Priority email support',
-      'Invoice templates',
-      'Expense tracking',
     ],
     cta: 'Start Free Trial',
   },
   {
-    name: 'Enterprise',
-    description: 'For agencies and teams',
-    monthlyPrice: 99,
-    annualPrice: 950, // 20% off (99 * 12 * 0.8 = 950.4)
+    name: 'Lifetime',
+    description: 'Early-bird special offer',
+    monthlyPrice: 0,
+    annualPrice: 0,
+    oneTimePrice: 49,
+    featured: true,
+    limitedOffer: 'Only 200 spots available',
     features: [
-      'Everything in Pro',
-      'Team collaboration (up to 10 users)',
-      'Advanced reporting',
-      'Custom invoice branding',
-      'API access',
-      'Dedicated account manager',
-      'SLA guarantee',
-      'Custom integrations',
+      'Everything in Nomad Pro',
+      'One-time payment, forever access',
+      'All future updates included',
+      'Founding member badge',
+      'Priority feature requests',
+      'Early access to new features',
     ],
-    cta: 'Contact Sales',
+    cta: 'Claim Lifetime Access',
   },
 ];
