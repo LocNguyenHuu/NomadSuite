@@ -30,7 +30,7 @@ export const pricingTiers: PricingTier[] = [
   {
     name: 'Nomad Pro',
     description: 'For serious digital nomads',
-    monthlyPrice: 29,
+    monthlyPrice: 20,
     annualPrice: 199,
     savingsPercentage: 17,
     popular: true,
@@ -47,15 +47,15 @@ export const pricingTiers: PricingTier[] = [
   },
   {
     name: 'Early-Bird Special',
-    description: 'Limited-time offer for early adopters',
+    description: 'Limited-time MVP offer for early adopters',
     monthlyPrice: 0,
-    annualPrice: 149,
-    savingsPercentage: 57,
+    annualPrice: 159,
+    savingsPercentage: 34,
     featured: true,
     limitedOffer: 'Limited slots available',
     features: [
       'Everything in Nomad Pro',
-      'Early adopter pricing',
+      'Early adopter MVP pricing',
       'Annual prepayment (best value)',
       'Founding member benefits',
       'Direct input on future features',
