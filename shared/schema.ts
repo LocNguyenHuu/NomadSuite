@@ -500,3 +500,62 @@ export const insertFeatureRequestSchema = createInsertSchema(featureRequests).om
 
 export type FeatureRequest = typeof featureRequests.$inferSelect;
 export type InsertFeatureRequest = z.infer<typeof insertFeatureRequestSchema>;
+
+// Expense Categories enum
+export const ExpenseCategoryEnum = pgEnum("expense_category_enum", [
+  'Travel',
+  'Accommodation',
+  'Food & Dining',
+  'Transportation',
+  'Equipment',
+  'Software',
+  'Communication',
+  'Office Supplies',
+  'Professional Services',
+  'Insurance',
+  'Banking & Fees',
+  'Marketing',
+  'Education',
+  'Entertainment',
+  'Other'
+]);
+
+// Expenses Table
+export const expenses = pgTable("expenses", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  clientId: integer("client_id").references(() => clients.id), // Optional - link to project/client
+  date: timestamp("date").notNull(),
+  amount: integer("amount").notNull(), // Amount in cents (like invoices)
+  currency: text("currency").notNull().default("USD"),
+  category: ExpenseCategoryEnum("category").notNull(),
+  description: text("description"),
+  receiptUrl: text("receipt_url"), // Object storage URL for receipt image
+  // Geo-location fields
+  geoLatitude: text("geo_latitude"), // Stored as string for precision
+  geoLongitude: text("geo_longitude"),
+  geoPlace: text("geo_place"), // Reverse-geocoded place name (e.g., "Berlin, Germany")
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Expense relations
+export const expensesRelations = relations(expenses, ({ one }) => ({
+  user: one(users, { fields: [expenses.userId], references: [users.id] }),
+  client: one(clients, { fields: [expenses.clientId], references: [clients.id] }),
+}));
+
+// Expense Zod schemas
+export const insertExpenseSchema = createInsertSchema(expenses, {
+  date: z.coerce.date(),
+  amount: z.number().int().positive("Amount must be positive"),
+  geoLatitude: z.string().optional(),
+  geoLongitude: z.string().optional(),
+  geoPlace: z.string().optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const updateExpenseSchema = insertExpenseSchema.partial();
+
+export type Expense = typeof expenses.$inferSelect;
+export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+export type UpdateExpense = z.infer<typeof updateExpenseSchema>;

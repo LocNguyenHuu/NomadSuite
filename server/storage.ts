@@ -1,7 +1,7 @@
 import { 
   users, clients, invoices, trips, documents, clientNotes, workspaces, jurisdictionRules,
   vaultDocuments, vaultAuditLogs, documentRetentionJobs, securityAuditLogs,
-  waitlist, bugReports, featureRequests,
+  waitlist, bugReports, featureRequests, expenses,
   type User, type InsertUser, type Client, type InsertClient,
   type Invoice, type InsertInvoice, type Trip, type InsertTrip,
   type Document, type InsertDocument, type ClientNote, type InsertClientNote,
@@ -12,7 +12,8 @@ import {
   type SecurityAuditLog, type InsertSecurityAuditLog,
   type Waitlist, type InsertWaitlist,
   type BugReport, type InsertBugReport,
-  type FeatureRequest, type InsertFeatureRequest
+  type FeatureRequest, type InsertFeatureRequest,
+  type Expense, type InsertExpense, type UpdateExpense
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, count, or, desc, inArray, isNull, and } from "drizzle-orm";
@@ -97,6 +98,20 @@ export interface IStorage {
   // Feature Requests
   createFeatureRequest(request: InsertFeatureRequest): Promise<FeatureRequest>;
   getFeatureRequests(): Promise<FeatureRequest[]>;
+
+  // Expenses
+  getExpenses(userId: number): Promise<(Expense & { clientName?: string })[]>;
+  getExpense(id: number): Promise<Expense | undefined>;
+  createExpense(expense: InsertExpense): Promise<Expense>;
+  updateExpense(id: number, expense: UpdateExpense): Promise<Expense>;
+  deleteExpense(id: number): Promise<void>;
+  getExpenseStats(userId: number): Promise<{
+    totalExpenses: number;
+    totalAmount: number;
+    expensesByCategory: Array<{ category: string; total: number; count: number }>;
+    expensesByMonth: Array<{ month: string; total: number }>;
+    expensesByClient: Array<{ clientId: number | null; clientName: string; total: number }>;
+  }>;
 
   sessionStore: session.Store;
 }
@@ -518,6 +533,119 @@ export class DatabaseStorage implements IStorage {
 
   async getFeatureRequests(): Promise<FeatureRequest[]> {
     return db.select().from(featureRequests).orderBy(desc(featureRequests.createdAt));
+  }
+
+  // Expenses CRUD
+  async getExpenses(userId: number): Promise<(Expense & { clientName?: string })[]> {
+    const result = await db
+      .select({
+        id: expenses.id,
+        userId: expenses.userId,
+        clientId: expenses.clientId,
+        date: expenses.date,
+        amount: expenses.amount,
+        currency: expenses.currency,
+        category: expenses.category,
+        description: expenses.description,
+        receiptUrl: expenses.receiptUrl,
+        geoLatitude: expenses.geoLatitude,
+        geoLongitude: expenses.geoLongitude,
+        geoPlace: expenses.geoPlace,
+        createdAt: expenses.createdAt,
+        updatedAt: expenses.updatedAt,
+        clientName: clients.name,
+      })
+      .from(expenses)
+      .leftJoin(clients, eq(expenses.clientId, clients.id))
+      .where(eq(expenses.userId, userId))
+      .orderBy(desc(expenses.date));
+    
+    return result.map(r => ({
+      ...r,
+      clientName: r.clientName || undefined
+    }));
+  }
+
+  async getExpense(id: number): Promise<Expense | undefined> {
+    const [expense] = await db.select().from(expenses).where(eq(expenses.id, id));
+    return expense || undefined;
+  }
+
+  async createExpense(expense: InsertExpense): Promise<Expense> {
+    const [newExpense] = await db.insert(expenses).values(expense).returning();
+    return newExpense;
+  }
+
+  async updateExpense(id: number, expense: UpdateExpense): Promise<Expense> {
+    const [updated] = await db
+      .update(expenses)
+      .set({ ...expense, updatedAt: new Date() })
+      .where(eq(expenses.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteExpense(id: number): Promise<void> {
+    await db.delete(expenses).where(eq(expenses.id, id));
+  }
+
+  async getExpenseStats(userId: number): Promise<{
+    totalExpenses: number;
+    totalAmount: number;
+    expensesByCategory: Array<{ category: string; total: number; count: number }>;
+    expensesByMonth: Array<{ month: string; total: number }>;
+    expensesByClient: Array<{ clientId: number | null; clientName: string; total: number }>;
+  }> {
+    const allExpenses = await this.getExpenses(userId);
+    
+    const totalExpenses = allExpenses.length;
+    const totalAmount = allExpenses.reduce((sum, e) => sum + e.amount, 0);
+    
+    // Group by category
+    const categoryMap = new Map<string, { total: number; count: number }>();
+    allExpenses.forEach(e => {
+      const cat = categoryMap.get(e.category) || { total: 0, count: 0 };
+      cat.total += e.amount;
+      cat.count += 1;
+      categoryMap.set(e.category, cat);
+    });
+    const expensesByCategory = Array.from(categoryMap.entries()).map(([category, data]) => ({
+      category,
+      total: data.total,
+      count: data.count
+    }));
+    
+    // Group by month
+    const monthMap = new Map<string, number>();
+    allExpenses.forEach(e => {
+      const month = new Date(e.date).toISOString().slice(0, 7); // YYYY-MM
+      monthMap.set(month, (monthMap.get(month) || 0) + e.amount);
+    });
+    const expensesByMonth = Array.from(monthMap.entries())
+      .map(([month, total]) => ({ month, total }))
+      .sort((a, b) => a.month.localeCompare(b.month));
+    
+    // Group by client
+    const clientMap = new Map<number | null, { clientName: string; total: number }>();
+    allExpenses.forEach(e => {
+      const clientId = e.clientId;
+      const existing = clientMap.get(clientId) || { clientName: e.clientName || 'No Client', total: 0 };
+      existing.total += e.amount;
+      clientMap.set(clientId, existing);
+    });
+    const expensesByClient = Array.from(clientMap.entries()).map(([clientId, data]) => ({
+      clientId,
+      clientName: data.clientName,
+      total: data.total
+    }));
+    
+    return {
+      totalExpenses,
+      totalAmount,
+      expensesByCategory,
+      expensesByMonth,
+      expensesByClient
+    };
   }
 }
 
