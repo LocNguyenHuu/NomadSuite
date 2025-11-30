@@ -15,7 +15,8 @@ import {
   MapPin,
   User,
   Briefcase,
-  Receipt
+  Receipt,
+  FolderKanban
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -32,6 +33,7 @@ const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => v
   const navItems = [
     { href: '/app/dashboard', icon: LayoutDashboard, label: t('nav.dashboard') },
     { href: '/app/clients', icon: UsersIcon, label: t('nav.clients') },
+    { href: '/app/projects', icon: FolderKanban, label: t('nav.projects') },
     { href: '/app/invoices', icon: FileText, label: t('nav.invoices') },
     { href: '/app/expenses', icon: Receipt, label: t('nav.expenses') },
     { href: '/app/travel', icon: Plane, label: t('nav.travelLog') },

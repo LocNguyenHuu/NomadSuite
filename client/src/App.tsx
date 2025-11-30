@@ -16,6 +16,8 @@ import Invoices from "@/pages/Invoices";
 import Travel from "@/pages/Travel";
 import Documents from "@/pages/Documents";
 import Expenses from "@/pages/Expenses";
+import Projects from "@/pages/Projects";
+import ProjectDetail from "@/pages/ProjectDetail";
 import AuthPage from "@/pages/auth-page";
 import Settings from "@/pages/Settings";
 import Profile from "@/pages/Profile";
@@ -61,6 +63,8 @@ function Router() {
       <ProtectedRoute path="/app/invoices" component={Invoices} />
       <ProtectedRoute path="/app/travel" component={Travel} />
       <ProtectedRoute path="/app/expenses" component={Expenses} />
+      <ProtectedRoute path="/app/projects" component={Projects} />
+      <ProtectedRoute path="/app/projects/:id" component={ProjectDetail} />
       <ProtectedRoute path="/app/documents" component={Documents} />
       <ProtectedRoute path="/app/profile" component={Profile} />
       <ProtectedRoute path="/app/settings" component={Settings} />
