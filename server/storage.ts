@@ -1,7 +1,7 @@
 import { 
   users, clients, invoices, trips, documents, clientNotes, workspaces, jurisdictionRules,
   vaultDocuments, vaultAuditLogs, documentRetentionJobs, securityAuditLogs,
-  waitlist, bugReports, featureRequests, expenses,
+  waitlist, bugReports, featureRequests, expenses, projects, tasks,
   type User, type InsertUser, type Client, type InsertClient,
   type Invoice, type InsertInvoice, type Trip, type InsertTrip,
   type Document, type InsertDocument, type ClientNote, type InsertClientNote,
@@ -13,7 +13,9 @@ import {
   type Waitlist, type InsertWaitlist,
   type BugReport, type InsertBugReport,
   type FeatureRequest, type InsertFeatureRequest,
-  type Expense, type InsertExpense, type UpdateExpense
+  type Expense, type InsertExpense, type UpdateExpense,
+  type Project, type InsertProject, type UpdateProject,
+  type Task, type InsertTask, type UpdateTask
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, count, or, desc, inArray, isNull, and } from "drizzle-orm";
@@ -100,7 +102,7 @@ export interface IStorage {
   getFeatureRequests(): Promise<FeatureRequest[]>;
 
   // Expenses
-  getExpenses(userId: number): Promise<(Expense & { clientName?: string })[]>;
+  getExpenses(userId: number): Promise<(Expense & { clientName?: string; projectName?: string })[]>;
   getExpense(id: number): Promise<Expense | undefined>;
   createExpense(expense: InsertExpense): Promise<Expense>;
   updateExpense(id: number, expense: UpdateExpense): Promise<Expense>;
@@ -112,6 +114,31 @@ export interface IStorage {
     expensesByMonth: Array<{ month: string; total: number }>;
     expensesByClient: Array<{ clientId: number | null; clientName: string; total: number }>;
   }>;
+
+  // Projects
+  getProjects(userId: number): Promise<(Project & { clientName?: string; taskCount?: number; completedTaskCount?: number })[]>;
+  getProject(id: number): Promise<Project | undefined>;
+  createProject(project: InsertProject): Promise<Project>;
+  updateProject(id: number, project: UpdateProject): Promise<Project>;
+  deleteProject(id: number): Promise<void>;
+  getProjectFinancialSummary(projectId: number): Promise<{
+    budget: number;
+    totalInvoiced: number;
+    paidInvoices: number;
+    pendingInvoices: number;
+    totalExpenses: number;
+    netProfit: number;
+  }>;
+  getProjectInvoices(projectId: number): Promise<Invoice[]>;
+  getProjectExpenses(projectId: number): Promise<Expense[]>;
+
+  // Tasks
+  getTasks(projectId: number): Promise<Task[]>;
+  getTask(id: number): Promise<Task | undefined>;
+  createTask(task: InsertTask): Promise<Task>;
+  updateTask(id: number, task: UpdateTask): Promise<Task>;
+  deleteTask(id: number): Promise<void>;
+  getUserTasks(userId: number): Promise<(Task & { projectName: string })[]>;
 
   sessionStore: session.Store;
 }
@@ -536,12 +563,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Expenses CRUD
-  async getExpenses(userId: number): Promise<(Expense & { clientName?: string })[]> {
+  async getExpenses(userId: number): Promise<(Expense & { clientName?: string; projectName?: string })[]> {
     const result = await db
       .select({
         id: expenses.id,
         userId: expenses.userId,
         clientId: expenses.clientId,
+        projectId: expenses.projectId,
         date: expenses.date,
         amount: expenses.amount,
         currency: expenses.currency,
@@ -554,15 +582,18 @@ export class DatabaseStorage implements IStorage {
         createdAt: expenses.createdAt,
         updatedAt: expenses.updatedAt,
         clientName: clients.name,
+        projectName: projects.name,
       })
       .from(expenses)
       .leftJoin(clients, eq(expenses.clientId, clients.id))
+      .leftJoin(projects, eq(expenses.projectId, projects.id))
       .where(eq(expenses.userId, userId))
       .orderBy(desc(expenses.date));
     
     return result.map(r => ({
       ...r,
-      clientName: r.clientName || undefined
+      clientName: r.clientName || undefined,
+      projectName: r.projectName || undefined
     }));
   }
 
@@ -646,6 +677,139 @@ export class DatabaseStorage implements IStorage {
       expensesByMonth,
       expensesByClient
     };
+  }
+
+  // Projects
+  async getProjects(userId: number): Promise<(Project & { clientName?: string; taskCount?: number; completedTaskCount?: number })[]> {
+    const allProjects = await db.select().from(projects).where(eq(projects.userId, userId)).orderBy(desc(projects.createdAt));
+    const allClients = await db.select().from(clients).where(eq(clients.userId, userId));
+    const allTasks = await db.select().from(tasks).where(eq(tasks.userId, userId));
+    
+    const clientMap = new Map(allClients.map(c => [c.id, c.name]));
+    
+    return allProjects.map(project => {
+      const projectTasks = allTasks.filter(t => t.projectId === project.id);
+      return {
+        ...project,
+        clientName: project.clientId ? clientMap.get(project.clientId) : undefined,
+        taskCount: projectTasks.length,
+        completedTaskCount: projectTasks.filter(t => t.status === 'Done').length
+      };
+    });
+  }
+
+  async getProject(id: number): Promise<Project | undefined> {
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    return project;
+  }
+
+  async createProject(project: InsertProject): Promise<Project> {
+    const [newProject] = await db.insert(projects).values(project).returning();
+    return newProject;
+  }
+
+  async updateProject(id: number, project: UpdateProject): Promise<Project> {
+    const [updated] = await db
+      .update(projects)
+      .set({ ...project, updatedAt: new Date() })
+      .where(eq(projects.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteProject(id: number): Promise<void> {
+    // Delete associated tasks first
+    await db.delete(tasks).where(eq(tasks.projectId, id));
+    // Then delete the project
+    await db.delete(projects).where(eq(projects.id, id));
+  }
+
+  async getProjectFinancialSummary(projectId: number): Promise<{
+    budget: number;
+    totalInvoiced: number;
+    paidInvoices: number;
+    pendingInvoices: number;
+    totalExpenses: number;
+    netProfit: number;
+  }> {
+    const project = await this.getProject(projectId);
+    const projectInvoices = await this.getProjectInvoices(projectId);
+    const projectExpenses = await this.getProjectExpenses(projectId);
+    
+    const budget = project?.budget || 0;
+    const totalInvoiced = projectInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+    const paidInvoices = projectInvoices.filter(inv => inv.status === 'Paid').reduce((sum, inv) => sum + inv.amount, 0);
+    const pendingInvoices = projectInvoices.filter(inv => inv.status !== 'Paid').reduce((sum, inv) => sum + inv.amount, 0);
+    const totalExpenses = projectExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const netProfit = paidInvoices - totalExpenses;
+    
+    return {
+      budget,
+      totalInvoiced,
+      paidInvoices,
+      pendingInvoices,
+      totalExpenses,
+      netProfit
+    };
+  }
+
+  async getProjectInvoices(projectId: number): Promise<Invoice[]> {
+    return db.select().from(invoices).where(eq(invoices.projectId, projectId));
+  }
+
+  async getProjectExpenses(projectId: number): Promise<Expense[]> {
+    return db.select().from(expenses).where(eq(expenses.projectId, projectId));
+  }
+
+  // Tasks
+  async getTasks(projectId: number): Promise<Task[]> {
+    return db.select().from(tasks).where(eq(tasks.projectId, projectId)).orderBy(desc(tasks.createdAt));
+  }
+
+  async getTask(id: number): Promise<Task | undefined> {
+    const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
+    return task;
+  }
+
+  async createTask(task: InsertTask): Promise<Task> {
+    const [newTask] = await db.insert(tasks).values(task).returning();
+    return newTask;
+  }
+
+  async updateTask(id: number, task: UpdateTask): Promise<Task> {
+    // Build update data with proper typing
+    const updateData: Partial<typeof tasks.$inferInsert> = { ...task };
+    
+    // If marking task as Done, set completedAt
+    if (task.status === 'Done') {
+      updateData.completedAt = new Date();
+    } else if (task.status) {
+      // If status is changing to something other than Done, clear completedAt
+      updateData.completedAt = null;
+    }
+    
+    const [updated] = await db
+      .update(tasks)
+      .set(updateData)
+      .where(eq(tasks.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteTask(id: number): Promise<void> {
+    await db.delete(tasks).where(eq(tasks.id, id));
+  }
+
+  async getUserTasks(userId: number): Promise<(Task & { projectName: string })[]> {
+    const allTasks = await db.select().from(tasks).where(eq(tasks.userId, userId)).orderBy(desc(tasks.createdAt));
+    const allProjects = await db.select().from(projects).where(eq(projects.userId, userId));
+    
+    const projectMap = new Map(allProjects.map(p => [p.id, p.name]));
+    
+    return allTasks.map(task => ({
+      ...task,
+      projectName: projectMap.get(task.projectId) || 'Unknown Project'
+    }));
   }
 }
 
