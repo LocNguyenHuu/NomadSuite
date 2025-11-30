@@ -1223,6 +1223,266 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==================== Projects API ====================
+  // Get all projects for authenticated user
+  app.get("/api/projects", requireAuth, async (req, res) => {
+    try {
+      const projects = await storage.getProjects(req.user!.id);
+      res.json(projects);
+    } catch (error: any) {
+      console.error("Error fetching projects:", error);
+      res.status(500).json({ error: "Failed to fetch projects" });
+    }
+  });
+
+  // Get single project
+  app.get("/api/projects/:id", requireAuth, async (req, res) => {
+    try {
+      const project = await storage.getProject(parseInt(req.params.id));
+      if (!project || project.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      res.json(project);
+    } catch (error: any) {
+      console.error("Error fetching project:", error);
+      res.status(500).json({ error: "Failed to fetch project" });
+    }
+  });
+
+  // Get project financial summary
+  app.get("/api/projects/:id/financial-summary", requireAuth, async (req, res) => {
+    try {
+      const project = await storage.getProject(parseInt(req.params.id));
+      if (!project || project.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      const summary = await storage.getProjectFinancialSummary(project.id);
+      res.json(summary);
+    } catch (error: any) {
+      console.error("Error fetching project financial summary:", error);
+      res.status(500).json({ error: "Failed to fetch financial summary" });
+    }
+  });
+
+  // Get project invoices
+  app.get("/api/projects/:id/invoices", requireAuth, async (req, res) => {
+    try {
+      const project = await storage.getProject(parseInt(req.params.id));
+      if (!project || project.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      const invoices = await storage.getProjectInvoices(project.id);
+      res.json(invoices);
+    } catch (error: any) {
+      console.error("Error fetching project invoices:", error);
+      res.status(500).json({ error: "Failed to fetch project invoices" });
+    }
+  });
+
+  // Get project expenses
+  app.get("/api/projects/:id/expenses", requireAuth, async (req, res) => {
+    try {
+      const project = await storage.getProject(parseInt(req.params.id));
+      if (!project || project.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      const expenses = await storage.getProjectExpenses(project.id);
+      res.json(expenses);
+    } catch (error: any) {
+      console.error("Error fetching project expenses:", error);
+      res.status(500).json({ error: "Failed to fetch project expenses" });
+    }
+  });
+
+  // Create project
+  app.post("/api/projects", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const { insertProjectSchema } = await import("@shared/schema");
+      const parsed = insertProjectSchema.parse({
+        ...req.body,
+        userId: req.user!.id,
+      });
+      
+      // Verify client ownership if clientId is provided
+      if (parsed.clientId) {
+        const client = await storage.getClient(parsed.clientId);
+        if (!client || client.userId !== req.user!.id) {
+          return res.status(400).json({ error: "Invalid client" });
+        }
+      }
+      
+      const project = await storage.createProject(parsed);
+      res.status(201).json(project);
+    } catch (error: any) {
+      console.error("Error creating project:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(500).json({ error: error.message || "Failed to create project" });
+    }
+  });
+
+  // Update project
+  app.patch("/api/projects/:id", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const existing = await storage.getProject(projectId);
+      
+      if (!existing || existing.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      
+      const { updateProjectSchema } = await import("@shared/schema");
+      const parsed = updateProjectSchema.parse(req.body);
+      
+      // Verify client ownership if clientId is changed
+      if (parsed.clientId) {
+        const client = await storage.getClient(parsed.clientId);
+        if (!client || client.userId !== req.user!.id) {
+          return res.status(400).json({ error: "Invalid client" });
+        }
+      }
+      
+      const updated = await storage.updateProject(projectId, parsed);
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Error updating project:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(500).json({ error: error.message || "Failed to update project" });
+    }
+  });
+
+  // Delete project
+  app.delete("/api/projects/:id", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const existing = await storage.getProject(projectId);
+      
+      if (!existing || existing.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      
+      await storage.deleteProject(projectId);
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("Error deleting project:", error);
+      res.status(500).json({ error: "Failed to delete project" });
+    }
+  });
+
+  // ==================== Tasks API ====================
+  // Get all tasks for a project
+  app.get("/api/projects/:projectId/tasks", requireAuth, async (req, res) => {
+    try {
+      const project = await storage.getProject(parseInt(req.params.projectId));
+      if (!project || project.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      const tasks = await storage.getTasks(project.id);
+      res.json(tasks);
+    } catch (error: any) {
+      console.error("Error fetching tasks:", error);
+      res.status(500).json({ error: "Failed to fetch tasks" });
+    }
+  });
+
+  // Get all tasks for authenticated user (across all projects)
+  app.get("/api/tasks", requireAuth, async (req, res) => {
+    try {
+      const tasks = await storage.getUserTasks(req.user!.id);
+      res.json(tasks);
+    } catch (error: any) {
+      console.error("Error fetching user tasks:", error);
+      res.status(500).json({ error: "Failed to fetch tasks" });
+    }
+  });
+
+  // Get single task
+  app.get("/api/tasks/:id", requireAuth, async (req, res) => {
+    try {
+      const task = await storage.getTask(parseInt(req.params.id));
+      if (!task || task.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+      res.json(task);
+    } catch (error: any) {
+      console.error("Error fetching task:", error);
+      res.status(500).json({ error: "Failed to fetch task" });
+    }
+  });
+
+  // Create task within a project
+  app.post("/api/projects/:projectId/tasks", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const project = await storage.getProject(projectId);
+      
+      if (!project || project.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      
+      const { insertTaskSchema } = await import("@shared/schema");
+      const parsed = insertTaskSchema.parse({
+        ...req.body,
+        projectId,
+        userId: req.user!.id,
+      });
+      
+      const task = await storage.createTask(parsed);
+      res.status(201).json(task);
+    } catch (error: any) {
+      console.error("Error creating task:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(500).json({ error: error.message || "Failed to create task" });
+    }
+  });
+
+  // Update task
+  app.patch("/api/tasks/:id", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const existing = await storage.getTask(taskId);
+      
+      if (!existing || existing.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+      
+      const { updateTaskSchema } = await import("@shared/schema");
+      const parsed = updateTaskSchema.parse(req.body);
+      
+      const updated = await storage.updateTask(taskId, parsed);
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Error updating task:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(500).json({ error: error.message || "Failed to update task" });
+    }
+  });
+
+  // Delete task
+  app.delete("/api/tasks/:id", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const existing = await storage.getTask(taskId);
+      
+      if (!existing || existing.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+      
+      await storage.deleteTask(taskId);
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("Error deleting task:", error);
+      res.status(500).json({ error: "Failed to delete task" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
