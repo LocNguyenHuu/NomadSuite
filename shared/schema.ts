@@ -70,6 +70,75 @@ export const clientNotes = pgTable("client_notes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Project Status enum
+export const ProjectStatusEnum = pgEnum("project_status_enum", [
+  'Planning',
+  'In Progress',
+  'On Hold',
+  'Completed',
+  'Cancelled'
+]);
+
+// Projects
+export const projects = pgTable("projects", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  clientId: integer("client_id").references(() => clients.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  status: ProjectStatusEnum("status").notNull().default('Planning'),
+  budget: integer("budget"), // Budget in cents
+  currency: text("currency").default("USD"),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Task Status enum
+export const TaskStatusEnum = pgEnum("task_status_enum", [
+  'To Do',
+  'In Progress',
+  'Done',
+  'Cancelled'
+]);
+
+// Task Priority enum
+export const TaskPriorityEnum = pgEnum("task_priority_enum", [
+  'Low',
+  'Medium',
+  'High',
+  'Urgent'
+]);
+
+// Tasks
+export const tasks = pgTable("tasks", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  status: TaskStatusEnum("status").notNull().default('To Do'),
+  priority: TaskPriorityEnum("priority").default('Medium'),
+  dueDate: timestamp("due_date"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Project relations
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  user: one(users, { fields: [projects.userId], references: [users.id] }),
+  client: one(clients, { fields: [projects.clientId], references: [clients.id] }),
+  tasks: many(tasks),
+}));
+
+// Task relations
+export const tasksRelations = relations(tasks, ({ one }) => ({
+  project: one(projects, { fields: [tasks.projectId], references: [projects.id] }),
+  user: one(users, { fields: [tasks.userId], references: [users.id] }),
+}));
+
 // Invoice Line Item type
 export interface InvoiceLineItem {
   description: string;
@@ -84,6 +153,7 @@ export const invoices = pgTable("invoices", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   clientId: integer("client_id").notNull().references(() => clients.id),
+  projectId: integer("project_id").references(() => projects.id), // Optional project link
   invoiceNumber: text("invoice_number").notNull(),
   amount: integer("amount").notNull(), // Total amount in cents
   currency: text("currency").notNull().default("USD"),
@@ -524,7 +594,8 @@ export const ExpenseCategoryEnum = pgEnum("expense_category_enum", [
 export const expenses = pgTable("expenses", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  clientId: integer("client_id").references(() => clients.id), // Optional - link to project/client
+  clientId: integer("client_id").references(() => clients.id), // Optional - link to client
+  projectId: integer("project_id").references(() => projects.id), // Optional - link to project
   date: timestamp("date").notNull(),
   amount: integer("amount").notNull(), // Amount in cents (like invoices)
   currency: text("currency").notNull().default("USD"),
@@ -543,6 +614,7 @@ export const expenses = pgTable("expenses", {
 export const expensesRelations = relations(expenses, ({ one }) => ({
   user: one(users, { fields: [expenses.userId], references: [users.id] }),
   client: one(clients, { fields: [expenses.clientId], references: [clients.id] }),
+  project: one(projects, { fields: [expenses.projectId], references: [projects.id] }),
 }));
 
 // Expense Zod schemas
@@ -559,3 +631,28 @@ export const updateExpenseSchema = insertExpenseSchema.partial();
 export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 export type UpdateExpense = z.infer<typeof updateExpenseSchema>;
+
+// Project Zod schemas
+export const insertProjectSchema = createInsertSchema(projects, {
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+  budget: z.number().int().nonnegative().optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const updateProjectSchema = insertProjectSchema.partial();
+
+export type Project = typeof projects.$inferSelect;
+export type InsertProject = z.infer<typeof insertProjectSchema>;
+export type UpdateProject = z.infer<typeof updateProjectSchema>;
+
+// Task Zod schemas
+export const insertTaskSchema = createInsertSchema(tasks, {
+  dueDate: z.coerce.date().optional(),
+  completedAt: z.coerce.date().optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const updateTaskSchema = insertTaskSchema.partial();
+
+export type Task = typeof tasks.$inferSelect;
+export type InsertTask = z.infer<typeof insertTaskSchema>;
+export type UpdateTask = z.infer<typeof updateTaskSchema>;
