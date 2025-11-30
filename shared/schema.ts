@@ -624,6 +624,7 @@ export const insertExpenseSchema = createInsertSchema(expenses, {
   geoLatitude: z.string().optional(),
   geoLongitude: z.string().optional(),
   geoPlace: z.string().optional(),
+  projectId: z.number().int().optional().nullable(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 
 export const updateExpenseSchema = insertExpenseSchema.partial();

@@ -116,7 +116,7 @@ export interface IStorage {
   }>;
 
   // Projects
-  getProjects(userId: number): Promise<(Project & { clientName?: string; taskCount?: number; completedTaskCount?: number })[]>;
+  getProjects(userId: number): Promise<(Project & { clientName?: string; taskCount: number; completedTaskCount: number })[]>;
   getProject(id: number): Promise<Project | undefined>;
   createProject(project: InsertProject): Promise<Project>;
   updateProject(id: number, project: UpdateProject): Promise<Project>;
@@ -680,14 +680,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Projects
-  async getProjects(userId: number): Promise<(Project & { clientName?: string; taskCount?: number; completedTaskCount?: number })[]> {
+  async getProjects(userId: number): Promise<(Project & { clientName?: string; taskCount: number; completedTaskCount: number })[]> {
     const allProjects = await db.select().from(projects).where(eq(projects.userId, userId)).orderBy(desc(projects.createdAt));
     const allClients = await db.select().from(clients).where(eq(clients.userId, userId));
     const allTasks = await db.select().from(tasks).where(eq(tasks.userId, userId));
     
     const clientMap = new Map(allClients.map(c => [c.id, c.name]));
     
-    return allProjects.map(project => {
+    return allProjects.map((project: Project) => {
       const projectTasks = allTasks.filter(t => t.projectId === project.id);
       return {
         ...project,

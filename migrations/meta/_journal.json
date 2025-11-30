@@ -8,6 +8,13 @@
       "when": 1763714013247,
       "tag": "0000_typical_patriot",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1764511851153,
+      "tag": "0001_faulty_shadowcat",
+      "breakpoints": true
     }
   ]
 }
