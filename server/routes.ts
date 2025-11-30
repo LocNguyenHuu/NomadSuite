@@ -1024,6 +1024,205 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==================== Expenses API ====================
+  // Get all expenses for authenticated user
+  app.get("/api/expenses", requireAuth, async (req, res) => {
+    try {
+      const expenses = await storage.getExpenses(req.user!.id);
+      res.json(expenses);
+    } catch (error: any) {
+      console.error("Error fetching expenses:", error);
+      res.status(500).json({ error: "Failed to fetch expenses" });
+    }
+  });
+
+  // Get expense statistics
+  app.get("/api/expenses/stats", requireAuth, async (req, res) => {
+    try {
+      const stats = await storage.getExpenseStats(req.user!.id);
+      res.json(stats);
+    } catch (error: any) {
+      console.error("Error fetching expense stats:", error);
+      res.status(500).json({ error: "Failed to fetch expense statistics" });
+    }
+  });
+
+  // Get single expense
+  app.get("/api/expenses/:id", requireAuth, async (req, res) => {
+    try {
+      const expense = await storage.getExpense(parseInt(req.params.id));
+      if (!expense || expense.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Expense not found" });
+      }
+      res.json(expense);
+    } catch (error: any) {
+      console.error("Error fetching expense:", error);
+      res.status(500).json({ error: "Failed to fetch expense" });
+    }
+  });
+
+  // Create expense
+  app.post("/api/expenses", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const { insertExpenseSchema } = await import("@shared/schema");
+      const parsed = insertExpenseSchema.parse({
+        ...req.body,
+        userId: req.user!.id,
+      });
+      
+      // Verify client ownership if clientId is provided
+      if (parsed.clientId) {
+        const client = await storage.getClient(parsed.clientId);
+        if (!client || client.userId !== req.user!.id) {
+          return res.status(400).json({ error: "Invalid client" });
+        }
+      }
+      
+      const expense = await storage.createExpense(parsed);
+      res.status(201).json(expense);
+    } catch (error: any) {
+      console.error("Error creating expense:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(500).json({ error: error.message || "Failed to create expense" });
+    }
+  });
+
+  // Update expense
+  app.patch("/api/expenses/:id", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const expenseId = parseInt(req.params.id);
+      const existing = await storage.getExpense(expenseId);
+      
+      if (!existing || existing.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Expense not found" });
+      }
+      
+      const { updateExpenseSchema } = await import("@shared/schema");
+      const parsed = updateExpenseSchema.parse(req.body);
+      
+      // Verify client ownership if clientId is changed
+      if (parsed.clientId) {
+        const client = await storage.getClient(parsed.clientId);
+        if (!client || client.userId !== req.user!.id) {
+          return res.status(400).json({ error: "Invalid client" });
+        }
+      }
+      
+      const updated = await storage.updateExpense(expenseId, parsed);
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Error updating expense:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(500).json({ error: error.message || "Failed to update expense" });
+    }
+  });
+
+  // Delete expense
+  app.delete("/api/expenses/:id", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const expenseId = parseInt(req.params.id);
+      const existing = await storage.getExpense(expenseId);
+      
+      if (!existing || existing.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Expense not found" });
+      }
+      
+      await storage.deleteExpense(expenseId);
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("Error deleting expense:", error);
+      res.status(500).json({ error: "Failed to delete expense" });
+    }
+  });
+
+  // Export expenses as CSV
+  app.get("/api/expenses/export/csv", requireAuth, async (req, res) => {
+    try {
+      const expenses = await storage.getExpenses(req.user!.id);
+      
+      // Build CSV content
+      const headers = ['Date', 'Amount', 'Currency', 'Category', 'Description', 'Client', 'Location'];
+      const rows = expenses.map(e => [
+        new Date(e.date).toISOString().split('T')[0],
+        (e.amount / 100).toFixed(2),
+        e.currency,
+        e.category,
+        e.description || '',
+        e.clientName || '',
+        e.geoPlace || ''
+      ]);
+      
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="expenses-${new Date().toISOString().split('T')[0]}.csv"`);
+      res.send(csvContent);
+    } catch (error: any) {
+      console.error("Error exporting expenses:", error);
+      res.status(500).json({ error: "Failed to export expenses" });
+    }
+  });
+
+  // Upload receipt for expense (uses existing vault storage infrastructure)
+  const receiptUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB max
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only images and PDFs are allowed.'));
+      }
+    },
+  });
+
+  app.post("/api/expenses/:id/receipt", requireAuth, csrfProtection, receiptUpload.single('receipt'), async (req, res) => {
+    try {
+      const expenseId = parseInt(req.params.id);
+      const existing = await storage.getExpense(expenseId);
+      
+      if (!existing || existing.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Expense not found" });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      
+      // Validate file type on server side
+      const type = await fileType.fromBuffer(req.file.buffer);
+      const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+      if (!type || !allowedMimeTypes.includes(type.mime)) {
+        return res.status(400).json({ error: "Invalid file type" });
+      }
+      
+      // Use the vault storage service to store the receipt
+      const vaultService = new VaultStorageService();
+      const storedPath = await vaultService.uploadFile(
+        req.file.buffer,
+        `receipt-${expenseId}-${Date.now()}.${type.ext}`,
+        req.file.mimetype
+      );
+      
+      // Update expense with receipt URL
+      const updated = await storage.updateExpense(expenseId, { receiptUrl: storedPath });
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Error uploading receipt:", error);
+      res.status(500).json({ error: error.message || "Failed to upload receipt" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
