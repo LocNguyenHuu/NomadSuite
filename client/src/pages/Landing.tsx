@@ -572,8 +572,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Section 7: Pricing */}
-      <PricingSection />
+      {/* Section 7: Pricing - Currently disabled */}
+      {/* <PricingSection /> */}
 
       {/* Section 8: FAQ */}
       <section className="py-20 md:py-28 bg-muted/40">
