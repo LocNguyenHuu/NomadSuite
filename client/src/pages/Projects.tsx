@@ -464,12 +464,12 @@ export default function Projects() {
                   name="clientId"
                   control={createForm.control}
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value || "none"} onValueChange={(val) => field.onChange(val === "none" ? "" : val)}>
                       <SelectTrigger data-testid="select-client">
                         <SelectValue placeholder="Select client (optional)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No client</SelectItem>
+                        <SelectItem value="none">No client</SelectItem>
                         {clients.map(client => (
                           <SelectItem key={client.id} value={client.id.toString()}>
                             {client.name}
@@ -592,12 +592,12 @@ export default function Projects() {
                   name="clientId"
                   control={editForm.control}
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value || "none"} onValueChange={(val) => field.onChange(val === "none" ? "" : val)}>
                       <SelectTrigger data-testid="select-edit-client">
                         <SelectValue placeholder="Select client (optional)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No client</SelectItem>
+                        <SelectItem value="none">No client</SelectItem>
                         {clients.map(client => (
                           <SelectItem key={client.id} value={client.id.toString()}>
                             {client.name}
@@ -614,7 +614,7 @@ export default function Projects() {
                   name="status"
                   control={editForm.control}
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value || "Planning"} onValueChange={field.onChange}>
                       <SelectTrigger data-testid="select-edit-status">
                         <SelectValue />
                       </SelectTrigger>
@@ -644,7 +644,7 @@ export default function Projects() {
                     name="currency"
                     control={editForm.control}
                     render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select value={field.value || "USD"} onValueChange={field.onChange}>
                         <SelectTrigger data-testid="select-edit-currency">
                           <SelectValue />
                         </SelectTrigger>
