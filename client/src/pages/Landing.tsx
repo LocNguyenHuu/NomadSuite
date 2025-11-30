@@ -241,9 +241,11 @@ export default function Landing() {
             <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer" data-testid="nav-features">
               Features
             </a>
+{/* Pricing link hidden
             <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer" data-testid="nav-pricing">
               Pricing
             </a>
+*/}
             <Link href="/help">
               <span className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer" data-testid="nav-help">
                 Help
@@ -651,7 +653,7 @@ export default function Landing() {
               <h3 className="font-bold mb-4">Product</h3>
               <ul className="space-y-3 text-sm text-muted-foreground">
                 <li><a href="#" className="hover:text-primary transition-colors">Features</a></li>
-                <li><a href="#pricing" className="hover:text-primary transition-colors">Pricing</a></li>
+{/* <li><a href="#pricing" className="hover:text-primary transition-colors">Pricing</a></li> */}
                 <li><a href="#" className="hover:text-primary transition-colors">Roadmap</a></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Support</a></li>
               </ul>
