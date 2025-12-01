@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupReplitAuth, isAuthenticated } from "./replitAuth";
+import { setupGoogleAuth, isAuthenticated } from "./googleAuth";
 import { hashPassword, comparePasswords, csrfProtection } from "./auth";
 import { storage } from "./storage";
 import rateLimit from "express-rate-limit";
@@ -80,7 +80,7 @@ function requireAdmin(req: any, res: any, next: any) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  await setupReplitAuth(app);
+  await setupGoogleAuth(app);
   
   app.get('/api/csrf-token', csrfProtection, (req, res) => {
     res.json({ csrfToken: req.csrfToken() });
