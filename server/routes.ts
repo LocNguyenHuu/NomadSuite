@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupAuth, requireAuth, requireAdmin, hashPassword, comparePasswords, csrfProtection } from "./auth";
+import { setupReplitAuth, isAuthenticated } from "./replitAuth";
+import { hashPassword, comparePasswords, csrfProtection } from "./auth";
 import { storage } from "./storage";
 import rateLimit from "express-rate-limit";
 import { insertClientSchema, insertInvoiceSchema, insertTripSchema, insertDocumentSchema, insertUserSchema, insertClientNoteSchema, insertWorkspaceSchema, type EncryptedDocumentMetadata, RetentionPolicy } from "@shared/schema";
@@ -64,8 +65,60 @@ const authLimiter = rateLimit({
   skipSuccessfulRequests: false, // Count all attempts (prevents bypass)
 });
 
+function requireAuth(req: any, res: any, next: any) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  next();
+}
+
+function requireAdmin(req: any, res: any, next: any) {
+  if (!req.isAuthenticated() || req.user.role !== 'admin') {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  next();
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
-  setupAuth(app, authLimiter);
+  await setupReplitAuth(app);
+  
+  app.get('/api/csrf-token', csrfProtection, (req, res) => {
+    res.json({ csrfToken: req.csrfToken() });
+  });
+  
+  app.get('/api/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+  
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
 
   // User Profile (extended)
   app.patch("/api/user/profile", requireAuth, csrfProtection, async (req, res) => {
@@ -97,6 +150,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(req.user!.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if user has a password set (OAuth users may not)
+      if (!user.password) {
+        return res.status(400).json({ message: "Cannot change password for social login accounts" });
       }
 
       // Verify current password
@@ -1209,8 +1267,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use the vault storage service to store the receipt
       const vaultService = new VaultStorageService();
       const storedPath = await vaultService.uploadFile(
-        req.file.buffer,
         `receipt-${expenseId}-${Date.now()}.${type.ext}`,
+        req.file.buffer,
         req.file.mimetype
       );
       

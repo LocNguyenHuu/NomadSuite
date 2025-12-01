@@ -27,7 +27,7 @@ import { useAppI18n } from '@/contexts/AppI18nContext';
 
 const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => void }) => {
   const [location] = useLocation();
-  const { user, logoutMutation } = useAuth();
+  const { user, logout } = useAuth();
   const { t } = useAppI18n();
   
   const navItems = [
@@ -85,7 +85,7 @@ const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => v
         <Button 
           variant="ghost" 
           className="w-full justify-start flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-destructive transition-colors"
-          onClick={() => logoutMutation.mutate()}
+          onClick={logout}
         >
           <LogOut className="h-4 w-4" />
           {t('common.signOut')}

@@ -1,18 +1,13 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Globe, ArrowRight } from 'lucide-react';
+import { Globe, LogIn } from 'lucide-react';
 import { useLocation } from 'wouter';
 // @ts-ignore
 import heroImage from '@assets/generated_images/A_minimal,_modern_hero_illustration_for_a_digital_nomad_app._f04ea532.png';
 
 export default function AuthPage() {
-  const { loginMutation, registerMutation, user } = useAuth();
+  const { login, user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   
   React.useEffect(() => {
@@ -30,28 +25,30 @@ export default function AuthPage() {
       {/* Left: Auth Form */}
       <div className="flex-1 flex flex-col justify-center p-8 md:p-16 lg:max-w-xl bg-background">
         <div className="mb-8">
-           <div className="flex items-center gap-2 font-heading font-bold text-2xl text-primary mb-8">
+          <div className="flex items-center gap-2 font-heading font-bold text-2xl text-primary mb-8">
             <Globe className="h-8 w-8" />
-            <span>NomadOps</span>
+            <span>NomadSuite</span>
           </div>
-          <h1 className="text-4xl font-heading font-bold tracking-tight mb-2">Welcome back</h1>
-          <p className="text-muted-foreground">Enter your credentials to access your workspace.</p>
+          <h1 className="text-4xl font-heading font-bold tracking-tight mb-2">Welcome to NomadSuite</h1>
+          <p className="text-muted-foreground">Sign in with your Google, GitHub, X, Apple, or email account to get started.</p>
         </div>
 
-        <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="register">Register</TabsTrigger>
-          </TabsList>
+        <div className="space-y-6">
+          <Button 
+            onClick={login} 
+            className="w-full h-12 text-lg gap-3"
+            disabled={isLoading}
+          >
+            <LogIn className="h-5 w-5" />
+            {isLoading ? 'Loading...' : 'Sign In / Sign Up'}
+          </Button>
           
-          <TabsContent value="login">
-            <LoginForm onSubmit={(data) => loginMutation.mutate(data)} isLoading={loginMutation.isPending} />
-          </TabsContent>
-          
-          <TabsContent value="register">
-            <RegisterForm onSubmit={(data) => registerMutation.mutate(data)} isLoading={registerMutation.isPending} />
-          </TabsContent>
-        </Tabs>
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              Supports Google, GitHub, X (Twitter), Apple, and email login
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Right: Hero */}
@@ -72,51 +69,5 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function LoginForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void, isLoading: boolean }) {
-  const { register, handleSubmit } = useForm();
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="username">Username or Email</Label>
-        <Input id="username" {...register('username', { required: true })} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input id="password" type="password" {...register('password', { required: true })} />
-      </div>
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Logging in...' : 'Log In'}
-      </Button>
-    </form>
-  );
-}
-
-function RegisterForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void, isLoading: boolean }) {
-  const { register, handleSubmit } = useForm();
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="reg-username">Username</Label>
-        <Input id="reg-username" {...register('username', { required: true })} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="name">Full Name</Label>
-        <Input id="name" {...register('name', { required: true })} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" type="email" {...register('email', { required: true })} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="reg-password">Password</Label>
-        <Input id="reg-password" type="password" {...register('password', { required: true })} />
-      </div>
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Creating account...' : 'Create Account'}
-      </Button>
-    </form>
   );
 }

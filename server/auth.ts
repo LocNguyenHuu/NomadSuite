@@ -67,6 +67,10 @@ export function setupAuth(app: Express, authRateLimiter?: RequestHandler) {
           console.log(`[Auth] User not found: ${username}`);
           return done(null, false);
         }
+        if (!user.password) {
+          console.log(`[Auth] User has no password (OAuth only): ${username}`);
+          return done(null, false);
+        }
         if (!(await comparePasswords(password, user.password))) {
           console.log(`[Auth] Invalid password for: ${username}`);
           return done(null, false);
