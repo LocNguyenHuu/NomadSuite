@@ -131,6 +131,7 @@ export default function Dashboard() {
     { name: 'In Progress', value: activeProjects, color: '#f59e0b' },
     { name: 'Completed', value: completedProjects, color: '#22c55e' },
     { name: 'On Hold', value: projects.filter(p => p.status === 'On Hold').length, color: '#6b7280' },
+    { name: 'Cancelled', value: projects.filter(p => p.status === 'Cancelled').length, color: '#ef4444' },
   ].filter(item => item.value > 0);
 
   const upcomingDeadlines = projects
