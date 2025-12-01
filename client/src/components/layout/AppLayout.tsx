@@ -118,12 +118,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <span className="sr-only">Toggle Menu</span>
           </Button>
           <div className="w-full flex items-center justify-between md:justify-end">
-            <div className="flex items-center gap-2 md:hidden">
+            <Link href="/" className="flex items-center gap-2 md:hidden">
               <Globe className="h-5 w-5 text-primary" />
               <h1 className="font-heading text-lg font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
                 NomadSuite
               </h1>
-            </div>
+            </Link>
             <div className="flex items-center gap-3">
               <LanguageSwitcher />
               <div className="text-right hidden sm:block">

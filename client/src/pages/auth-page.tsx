@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Globe, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 // @ts-ignore
 import heroImage from '@assets/generated_images/A_minimal,_modern_hero_illustration_for_a_digital_nomad_app._f04ea532.png';
@@ -93,10 +93,10 @@ export default function AuthPage() {
       {/* Left: Auth Form */}
       <div className="flex-1 flex flex-col justify-center p-8 md:p-16 lg:max-w-xl bg-background">
         <div className="mb-8">
-          <div className="flex items-center gap-2 font-heading font-bold text-2xl text-primary mb-8">
+          <Link href="/" className="flex items-center gap-2 font-heading font-bold text-2xl text-primary mb-8 hover:opacity-80 transition-opacity">
             <Globe className="h-8 w-8" />
             <span>NomadSuite</span>
-          </div>
+          </Link>
           <h1 className="text-4xl font-heading font-bold tracking-tight mb-2">
             {showEmailForm ? (isLoginMode ? 'Sign in with email' : 'Create your account') : 'Welcome to NomadSuite'}
           </h1>

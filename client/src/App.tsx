@@ -53,6 +53,7 @@ function Router() {
       <Route path="/help" component={Help} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/auth" component={AuthPage} />
       <Route path="/login" component={AuthPage} />
       <Route path="/register" component={AuthPage} />
       
