@@ -85,6 +85,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/csrf-token', csrfProtection, (req, res) => {
     res.json({ csrfToken: req.csrfToken() });
   });
+
+  // Email/Password Registration
+  app.post('/api/auth/register', authLimiter, csrfProtection, async (req: any, res) => {
+    try {
+      const { name, email, password } = req.body;
+      
+      if (!name || !email || !password) {
+        return res.status(400).json({ message: "Name, email, and password are required" });
+      }
+      
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+      
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "An account with this email already exists" });
+      }
+      
+      const hashedPassword = await hashPassword(password);
+      const user = await storage.createUser({
+        name,
+        email,
+        password: hashedPassword,
+      });
+      
+      req.login(user, (err: any) => {
+        if (err) {
+          return res.status(500).json({ message: "Failed to create session" });
+        }
+        res.json(user);
+      });
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Registration failed" });
+    }
+  });
+
+  // Email/Password Login
+  app.post('/api/auth/login', authLimiter, csrfProtection, async (req: any, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+      
+      const user = await storage.getUserByEmail(email);
+      if (!user || !user.password) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+      
+      const isValid = await comparePasswords(password, user.password);
+      if (!isValid) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+      
+      req.login(user, (err: any) => {
+        if (err) {
+          return res.status(500).json({ message: "Failed to create session" });
+        }
+        res.json(user);
+      });
+    } catch (error: any) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
   
   app.get('/api/user', isAuthenticated, async (req: any, res) => {
     try {

@@ -13,7 +13,7 @@ type AuthContextType = {
   isLoading: boolean;
   error: Error | null;
   isAuthenticated: boolean;
-  login: () => void;
+  loginWithGoogle: () => void;
   logout: () => void;
 };
 
@@ -31,13 +31,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     retry: false,
   });
 
-  const login = () => {
-    window.location.href = "/api/login";
+  const loginWithGoogle = () => {
+    window.location.href = "/api/auth/google";
   };
 
   const logout = () => {
     queryClient.setQueryData(["/api/auth/user"], null);
-    window.location.href = "/api/logout";
+    window.location.href = "/api/auth/logout";
   };
 
   return (
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         error,
         isAuthenticated: !!user,
-        login,
+        loginWithGoogle,
         logout,
       }}
     >
