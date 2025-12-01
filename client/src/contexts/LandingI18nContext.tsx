@@ -57,25 +57,114 @@ const landingTranslations: Record<LandingLanguage, any> = {
   en: {
     nav: {
       login: 'Log In',
-      signup: 'Start Free'
-    },
-    banner: {
-      badge: '🎉 MVP is LIVE!',
-      text: 'Full-featured app available now • 100% free during testing • All features unlocked',
-      cta: 'Try It Free →'
+      signup: 'Start Free',
+      features: 'Features',
+      howItWorks: 'How It Works',
+      help: 'Help'
     },
     hero: {
-      badgeAvailable: 'Available Now • Sign Up & Start Free',
-      badgeWaitlist: 'Join waitlist for exclusive founding member perks',
-      title1: 'Get paid, stay legal, and stop losing track of ',
-      title2: 'your nomad life.',
-      subtitle: 'NomadSuite is your workspace for digital nomads to manage clients, send multi-currency invoices, and track travel days & visa deadlines —',
-      subtitleBold: 'all in one simple dashboard.',
-      ctaPrimary: 'Start Using It Free',
-      ctaWaitlist: 'Join Waitlist for Perks',
-      trust1: '40+ countries',
-      trust2: 'Bank-level encryption',
-      trust3: 'No credit card'
+      badge: 'Now Available - Start Free Today',
+      title1: 'Your Business HQ for',
+      title2: 'Location Freedom',
+      subtitle: 'Manage clients, send invoices, track travel days, and stay visa-compliant — all from one beautiful dashboard built for digital nomads.',
+      ctaPrimary: 'Start Free Now',
+      ctaSecondary: 'Explore Features',
+      trust1: 'No credit card required',
+      trust2: '5-minute setup',
+      trust3: 'GDPR compliant'
+    },
+    stats: {
+      features: '12+ Core Features',
+      currencies: '50+ Currencies Supported',
+      languages: '6 Languages',
+      encryption: 'AES-256 Encryption'
+    },
+    features: {
+      badge: 'Powerful Features',
+      title: 'Everything You Need in',
+      titleHighlight: 'One Place',
+      subtitle: 'Purpose-built for freelancers and digital nomads who need to manage their business while staying compliant across borders.',
+      clientCRM: 'Client CRM',
+      clientCRMDesc: 'Visual pipeline board to manage leads, active clients, and relationships',
+      invoicing: 'Multi-Currency Invoicing',
+      invoicingDesc: 'Send professional invoices in 50+ currencies with automatic FX rates',
+      taxTracker: 'Tax Residency Tracker',
+      taxTrackerDesc: '183-day rule calculator with real-time alerts for each country',
+      travelLog: 'Travel Log',
+      travelLogDesc: 'Track your trips, entry/exit dates, and days spent in each country',
+      visaAlerts: 'Visa Expiry Alerts',
+      visaAlertsDesc: 'Get notified 90, 30, and 7 days before any visa or permit expires',
+      schengen: 'Schengen Calculator',
+      schengenDesc: '90/180 day rolling period tracker for Schengen area compliance',
+      documents: 'Document Vault',
+      documentsDesc: 'Encrypted storage for passports, visas, contracts, and tax documents',
+      expenses: 'Expense Tracking',
+      expensesDesc: 'Log expenses with geo-tagging, categories, and receipt uploads',
+      projects: 'Project Management',
+      projectsDesc: 'Kanban boards, tasks, milestones, and deadline tracking',
+      multilang: 'Multi-Language PDFs',
+      multilangDesc: 'Generate invoice PDFs in 6 languages for international clients',
+      analytics: 'Revenue Analytics',
+      analyticsDesc: 'Track income, expenses, profit margins, and financial trends',
+      security: 'Bank-Level Security',
+      securityDesc: 'AES-256 encryption, GDPR compliant, and regular security audits'
+    },
+    howItWorks: {
+      badge: 'Quick Start',
+      title: 'Up and Running in',
+      titleHighlight: '5 Minutes',
+      subtitle: 'No technical skills required. Just sign up and start organizing.',
+      step1Title: 'Create Account',
+      step1Desc: 'Quick setup with your email. Set your nationality and currency preferences.',
+      step2Title: 'Add Clients',
+      step2Desc: 'Import or create clients. Track deals through your visual pipeline.',
+      step3Title: 'Log Your Travel',
+      step3Desc: 'Record trips and see real-time tax residency and visa calculations.',
+      step4Title: 'Send Invoices',
+      step4Desc: 'Create professional invoices in any currency and get paid faster.'
+    },
+    problems: {
+      badge: 'The Problem',
+      title: "Generic Tools Weren't Built for Your Lifestyle",
+      item1: 'Juggling 5+ apps for invoicing, CRM, travel, and documents',
+      item2: 'Manually tracking visa deadlines in spreadsheets',
+      item3: "No idea when you're approaching tax residency thresholds",
+      item4: 'Stressing about Schengen 90/180 calculations',
+      item5: 'Disorganized passport scans and contracts everywhere'
+    },
+    solutions: {
+      badge: 'The Solution',
+      title: 'One Platform for Your Entire Nomad Business',
+      item1: 'All-in-one dashboard for clients, invoices, travel, and docs',
+      item2: 'Automatic visa expiry alerts 90, 30, and 7 days ahead',
+      item3: 'Real-time 183-day tax residency tracker per country',
+      item4: 'Schengen calculator that just works',
+      item5: 'Encrypted vault for all your important documents'
+    },
+    testimonials: {
+      title: 'Loved by',
+      titleHighlight: 'Nomads Worldwide',
+      countries: '30+ countries',
+      gdpr: 'GDPR Compliant',
+      security: 'Bank-Level Security'
+    },
+    cta: {
+      title: 'Ready to Simplify Your Nomad Life?',
+      subtitle: 'Join thousands of freelancers and digital nomads who manage their entire business from one dashboard.',
+      button: 'Get Started Free',
+      note: 'No credit card required • 5-minute setup • Cancel anytime'
+    },
+    footer: {
+      tagline: 'Built for freelancers & digital nomads. Work anywhere, worry less.',
+      product: 'Product',
+      resources: 'Resources',
+      legal: 'Legal',
+      blog: 'Blog',
+      helpCenter: 'Help Center',
+      privacy: 'Privacy Policy',
+      terms: 'Terms of Service',
+      copyright: 'All rights reserved.',
+      gdprNote: 'GDPR Compliant • AES-256 Encryption'
     },
     pricing: {
       title: 'Simple, transparent pricing',
@@ -133,25 +222,114 @@ const landingTranslations: Record<LandingLanguage, any> = {
   de: {
     nav: {
       login: 'Anmelden',
-      signup: 'Kostenlos starten'
-    },
-    banner: {
-      badge: '🎉 MVP ist LIVE!',
-      text: 'Voll funktionsfähige App jetzt verfügbar • 100% kostenlos während der Testphase • Alle Funktionen freigeschaltet',
-      cta: 'Kostenlos testen →'
+      signup: 'Kostenlos starten',
+      features: 'Funktionen',
+      howItWorks: 'So funktioniert es',
+      help: 'Hilfe'
     },
     hero: {
-      badgeAvailable: 'Jetzt verfügbar • Kostenlos registrieren & starten',
-      badgeWaitlist: 'Zur Warteliste für exklusive Gründungsmitglieder-Vorteile',
-      title1: 'Bezahlt werden, legal bleiben und Ihr Nomadenleben nicht mehr aus den Augen verlieren — ',
-      title2: 'ganz einfach.',
-      subtitle: 'NomadSuite ist Ihr Arbeitsbereich für digitale Nomaden, um Kunden zu verwalten, Multi-Währungs-Rechnungen zu senden und Reisetage & Visa-Fristen zu verfolgen —',
-      subtitleBold: 'alles in einem einfachen Dashboard.',
-      ctaPrimary: 'Kostenlos nutzen',
-      ctaWaitlist: 'Warteliste für Vorteile',
-      trust1: '40+ Länder',
-      trust2: 'Bank-Level-Verschlüsselung',
-      trust3: 'Keine Kreditkarte'
+      badge: 'Jetzt verfügbar - Kostenlos starten',
+      title1: 'Ihr Business-HQ für',
+      title2: 'Ortsunabhängigkeit',
+      subtitle: 'Verwalten Sie Kunden, senden Sie Rechnungen, verfolgen Sie Reisetage und bleiben Sie visa-konform — alles in einem Dashboard für digitale Nomaden.',
+      ctaPrimary: 'Jetzt kostenlos starten',
+      ctaSecondary: 'Funktionen erkunden',
+      trust1: 'Keine Kreditkarte erforderlich',
+      trust2: '5-Minuten-Einrichtung',
+      trust3: 'DSGVO-konform'
+    },
+    stats: {
+      features: '12+ Kernfunktionen',
+      currencies: '50+ Währungen unterstützt',
+      languages: '6 Sprachen',
+      encryption: 'AES-256-Verschlüsselung'
+    },
+    features: {
+      badge: 'Leistungsstarke Funktionen',
+      title: 'Alles was Sie brauchen an',
+      titleHighlight: 'einem Ort',
+      subtitle: 'Speziell entwickelt für Freiberufler und digitale Nomaden, die ihr Geschäft grenzüberschreitend konform verwalten müssen.',
+      clientCRM: 'Kunden-CRM',
+      clientCRMDesc: 'Visuelles Pipeline-Board zur Verwaltung von Leads, aktiven Kunden und Beziehungen',
+      invoicing: 'Multi-Währungs-Rechnungen',
+      invoicingDesc: 'Professionelle Rechnungen in 50+ Währungen mit automatischen Wechselkursen',
+      taxTracker: 'Steuerresidenz-Tracker',
+      taxTrackerDesc: '183-Tage-Regel-Rechner mit Echtzeit-Warnungen für jedes Land',
+      travelLog: 'Reiseprotokoll',
+      travelLogDesc: 'Verfolgen Sie Ihre Reisen, Ein-/Ausreisedaten und Aufenthaltstage pro Land',
+      visaAlerts: 'Visa-Ablauf-Warnungen',
+      visaAlertsDesc: 'Erhalten Sie 90, 30 und 7 Tage vor Ablauf von Visa oder Genehmigungen Benachrichtigungen',
+      schengen: 'Schengen-Rechner',
+      schengenDesc: '90/180-Tage-Rollperioden-Tracker für Schengen-Konformität',
+      documents: 'Dokumenten-Tresor',
+      documentsDesc: 'Verschlüsselte Speicherung für Pässe, Visa, Verträge und Steuerdokumente',
+      expenses: 'Ausgabenverfolgung',
+      expensesDesc: 'Ausgaben mit Geo-Tagging, Kategorien und Belegerfassung protokollieren',
+      projects: 'Projektmanagement',
+      projectsDesc: 'Kanban-Boards, Aufgaben, Meilensteine und Terminverfolgung',
+      multilang: 'Mehrsprachige PDFs',
+      multilangDesc: 'Rechnungs-PDFs in 6 Sprachen für internationale Kunden generieren',
+      analytics: 'Umsatzanalyse',
+      analyticsDesc: 'Verfolgen Sie Einnahmen, Ausgaben, Gewinnmargen und Finanztrends',
+      security: 'Bank-Level-Sicherheit',
+      securityDesc: 'AES-256-Verschlüsselung, DSGVO-konform und regelmäßige Sicherheitsaudits'
+    },
+    howItWorks: {
+      badge: 'Schnellstart',
+      title: 'Startklar in',
+      titleHighlight: '5 Minuten',
+      subtitle: 'Keine technischen Kenntnisse erforderlich. Einfach registrieren und loslegen.',
+      step1Title: 'Konto erstellen',
+      step1Desc: 'Schnelle Einrichtung mit Ihrer E-Mail. Nationalität und Währungseinstellungen festlegen.',
+      step2Title: 'Kunden hinzufügen',
+      step2Desc: 'Kunden importieren oder erstellen. Deals über Ihre visuelle Pipeline verfolgen.',
+      step3Title: 'Reisen protokollieren',
+      step3Desc: 'Reisen erfassen und Echtzeit-Steuerresidenz- und Visa-Berechnungen sehen.',
+      step4Title: 'Rechnungen senden',
+      step4Desc: 'Professionelle Rechnungen in jeder Währung erstellen und schneller bezahlt werden.'
+    },
+    problems: {
+      badge: 'Das Problem',
+      title: 'Generische Tools wurden nicht für Ihren Lebensstil entwickelt',
+      item1: 'Jonglieren mit 5+ Apps für Rechnungen, CRM, Reisen und Dokumente',
+      item2: 'Manuelles Verfolgen von Visa-Fristen in Tabellen',
+      item3: 'Keine Ahnung, wann Sie sich Steuerresidenz-Schwellen nähern',
+      item4: 'Stress bei Schengen 90/180-Berechnungen',
+      item5: 'Unorganisierte Passscans und Verträge überall'
+    },
+    solutions: {
+      badge: 'Die Lösung',
+      title: 'Eine Plattform für Ihr gesamtes Nomaden-Business',
+      item1: 'All-in-One-Dashboard für Kunden, Rechnungen, Reisen und Dokumente',
+      item2: 'Automatische Visa-Ablauf-Warnungen 90, 30 und 7 Tage im Voraus',
+      item3: 'Echtzeit-183-Tage-Steuerresidenz-Tracker pro Land',
+      item4: 'Schengen-Rechner, der einfach funktioniert',
+      item5: 'Verschlüsselter Tresor für alle wichtigen Dokumente'
+    },
+    testimonials: {
+      title: 'Geliebt von',
+      titleHighlight: 'Nomaden weltweit',
+      countries: '30+ Länder',
+      gdpr: 'DSGVO-konform',
+      security: 'Bank-Level-Sicherheit'
+    },
+    cta: {
+      title: 'Bereit, Ihr Nomaden-Leben zu vereinfachen?',
+      subtitle: 'Schließen Sie sich Tausenden von Freiberuflern und digitalen Nomaden an, die ihr gesamtes Geschäft von einem Dashboard aus verwalten.',
+      button: 'Kostenlos starten',
+      note: 'Keine Kreditkarte erforderlich • 5-Minuten-Einrichtung • Jederzeit kündbar'
+    },
+    footer: {
+      tagline: 'Entwickelt für Freiberufler & digitale Nomaden. Von überall arbeiten, weniger Sorgen.',
+      product: 'Produkt',
+      resources: 'Ressourcen',
+      legal: 'Rechtliches',
+      blog: 'Blog',
+      helpCenter: 'Hilfecenter',
+      privacy: 'Datenschutz',
+      terms: 'Nutzungsbedingungen',
+      copyright: 'Alle Rechte vorbehalten.',
+      gdprNote: 'DSGVO-konform • AES-256-Verschlüsselung'
     },
     pricing: {
       title: 'Einfache, transparente Preise',
@@ -209,25 +387,114 @@ const landingTranslations: Record<LandingLanguage, any> = {
   fr: {
     nav: {
       login: 'Se connecter',
-      signup: 'Commencer gratuitement'
-    },
-    banner: {
-      badge: '🎉 MVP est EN LIGNE !',
-      text: 'Application complète disponible maintenant • 100% gratuit pendant les tests • Toutes les fonctionnalités débloquées',
-      cta: 'Essayez gratuitement →'
+      signup: 'Commencer gratuitement',
+      features: 'Fonctionnalités',
+      howItWorks: 'Comment ça marche',
+      help: 'Aide'
     },
     hero: {
-      badgeAvailable: 'Disponible maintenant • Inscrivez-vous et commencez gratuitement',
-      badgeWaitlist: "Rejoignez la liste d'attente pour des avantages exclusifs de membre fondateur",
-      title1: 'Soyez payé, restez en règle, et ne perdez plus le fil de ',
-      title2: 'votre vie nomade.',
-      subtitle: 'NomadSuite est votre espace de travail pour les nomades numériques pour gérer vos clients, envoyer des factures multi-devises, et suivre vos jours de voyage & échéances de visa —',
-      subtitleBold: "le tout dans un tableau de bord simple.",
-      ctaPrimary: 'Commencer à l\'utiliser gratuitement',
-      ctaWaitlist: "Liste d'attente pour avantages",
-      trust1: '40+ pays',
-      trust2: 'Chiffrement de niveau bancaire',
-      trust3: 'Pas de carte de crédit'
+      badge: 'Disponible maintenant - Commencez gratuitement',
+      title1: 'Votre QG business pour',
+      title2: 'la liberté de localisation',
+      subtitle: 'Gérez vos clients, envoyez des factures, suivez vos jours de voyage et restez conforme aux visas — le tout depuis un tableau de bord conçu pour les nomades numériques.',
+      ctaPrimary: 'Commencer gratuitement',
+      ctaSecondary: 'Explorer les fonctionnalités',
+      trust1: 'Pas de carte de crédit requise',
+      trust2: 'Configuration en 5 minutes',
+      trust3: 'Conforme RGPD'
+    },
+    stats: {
+      features: '12+ Fonctionnalités principales',
+      currencies: '50+ Devises supportées',
+      languages: '6 Langues',
+      encryption: 'Chiffrement AES-256'
+    },
+    features: {
+      badge: 'Fonctionnalités puissantes',
+      title: 'Tout ce dont vous avez besoin en',
+      titleHighlight: 'un seul endroit',
+      subtitle: 'Conçu pour les freelances et nomades numériques qui doivent gérer leur entreprise tout en restant conformes au-delà des frontières.',
+      clientCRM: 'CRM Clients',
+      clientCRMDesc: 'Tableau pipeline visuel pour gérer prospects, clients actifs et relations',
+      invoicing: 'Facturation multi-devises',
+      invoicingDesc: 'Envoyez des factures professionnelles en 50+ devises avec taux de change automatiques',
+      taxTracker: 'Suivi résidence fiscale',
+      taxTrackerDesc: 'Calculateur règle des 183 jours avec alertes en temps réel par pays',
+      travelLog: 'Journal de voyage',
+      travelLogDesc: 'Suivez vos voyages, dates d\'entrée/sortie et jours passés dans chaque pays',
+      visaAlerts: 'Alertes expiration visa',
+      visaAlertsDesc: 'Soyez notifié 90, 30 et 7 jours avant l\'expiration de tout visa ou permis',
+      schengen: 'Calculateur Schengen',
+      schengenDesc: 'Suivi période glissante 90/180 jours pour conformité zone Schengen',
+      documents: 'Coffre-fort documents',
+      documentsDesc: 'Stockage chiffré pour passeports, visas, contrats et documents fiscaux',
+      expenses: 'Suivi des dépenses',
+      expensesDesc: 'Enregistrez les dépenses avec géolocalisation, catégories et téléchargement de reçus',
+      projects: 'Gestion de projets',
+      projectsDesc: 'Tableaux Kanban, tâches, jalons et suivi des échéances',
+      multilang: 'PDF multilingues',
+      multilangDesc: 'Générez des PDF de factures en 6 langues pour clients internationaux',
+      analytics: 'Analyse des revenus',
+      analyticsDesc: 'Suivez revenus, dépenses, marges bénéficiaires et tendances financières',
+      security: 'Sécurité bancaire',
+      securityDesc: 'Chiffrement AES-256, conforme RGPD et audits de sécurité réguliers'
+    },
+    howItWorks: {
+      badge: 'Démarrage rapide',
+      title: 'Opérationnel en',
+      titleHighlight: '5 minutes',
+      subtitle: 'Aucune compétence technique requise. Inscrivez-vous et commencez à organiser.',
+      step1Title: 'Créer un compte',
+      step1Desc: 'Configuration rapide avec votre email. Définissez votre nationalité et préférences de devise.',
+      step2Title: 'Ajouter des clients',
+      step2Desc: 'Importez ou créez des clients. Suivez les affaires via votre pipeline visuel.',
+      step3Title: 'Enregistrer vos voyages',
+      step3Desc: 'Enregistrez les voyages et voyez les calculs de résidence fiscale et visa en temps réel.',
+      step4Title: 'Envoyer des factures',
+      step4Desc: 'Créez des factures professionnelles dans n\'importe quelle devise et soyez payé plus vite.'
+    },
+    problems: {
+      badge: 'Le problème',
+      title: 'Les outils génériques ne sont pas faits pour votre style de vie',
+      item1: 'Jongler avec 5+ apps pour facturation, CRM, voyage et documents',
+      item2: 'Suivre manuellement les échéances de visa dans des tableurs',
+      item3: 'Ignorer quand vous approchez des seuils de résidence fiscale',
+      item4: 'Stress des calculs Schengen 90/180',
+      item5: 'Scans de passeports et contrats désorganisés partout'
+    },
+    solutions: {
+      badge: 'La solution',
+      title: 'Une plateforme pour toute votre activité nomade',
+      item1: 'Tableau de bord tout-en-un pour clients, factures, voyages et documents',
+      item2: 'Alertes automatiques d\'expiration de visa 90, 30 et 7 jours avant',
+      item3: 'Suivi en temps réel de la règle des 183 jours par pays',
+      item4: 'Calculateur Schengen qui fonctionne simplement',
+      item5: 'Coffre-fort chiffré pour tous vos documents importants'
+    },
+    testimonials: {
+      title: 'Adoré par les',
+      titleHighlight: 'nomades du monde entier',
+      countries: '30+ pays',
+      gdpr: 'Conforme RGPD',
+      security: 'Sécurité bancaire'
+    },
+    cta: {
+      title: 'Prêt à simplifier votre vie de nomade ?',
+      subtitle: 'Rejoignez des milliers de freelances et nomades numériques qui gèrent toute leur activité depuis un seul tableau de bord.',
+      button: 'Commencer gratuitement',
+      note: 'Pas de carte de crédit requise • Configuration en 5 min • Annulez quand vous voulez'
+    },
+    footer: {
+      tagline: 'Conçu pour les freelances & nomades numériques. Travaillez partout, inquiétez-vous moins.',
+      product: 'Produit',
+      resources: 'Ressources',
+      legal: 'Légal',
+      blog: 'Blog',
+      helpCenter: 'Centre d\'aide',
+      privacy: 'Politique de confidentialité',
+      terms: 'Conditions d\'utilisation',
+      copyright: 'Tous droits réservés.',
+      gdprNote: 'Conforme RGPD • Chiffrement AES-256'
     },
     pricing: {
       title: 'Prix simples et transparents',
@@ -285,25 +552,114 @@ const landingTranslations: Record<LandingLanguage, any> = {
   vi: {
     nav: {
       login: 'Đăng nhập',
-      signup: 'Bắt đầu miễn phí'
-    },
-    banner: {
-      badge: '🎉 MVP đã RA MẮT!',
-      text: 'Ứng dụng đầy đủ tính năng hiện đã có sẵn • 100% miễn phí trong thời gian thử nghiệm • Tất cả tính năng đã mở khóa',
-      cta: 'Dùng thử miễn phí →'
+      signup: 'Bắt đầu miễn phí',
+      features: 'Tính năng',
+      howItWorks: 'Cách hoạt động',
+      help: 'Trợ giúp'
     },
     hero: {
-      badgeAvailable: 'Đã có sẵn • Đăng ký và bắt đầu miễn phí',
-      badgeWaitlist: 'Tham gia danh sách chờ để nhận đặc quyền thành viên sáng lập độc quyền',
-      title1: 'Được thanh toán, tuân thủ pháp luật, và không còn mất dấu ',
-      title2: 'cuộc sống du mục của bạn.',
-      subtitle: 'NomadSuite là không gian làm việc cho dân du mục số để quản lý khách hàng, gửi hóa đơn đa tiền tệ, và theo dõi ngày du lịch & hạn visa —',
-      subtitleBold: 'tất cả trong một bảng điều khiển đơn giản.',
-      ctaPrimary: 'Bắt đầu sử dụng miễn phí',
-      ctaWaitlist: 'Tham gia danh sách chờ để nhận đặc quyền',
-      trust1: '40+ quốc gia',
-      trust2: 'Mã hóa cấp ngân hàng',
-      trust3: 'Không cần thẻ tín dụng'
+      badge: 'Đã có sẵn - Bắt đầu miễn phí ngay',
+      title1: 'Tổng hành dinh kinh doanh cho',
+      title2: 'Tự do địa điểm',
+      subtitle: 'Quản lý khách hàng, gửi hóa đơn, theo dõi ngày du lịch và tuân thủ visa — tất cả từ một bảng điều khiển được thiết kế cho dân du mục số.',
+      ctaPrimary: 'Bắt đầu miễn phí ngay',
+      ctaSecondary: 'Khám phá tính năng',
+      trust1: 'Không cần thẻ tín dụng',
+      trust2: 'Thiết lập 5 phút',
+      trust3: 'Tuân thủ GDPR'
+    },
+    stats: {
+      features: '12+ Tính năng cốt lõi',
+      currencies: '50+ Loại tiền tệ',
+      languages: '6 Ngôn ngữ',
+      encryption: 'Mã hóa AES-256'
+    },
+    features: {
+      badge: 'Tính năng mạnh mẽ',
+      title: 'Mọi thứ bạn cần trong',
+      titleHighlight: 'Một nơi',
+      subtitle: 'Được xây dựng riêng cho freelancer và dân du mục số cần quản lý công việc đồng thời tuân thủ quy định xuyên biên giới.',
+      clientCRM: 'CRM Khách hàng',
+      clientCRMDesc: 'Bảng pipeline trực quan để quản lý leads, khách hàng và mối quan hệ',
+      invoicing: 'Hóa đơn đa tiền tệ',
+      invoicingDesc: 'Gửi hóa đơn chuyên nghiệp bằng 50+ loại tiền tệ với tỷ giá tự động',
+      taxTracker: 'Theo dõi cư trú thuế',
+      taxTrackerDesc: 'Công cụ tính quy tắc 183 ngày với cảnh báo thời gian thực cho từng quốc gia',
+      travelLog: 'Nhật ký du lịch',
+      travelLogDesc: 'Theo dõi chuyến đi, ngày nhập/xuất cảnh và số ngày ở mỗi quốc gia',
+      visaAlerts: 'Cảnh báo hết hạn visa',
+      visaAlertsDesc: 'Nhận thông báo 90, 30 và 7 ngày trước khi visa hoặc giấy phép hết hạn',
+      schengen: 'Công cụ tính Schengen',
+      schengenDesc: 'Theo dõi chu kỳ 90/180 ngày để tuân thủ khu vực Schengen',
+      documents: 'Kho lưu trữ tài liệu',
+      documentsDesc: 'Lưu trữ mã hóa cho hộ chiếu, visa, hợp đồng và tài liệu thuế',
+      expenses: 'Theo dõi chi phí',
+      expensesDesc: 'Ghi nhận chi phí với định vị địa lý, danh mục và tải lên biên lai',
+      projects: 'Quản lý dự án',
+      projectsDesc: 'Bảng Kanban, công việc, mốc quan trọng và theo dõi hạn chót',
+      multilang: 'PDF đa ngôn ngữ',
+      multilangDesc: 'Tạo PDF hóa đơn bằng 6 ngôn ngữ cho khách hàng quốc tế',
+      analytics: 'Phân tích doanh thu',
+      analyticsDesc: 'Theo dõi thu nhập, chi phí, biên lợi nhuận và xu hướng tài chính',
+      security: 'Bảo mật cấp ngân hàng',
+      securityDesc: 'Mã hóa AES-256, tuân thủ GDPR và kiểm tra bảo mật định kỳ'
+    },
+    howItWorks: {
+      badge: 'Bắt đầu nhanh',
+      title: 'Sẵn sàng hoạt động trong',
+      titleHighlight: '5 phút',
+      subtitle: 'Không cần kỹ năng kỹ thuật. Chỉ cần đăng ký và bắt đầu tổ chức.',
+      step1Title: 'Tạo tài khoản',
+      step1Desc: 'Thiết lập nhanh với email. Đặt quốc tịch và tùy chọn tiền tệ.',
+      step2Title: 'Thêm khách hàng',
+      step2Desc: 'Nhập hoặc tạo khách hàng. Theo dõi giao dịch qua pipeline trực quan.',
+      step3Title: 'Ghi nhật ký du lịch',
+      step3Desc: 'Ghi lại chuyến đi và xem tính toán cư trú thuế và visa theo thời gian thực.',
+      step4Title: 'Gửi hóa đơn',
+      step4Desc: 'Tạo hóa đơn chuyên nghiệp bằng bất kỳ loại tiền tệ nào và được thanh toán nhanh hơn.'
+    },
+    problems: {
+      badge: 'Vấn đề',
+      title: 'Công cụ chung không được xây dựng cho lối sống của bạn',
+      item1: 'Xoay sở với 5+ ứng dụng cho hóa đơn, CRM, du lịch và tài liệu',
+      item2: 'Theo dõi thủ công hạn visa trong bảng tính',
+      item3: 'Không biết khi nào đang tiếp cận ngưỡng cư trú thuế',
+      item4: 'Căng thẳng về tính toán Schengen 90/180',
+      item5: 'Bản scan hộ chiếu và hợp đồng lộn xộn khắp nơi'
+    },
+    solutions: {
+      badge: 'Giải pháp',
+      title: 'Một nền tảng cho toàn bộ doanh nghiệp du mục của bạn',
+      item1: 'Bảng điều khiển tất-cả-trong-một cho khách hàng, hóa đơn, du lịch và tài liệu',
+      item2: 'Cảnh báo hết hạn visa tự động 90, 30 và 7 ngày trước',
+      item3: 'Theo dõi quy tắc 183 ngày cư trú thuế theo thời gian thực cho từng quốc gia',
+      item4: 'Công cụ tính Schengen hoạt động đơn giản',
+      item5: 'Kho lưu trữ mã hóa cho tất cả tài liệu quan trọng'
+    },
+    testimonials: {
+      title: 'Được yêu thích bởi',
+      titleHighlight: 'Dân du mục toàn cầu',
+      countries: '30+ quốc gia',
+      gdpr: 'Tuân thủ GDPR',
+      security: 'Bảo mật cấp ngân hàng'
+    },
+    cta: {
+      title: 'Sẵn sàng đơn giản hóa cuộc sống du mục?',
+      subtitle: 'Tham gia cùng hàng ngàn freelancer và dân du mục số quản lý toàn bộ doanh nghiệp từ một bảng điều khiển.',
+      button: 'Bắt đầu miễn phí',
+      note: 'Không cần thẻ tín dụng • Thiết lập 5 phút • Hủy bất cứ lúc nào'
+    },
+    footer: {
+      tagline: 'Được xây dựng cho freelancer & dân du mục số. Làm việc mọi nơi, lo lắng ít hơn.',
+      product: 'Sản phẩm',
+      resources: 'Tài nguyên',
+      legal: 'Pháp lý',
+      blog: 'Blog',
+      helpCenter: 'Trung tâm trợ giúp',
+      privacy: 'Chính sách bảo mật',
+      terms: 'Điều khoản dịch vụ',
+      copyright: 'Đã đăng ký bản quyền.',
+      gdprNote: 'Tuân thủ GDPR • Mã hóa AES-256'
     },
     pricing: {
       title: 'Giá cả đơn giản, minh bạch',
@@ -361,25 +717,114 @@ const landingTranslations: Record<LandingLanguage, any> = {
   ja: {
     nav: {
       login: 'ログイン',
-      signup: '無料で始める'
-    },
-    banner: {
-      badge: '🎉 MVPがリリースされました！',
-      text: 'フル機能アプリが現在利用可能 • テスト中は100%無料 • すべての機能がアンロック',
-      cta: '無料で試す →'
+      signup: '無料で始める',
+      features: '機能',
+      howItWorks: '使い方',
+      help: 'ヘルプ'
     },
     hero: {
-      badgeAvailable: '現在利用可能 • 無料でサインアップして開始',
-      badgeWaitlist: '創設メンバー限定特典のウェイトリストに参加',
-      title1: '報酬を受け取り、合法的に過ごし、ノマドライフを見失わない — ',
-      title2: 'すべてがここに。',
-      subtitle: 'NomadSuiteはデジタルノマドのためのワークスペース。クライアント管理、多通貨請求書の送信、旅行日数とビザの期限を追跡 —',
-      subtitleBold: 'すべてがシンプルなダッシュボードに。',
-      ctaPrimary: '無料で使い始める',
-      ctaWaitlist: '特典のウェイトリストに参加',
-      trust1: '40+カ国',
-      trust2: '銀行レベルの暗号化',
-      trust3: 'クレジットカード不要'
+      badge: '今すぐ利用可能 - 無料で始める',
+      title1: 'ロケーションフリーダムのための',
+      title2: 'ビジネス本部',
+      subtitle: 'クライアント管理、請求書送信、旅行日数の追跡、ビザコンプライアンス — デジタルノマドのために設計された美しいダッシュボードで全て管理。',
+      ctaPrimary: '今すぐ無料で始める',
+      ctaSecondary: '機能を探索',
+      trust1: 'クレジットカード不要',
+      trust2: '5分でセットアップ',
+      trust3: 'GDPR準拠'
+    },
+    stats: {
+      features: '12以上のコア機能',
+      currencies: '50以上の通貨対応',
+      languages: '6言語',
+      encryption: 'AES-256暗号化'
+    },
+    features: {
+      badge: '強力な機能',
+      title: '必要なものすべてを',
+      titleHighlight: '一箇所に',
+      subtitle: '国境を越えてコンプライアンスを維持しながらビジネスを管理する必要があるフリーランサーとデジタルノマドのために特別に構築。',
+      clientCRM: 'クライアントCRM',
+      clientCRMDesc: 'リード、アクティブクライアント、関係を管理するビジュアルパイプラインボード',
+      invoicing: '多通貨請求',
+      invoicingDesc: '自動為替レートで50以上の通貨でプロフェッショナルな請求書を送信',
+      taxTracker: '税務居住地トラッカー',
+      taxTrackerDesc: '各国のリアルタイムアラート付き183日ルール計算機',
+      travelLog: '旅行ログ',
+      travelLogDesc: '旅行、入出国日、各国での滞在日数を追跡',
+      visaAlerts: 'ビザ期限アラート',
+      visaAlertsDesc: 'ビザや許可証の期限切れ90日、30日、7日前に通知を受け取る',
+      schengen: 'シェンゲン計算機',
+      schengenDesc: 'シェンゲンエリアコンプライアンスのための90/180日ローリング期間トラッカー',
+      documents: 'ドキュメントボールト',
+      documentsDesc: 'パスポート、ビザ、契約書、税務書類の暗号化ストレージ',
+      expenses: '経費追跡',
+      expensesDesc: 'ジオタグ、カテゴリ、レシートアップロードで経費を記録',
+      projects: 'プロジェクト管理',
+      projectsDesc: 'カンバンボード、タスク、マイルストーン、締め切り追跡',
+      multilang: '多言語PDF',
+      multilangDesc: '国際クライアント向けに6言語で請求書PDFを生成',
+      analytics: '収益分析',
+      analyticsDesc: '収入、経費、利益率、財務トレンドを追跡',
+      security: '銀行レベルセキュリティ',
+      securityDesc: 'AES-256暗号化、GDPR準拠、定期的なセキュリティ監査'
+    },
+    howItWorks: {
+      badge: 'クイックスタート',
+      title: '稼働まで',
+      titleHighlight: '5分',
+      subtitle: '技術的なスキルは不要。登録して整理を始めるだけ。',
+      step1Title: 'アカウント作成',
+      step1Desc: 'メールでクイックセットアップ。国籍と通貨の設定。',
+      step2Title: 'クライアント追加',
+      step2Desc: 'クライアントをインポートまたは作成。ビジュアルパイプラインで取引を追跡。',
+      step3Title: '旅行を記録',
+      step3Desc: '旅行を記録し、リアルタイムの税務居住地とビザ計算を確認。',
+      step4Title: '請求書送信',
+      step4Desc: 'どの通貨でもプロフェッショナルな請求書を作成し、より早く支払いを受ける。'
+    },
+    problems: {
+      badge: '問題点',
+      title: '汎用ツールはあなたのライフスタイル向けに作られていない',
+      item1: '請求、CRM、旅行、ドキュメント用の5以上のアプリを使い分ける',
+      item2: 'スプレッドシートでビザの期限を手動追跡',
+      item3: '税務居住地の閾値に近づいているかわからない',
+      item4: 'シェンゲン90/180計算のストレス',
+      item5: 'パスポートスキャンや契約書があちこちに散らばっている'
+    },
+    solutions: {
+      badge: '解決策',
+      title: 'ノマドビジネス全体のためのワンプラットフォーム',
+      item1: 'クライアント、請求書、旅行、ドキュメントのためのオールインワンダッシュボード',
+      item2: '90日、30日、7日前の自動ビザ期限アラート',
+      item3: '国ごとのリアルタイム183日税務居住地トラッカー',
+      item4: 'シンプルに機能するシェンゲン計算機',
+      item5: 'すべての重要なドキュメントのための暗号化ボールト'
+    },
+    testimonials: {
+      title: '世界中の',
+      titleHighlight: 'ノマドに愛されている',
+      countries: '30以上の国',
+      gdpr: 'GDPR準拠',
+      security: '銀行レベルセキュリティ'
+    },
+    cta: {
+      title: 'ノマドライフをシンプルにする準備はできていますか？',
+      subtitle: 'ワンダッシュボードからビジネス全体を管理する何千人ものフリーランサーやデジタルノマドに参加しましょう。',
+      button: '無料で始める',
+      note: 'クレジットカード不要 • 5分でセットアップ • いつでもキャンセル可能'
+    },
+    footer: {
+      tagline: 'フリーランサー＆デジタルノマドのために構築。どこでも働き、心配は少なく。',
+      product: 'プロダクト',
+      resources: 'リソース',
+      legal: '法的情報',
+      blog: 'ブログ',
+      helpCenter: 'ヘルプセンター',
+      privacy: 'プライバシーポリシー',
+      terms: '利用規約',
+      copyright: '全著作権所有。',
+      gdprNote: 'GDPR準拠 • AES-256暗号化'
     },
     pricing: {
       title: 'シンプルで透明な料金体系',
@@ -437,25 +882,114 @@ const landingTranslations: Record<LandingLanguage, any> = {
   zh: {
     nav: {
       login: '登录',
-      signup: '免费开始'
-    },
-    banner: {
-      badge: '🎉 MVP已上线！',
-      text: '全功能应用现已可用 • 测试期间100%免费 • 所有功能已解锁',
-      cta: '免费试用 →'
+      signup: '免费开始',
+      features: '功能',
+      howItWorks: '使用方法',
+      help: '帮助'
     },
     hero: {
-      badgeAvailable: '现已可用 • 注册并免费开始',
-      badgeWaitlist: '加入候补名单获取专属创始会员福利',
-      title1: '获得报酬，保持合法，不再迷失 ',
-      title2: '您的游牧生活。',
-      subtitle: 'NomadSuite是数字游民的工作空间，用于管理客户、发送多币种发票、跟踪旅行天数和签证截止日期 —',
-      subtitleBold: '全部集成在一个简单的仪表板中。',
-      ctaPrimary: '开始免费使用',
-      ctaWaitlist: '加入候补名单获取福利',
-      trust1: '40+国家',
-      trust2: '银行级加密',
-      trust3: '无需信用卡'
+      badge: '现已可用 - 立即免费开始',
+      title1: '为位置自由打造的',
+      title2: '商务总部',
+      subtitle: '管理客户、发送发票、跟踪旅行天数、保持签证合规 — 一切尽在为数字游民设计的精美仪表板中。',
+      ctaPrimary: '立即免费开始',
+      ctaSecondary: '探索功能',
+      trust1: '无需信用卡',
+      trust2: '5分钟设置',
+      trust3: 'GDPR合规'
+    },
+    stats: {
+      features: '12+核心功能',
+      currencies: '50+种货币支持',
+      languages: '6种语言',
+      encryption: 'AES-256加密'
+    },
+    features: {
+      badge: '强大功能',
+      title: '您需要的一切尽在',
+      titleHighlight: '一处',
+      subtitle: '专为需要跨境合规管理业务的自由职业者和数字游民打造。',
+      clientCRM: '客户CRM',
+      clientCRMDesc: '可视化管道看板，管理潜在客户、活跃客户和关系',
+      invoicing: '多币种发票',
+      invoicingDesc: '以50+种货币发送专业发票，自动汇率',
+      taxTracker: '税务居住追踪器',
+      taxTrackerDesc: '183天规则计算器，每个国家实时提醒',
+      travelLog: '旅行日志',
+      travelLogDesc: '跟踪行程、入境/出境日期和每个国家的停留天数',
+      visaAlerts: '签证到期提醒',
+      visaAlertsDesc: '在签证或许可证到期前90、30和7天收到通知',
+      schengen: '申根计算器',
+      schengenDesc: '申根区合规的90/180天滚动期跟踪器',
+      documents: '文档保险库',
+      documentsDesc: '护照、签证、合同和税务文件的加密存储',
+      expenses: '费用跟踪',
+      expensesDesc: '记录费用，支持地理标记、分类和收据上传',
+      projects: '项目管理',
+      projectsDesc: '看板、任务、里程碑和截止日期跟踪',
+      multilang: '多语言PDF',
+      multilangDesc: '为国际客户生成6种语言的发票PDF',
+      analytics: '收入分析',
+      analyticsDesc: '跟踪收入、支出、利润率和财务趋势',
+      security: '银行级安全',
+      securityDesc: 'AES-256加密、GDPR合规和定期安全审计'
+    },
+    howItWorks: {
+      badge: '快速开始',
+      title: '5分钟内',
+      titleHighlight: '启动运行',
+      subtitle: '无需技术技能。只需注册并开始整理。',
+      step1Title: '创建账户',
+      step1Desc: '使用电子邮件快速设置。设置您的国籍和货币偏好。',
+      step2Title: '添加客户',
+      step2Desc: '导入或创建客户。通过可视化管道跟踪交易。',
+      step3Title: '记录旅行',
+      step3Desc: '记录行程，查看实时税务居住和签证计算。',
+      step4Title: '发送发票',
+      step4Desc: '创建任何货币的专业发票，更快收款。'
+    },
+    problems: {
+      badge: '问题',
+      title: '通用工具不是为您的生活方式设计的',
+      item1: '在5个以上的应用之间切换处理发票、CRM、旅行和文档',
+      item2: '在电子表格中手动跟踪签证截止日期',
+      item3: '不知道何时接近税务居住阈值',
+      item4: '为申根90/180计算感到压力',
+      item5: '护照扫描件和合同到处散落'
+    },
+    solutions: {
+      badge: '解决方案',
+      title: '一个平台满足您整个游牧业务需求',
+      item1: '客户、发票、旅行和文档一站式仪表板',
+      item2: '签证到期前90、30和7天自动提醒',
+      item3: '每个国家的实时183天税务居住跟踪器',
+      item4: '简单好用的申根计算器',
+      item5: '所有重要文档的加密保险库'
+    },
+    testimonials: {
+      title: '被全球',
+      titleHighlight: '游牧者喜爱',
+      countries: '30+国家',
+      gdpr: 'GDPR合规',
+      security: '银行级安全'
+    },
+    cta: {
+      title: '准备简化您的游牧生活？',
+      subtitle: '加入数千名从单一仪表板管理整个业务的自由职业者和数字游民。',
+      button: '免费开始',
+      note: '无需信用卡 • 5分钟设置 • 随时取消'
+    },
+    footer: {
+      tagline: '为自由职业者和数字游民打造。随处工作，减少担忧。',
+      product: '产品',
+      resources: '资源',
+      legal: '法律',
+      blog: '博客',
+      helpCenter: '帮助中心',
+      privacy: '隐私政策',
+      terms: '服务条款',
+      copyright: '版权所有。',
+      gdprNote: 'GDPR合规 • AES-256加密'
     },
     pricing: {
       title: '简单透明的定价',
