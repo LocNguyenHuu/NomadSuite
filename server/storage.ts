@@ -30,7 +30,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  getUserByReplitId(replitId: string): Promise<User | undefined>;
+  getUserByGoogleId(googleId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   upsertOAuthUser(oauthUser: UpsertOAuthUser): Promise<User>;
 
@@ -177,8 +177,8 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async getUserByReplitId(replitId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.replitId, replitId));
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.googleId, googleId));
     return user || undefined;
   }
 
@@ -188,7 +188,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertOAuthUser(oauthUser: UpsertOAuthUser): Promise<User> {
-    const existingUser = await this.getUserByReplitId(oauthUser.replitId);
+    const existingUser = await this.getUserByGoogleId(oauthUser.googleId);
     
     if (existingUser) {
       const [updatedUser] = await db
@@ -209,7 +209,7 @@ export class DatabaseStorage implements IStorage {
         const [updatedUser] = await db
           .update(users)
           .set({
-            replitId: oauthUser.replitId,
+            googleId: oauthUser.googleId,
             name: oauthUser.name,
             profileImageUrl: oauthUser.profileImageUrl,
             updatedAt: new Date(),
@@ -223,8 +223,8 @@ export class DatabaseStorage implements IStorage {
     const [newUser] = await db
       .insert(users)
       .values({
-        replitId: oauthUser.replitId,
-        email: oauthUser.email || `oauth_${oauthUser.replitId}@placeholder.local`,
+        googleId: oauthUser.googleId,
+        email: oauthUser.email || `oauth_${oauthUser.googleId}@placeholder.local`,
         name: oauthUser.name,
         profileImageUrl: oauthUser.profileImageUrl,
       })

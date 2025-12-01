@@ -3,7 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations, sql } from "drizzle-orm";
 
-// Session storage table for Replit Auth
+// Session storage table for authentication
 export const sessions = pgTable(
   "sessions",
   {
@@ -28,7 +28,7 @@ export const workspaces = pgTable("workspaces", {
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   workspaceId: integer("workspace_id").references(() => workspaces.id),
-  replitId: text("replit_id").unique(), // OAuth provider ID (Replit Auth)
+  googleId: text("google_id").unique(), // Google OAuth provider ID
   username: text("username").unique(), // Optional for social login
   password: text("password"), // Optional for OAuth-only users
   name: text("name").notNull(),
@@ -468,9 +468,9 @@ export const documentRetentionJobsRelations = relations(documentRetentionJobs, (
 export const insertWorkspaceSchema = createInsertSchema(workspaces).omit({ id: true, createdAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, updatedAt: true });
 
-// Type for OAuth user upsert (Replit Auth)
+// Type for OAuth user upsert (Google OAuth)
 export type UpsertOAuthUser = {
-  replitId: string;
+  googleId: string;
   email: string | null;
   name: string;
   profileImageUrl?: string | null;
