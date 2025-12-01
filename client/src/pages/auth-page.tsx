@@ -3,31 +3,18 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Globe, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Globe, Eye, EyeOff, Loader2, User, AtSign, KeyRound } from 'lucide-react';
 import { useLocation, Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
-// @ts-ignore
-import heroImage from '@assets/generated_images/A_minimal,_modern_hero_illustration_for_a_digital_nomad_app._f04ea532.png';
-
-function GoogleIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-    </svg>
-  );
-}
 
 export default function AuthPage() {
-  const { loginWithGoogle, user, isLoading } = useAuth();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [showEmailForm, setShowEmailForm] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [formLoading, setFormLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -44,9 +31,9 @@ export default function AuthPage() {
     return null;
   }
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormLoading(true);
+    setIsLoading(true);
 
     try {
       const csrfRes = await fetch('/api/csrf-token', { credentials: 'include' });
@@ -84,182 +71,140 @@ export default function AuthPage() {
         variant: 'destructive',
       });
     } finally {
-      setFormLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex" data-testid="auth-page">
-      {/* Left: Auth Form */}
-      <div className="flex-1 flex flex-col justify-center p-8 md:p-16 lg:max-w-xl bg-background">
-        <div className="mb-8">
-          <Link href="/" className="flex items-center gap-2 font-heading font-bold text-2xl text-primary mb-8 hover:opacity-80 transition-opacity">
-            <Globe className="h-8 w-8" />
-            <span>NomadSuite</span>
-          </Link>
-          <h1 className="text-4xl font-heading font-bold tracking-tight mb-2">
-            {showEmailForm ? (isLoginMode ? 'Sign in with email' : 'Create your account') : 'Welcome to NomadSuite'}
-          </h1>
-          <p className="text-muted-foreground">
-            {showEmailForm 
-              ? (isLoginMode ? 'Enter your credentials to continue' : 'Fill in your details to get started')
-              : 'Manage your freelance business across borders with ease.'
-            }
-          </p>
-        </div>
-
-        {!showEmailForm ? (
-          <div className="space-y-4">
-            {/* Google Sign In */}
-            <Button 
-              onClick={loginWithGoogle} 
-              variant="outline"
-              className="w-full h-12 text-base gap-3 border-2 hover:bg-muted/50 transition-colors"
-              disabled={isLoading}
-              data-testid="button-google-login"
-            >
-              <GoogleIcon className="h-5 w-5" />
-              Continue with Google
-            </Button>
-
-            {/* Divider */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">or</span>
-              </div>
-            </div>
-
-            {/* Email Sign In */}
-            <Button 
-              onClick={() => setShowEmailForm(true)} 
-              variant="secondary"
-              className="w-full h-12 text-base gap-3"
-              data-testid="button-email-login"
-            >
-              <Mail className="h-5 w-5" />
-              Continue with Email
-            </Button>
-
-            <p className="text-center text-sm text-muted-foreground mt-6">
-              By continuing, you agree to our{' '}
-              <a href="/terms" className="underline hover:text-primary">Terms of Service</a>
-              {' '}and{' '}
-              <a href="/privacy" className="underline hover:text-primary">Privacy Policy</a>
-            </p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/50 p-4" data-testid="auth-page">
+      <div className="w-full max-w-md">
+        <Link href="/" className="flex items-center justify-center gap-2.5 mb-8 group">
+          <div className="p-2 rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
+            <Globe className="h-6 w-6 text-primary" />
           </div>
-        ) : (
-          <form onSubmit={handleEmailSubmit} className="space-y-4">
-            {!isLoginMode && (
+          <span className="text-2xl font-semibold tracking-tight">NomadSuite</span>
+        </Link>
+
+        <Card className="border-0 shadow-xl shadow-black/5">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-2xl font-semibold">
+              {isLoginMode ? 'Welcome back' : 'Create account'}
+            </CardTitle>
+            <CardDescription className="text-base">
+              {isLoginMode 
+                ? 'Sign in to continue to your dashboard' 
+                : 'Get started with NomadSuite today'
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {!isLoginMode && (
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="John Doe"
+                      className="pl-10 h-11"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required={!isLoginMode}
+                      disabled={isLoading}
+                      data-testid="input-name"
+                    />
+                  </div>
+                </div>
+              )}
+              
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="John Doe"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required={!isLoginMode}
-                  data-testid="input-name"
-                />
+                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                <div className="relative">
+                  <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    className="pl-10 h-11"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                    disabled={isLoading}
+                    data-testid="input-email"
+                  />
+                </div>
               </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  className="pl-10"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                  data-testid="input-email"
-                />
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    className="pl-10 pr-10 h-11"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    required
+                    minLength={6}
+                    disabled={isLoading}
+                    data-testid="input-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors"
+                    tabIndex={-1}
+                    data-testid="button-toggle-password"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  className="pl-10 pr-10"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                  minLength={6}
-                  data-testid="input-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  data-testid="button-toggle-password"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
+              <Button 
+                type="submit" 
+                className="w-full h-11 text-base font-medium"
+                disabled={isLoading}
+                data-testid="button-submit-auth"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Please wait...
+                  </>
+                ) : (
+                  isLoginMode ? 'Sign In' : 'Create Account'
+                )}
+              </Button>
+            </form>
 
-            <Button 
-              type="submit" 
-              className="w-full h-12 text-base gap-2"
-              disabled={formLoading}
-              data-testid="button-submit-auth"
-            >
-              {formLoading ? 'Please wait...' : (isLoginMode ? 'Sign In' : 'Create Account')}
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-
-            <div className="text-center space-y-2">
+            <div className="mt-6 text-center">
               <button
                 type="button"
-                onClick={() => setIsLoginMode(!isLoginMode)}
-                className="text-sm text-primary hover:underline"
+                onClick={() => {
+                  setIsLoginMode(!isLoginMode);
+                  setFormData({ name: '', email: '', password: '' });
+                }}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 data-testid="button-toggle-mode"
               >
-                {isLoginMode ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+                {isLoginMode ? "Don't have an account? " : 'Already have an account? '}
+                <span className="font-medium text-primary">{isLoginMode ? 'Sign up' : 'Sign in'}</span>
               </button>
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setShowEmailForm(false)}
-                  className="text-sm text-muted-foreground hover:text-foreground"
-                  data-testid="button-back-to-options"
-                >
-                  ← Back to all options
-                </button>
-              </div>
             </div>
-          </form>
-        )}
-      </div>
+          </CardContent>
+        </Card>
 
-      {/* Right: Hero */}
-      <div className="hidden lg:flex flex-1 bg-muted relative overflow-hidden items-center justify-center p-16">
-        <div className="absolute inset-0 bg-primary/10 z-0" />
-        <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-purple-500/20 blur-3xl opacity-30" />
-        
-        <div className="relative z-10 max-w-lg text-center">
-          <img 
-            src={heroImage} 
-            alt="Digital Nomad Workspace" 
-            className="rounded-2xl shadow-2xl border border-white/20 w-full mb-8 hover:scale-[1.02] transition-transform duration-700"
-          />
-          <h2 className="text-3xl font-heading font-bold mb-4">Your Freedom, Organized.</h2>
-          <p className="text-muted-foreground text-lg">
-            Join thousands of freelancers managing their clients, invoices, and visas in one beautiful dashboard.
-          </p>
-        </div>
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          By continuing, you agree to our{' '}
+          <Link href="/terms" className="underline hover:text-primary">Terms</Link>
+          {' '}and{' '}
+          <Link href="/privacy" className="underline hover:text-primary">Privacy Policy</Link>
+        </p>
       </div>
     </div>
   );
