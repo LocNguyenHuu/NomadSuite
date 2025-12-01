@@ -1,7 +1,18 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp, date, unique, pgEnum, check } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, date, unique, pgEnum, check, varchar, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations, sql } from "drizzle-orm";
+
+// Session storage table for Replit Auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
 
 // Workspaces
 export const workspaces = pgTable("workspaces", {
@@ -17,10 +28,12 @@ export const workspaces = pgTable("workspaces", {
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   workspaceId: integer("workspace_id").references(() => workspaces.id),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  replitId: text("replit_id").unique(), // OAuth provider ID (Replit Auth)
+  username: text("username").unique(), // Optional for social login
+  password: text("password"), // Optional for OAuth-only users
   name: text("name").notNull(),
-  email: text("email").notNull(),
+  email: text("email").notNull().unique(),
+  profileImageUrl: text("profile_image_url"), // Profile picture from OAuth
   homeCountry: text("home_country").default("USA"),
   currentCountry: text("current_country").default("Japan"),
   role: text("role").default("user").notNull(), // 'admin', 'user'
@@ -42,6 +55,7 @@ export const users = pgTable("users", {
   dateFormat: text("date_format").default("MM/DD/YYYY"), // 'MM/DD/YYYY', 'DD/MM/YYYY', 'DD.MM.YYYY'
   invoicePrefix: text("invoice_prefix").default("NS-"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Clients
@@ -452,7 +466,15 @@ export const documentRetentionJobsRelations = relations(documentRetentionJobs, (
 
 // Zod Schemas
 export const insertWorkspaceSchema = createInsertSchema(workspaces).omit({ id: true, createdAt: true });
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, updatedAt: true });
+
+// Type for OAuth user upsert (Replit Auth)
+export type UpsertOAuthUser = {
+  replitId: string;
+  email: string | null;
+  name: string;
+  profileImageUrl?: string | null;
+};
 
 export const insertClientSchema = createInsertSchema(clients, {
   lastInteractionDate: z.coerce.date().optional(),

@@ -15,7 +15,8 @@ import {
   type FeatureRequest, type InsertFeatureRequest,
   type Expense, type InsertExpense, type UpdateExpense,
   type Project, type InsertProject, type UpdateProject,
-  type Task, type InsertTask, type UpdateTask
+  type Task, type InsertTask, type UpdateTask,
+  type UpsertOAuthUser
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, count, or, desc, inArray, isNull, and } from "drizzle-orm";
@@ -28,7 +29,10 @@ const PostgresSessionStore = connectPg(session);
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByReplitId(replitId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  upsertOAuthUser(oauthUser: UpsertOAuthUser): Promise<User>;
 
   // Workspace
   getWorkspace(id: number): Promise<Workspace | undefined>;
@@ -168,9 +172,64 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async getUserByReplitId(replitId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.replitId, replitId));
+    return user || undefined;
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
+  }
+
+  async upsertOAuthUser(oauthUser: UpsertOAuthUser): Promise<User> {
+    const existingUser = await this.getUserByReplitId(oauthUser.replitId);
+    
+    if (existingUser) {
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          name: oauthUser.name,
+          profileImageUrl: oauthUser.profileImageUrl,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, existingUser.id))
+        .returning();
+      return updatedUser;
+    }
+    
+    if (oauthUser.email) {
+      const existingEmailUser = await this.getUserByEmail(oauthUser.email);
+      if (existingEmailUser) {
+        const [updatedUser] = await db
+          .update(users)
+          .set({
+            replitId: oauthUser.replitId,
+            name: oauthUser.name,
+            profileImageUrl: oauthUser.profileImageUrl,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, existingEmailUser.id))
+          .returning();
+        return updatedUser;
+      }
+    }
+    
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        replitId: oauthUser.replitId,
+        email: oauthUser.email || `oauth_${oauthUser.replitId}@placeholder.local`,
+        name: oauthUser.name,
+        profileImageUrl: oauthUser.profileImageUrl,
+      })
+      .returning();
+    return newUser;
   }
 
   async getClient(id: number): Promise<Client | undefined> {
@@ -189,12 +248,12 @@ export class DatabaseStorage implements IStorage {
         userId: clients.userId,
         name: clients.name,
         email: clients.email,
-        phone: clients.phone,
-        company: clients.company,
-        address: clients.address,
         country: clients.country,
-        taxId: clients.taxId,
         status: clients.status,
+        notes: clients.notes,
+        lastInteractionDate: clients.lastInteractionDate,
+        nextActionDate: clients.nextActionDate,
+        nextActionDescription: clients.nextActionDescription,
         createdAt: clients.createdAt,
         userName: users.name,
       })
@@ -247,20 +306,24 @@ export class DatabaseStorage implements IStorage {
         id: invoices.id,
         userId: invoices.userId,
         clientId: invoices.clientId,
+        projectId: invoices.projectId,
         invoiceNumber: invoices.invoiceNumber,
-        issueDate: invoices.issueDate,
-        dueDate: invoices.dueDate,
-        status: invoices.status,
+        amount: invoices.amount,
         currency: invoices.currency,
-        subtotal: invoices.subtotal,
-        taxAmount: invoices.taxAmount,
-        total: invoices.total,
+        status: invoices.status,
+        dueDate: invoices.dueDate,
+        issuedAt: invoices.issuedAt,
         items: invoices.items,
-        notes: invoices.notes,
-        termsAndConditions: invoices.termsAndConditions,
+        tax: invoices.tax,
+        notesToClient: invoices.notesToClient,
+        country: invoices.country,
         language: invoices.language,
-        complianceData: invoices.complianceData,
-        createdAt: invoices.createdAt,
+        exchangeRate: invoices.exchangeRate,
+        customerVatId: invoices.customerVatId,
+        reverseCharge: invoices.reverseCharge,
+        reverseChargeNote: invoices.reverseChargeNote,
+        complianceChecked: invoices.complianceChecked,
+        templateVersion: invoices.templateVersion,
         userName: users.name,
         clientName: clients.name,
       })
@@ -268,7 +331,7 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(users, eq(invoices.userId, users.id))
       .leftJoin(clients, eq(invoices.clientId, clients.id))
       .where(eq(users.workspaceId, workspaceId))
-      .orderBy(desc(invoices.createdAt));
+      .orderBy(desc(invoices.issuedAt));
     
     return result as (Invoice & { userName: string; clientName: string })[];
   }
@@ -365,10 +428,10 @@ export class DatabaseStorage implements IStorage {
     
     const workspaceInvoices = await db.select().from(invoices).where(inArray(invoices.userId, userIds));
     
-    const totalRevenue = workspaceInvoices.reduce((sum, inv) => sum + inv.total, 0);
-    const paidRevenue = workspaceInvoices.filter(inv => inv.status === 'Paid').reduce((sum, inv) => sum + inv.total, 0);
-    const pendingRevenue = workspaceInvoices.filter(inv => inv.status === 'Sent').reduce((sum, inv) => sum + inv.total, 0);
-    const overdueRevenue = workspaceInvoices.filter(inv => inv.status === 'Overdue').reduce((sum, inv) => sum + inv.total, 0);
+    const totalRevenue = workspaceInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+    const paidRevenue = workspaceInvoices.filter(inv => inv.status === 'Paid').reduce((sum, inv) => sum + inv.amount, 0);
+    const pendingRevenue = workspaceInvoices.filter(inv => inv.status === 'Sent').reduce((sum, inv) => sum + inv.amount, 0);
+    const overdueRevenue = workspaceInvoices.filter(inv => inv.status === 'Overdue').reduce((sum, inv) => sum + inv.amount, 0);
     
     // Revenue by month (last 6 months)
     const revenueByMonth: Array<{ month: string; revenue: number }> = [];
@@ -378,11 +441,11 @@ export class DatabaseStorage implements IStorage {
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       const monthRevenue = workspaceInvoices
         .filter(inv => {
-          const invDate = new Date(inv.issueDate);
+          const invDate = inv.issuedAt ? new Date(inv.issuedAt) : new Date();
           const invMonthKey = `${invDate.getFullYear()}-${String(invDate.getMonth() + 1).padStart(2, '0')}`;
           return invMonthKey === monthKey && inv.status === 'Paid';
         })
-        .reduce((sum, inv) => sum + inv.total, 0);
+        .reduce((sum, inv) => sum + inv.amount, 0);
       
       revenueByMonth.push({ month: monthKey, revenue: monthRevenue });
     }
@@ -391,7 +454,7 @@ export class DatabaseStorage implements IStorage {
     const revenueByUser = workspaceUserIds.map(user => {
       const userRevenue = workspaceInvoices
         .filter(inv => inv.userId === user.id && inv.status === 'Paid')
-        .reduce((sum, inv) => sum + inv.total, 0);
+        .reduce((sum, inv) => sum + inv.amount, 0);
       
       return {
         userId: user.id,
