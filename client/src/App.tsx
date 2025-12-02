@@ -34,6 +34,7 @@ import { LandingI18nProvider } from "@/contexts/LandingI18nContext";
 import { AppI18nProvider } from "@/contexts/AppI18nContext";
 import { useEffect } from "react";
 import { setCsrfToken } from "@/lib/api";
+import { Redirect } from "wouter";
 
 function CsrfInitializer() {
   useEffect(() => {
@@ -58,6 +59,7 @@ function Router() {
       <Route path="/register" component={AuthPage} />
       
       {/* App Routes */}
+      <Route path="/app">{() => <Redirect to="/app/dashboard" />}</Route>
       <ProtectedRoute path="/app/dashboard" component={Dashboard} />
       <ProtectedRoute path="/app/clients" component={Clients} />
       <ProtectedRoute path="/app/clients/:id" component={ClientDetail} />
