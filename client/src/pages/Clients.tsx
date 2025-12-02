@@ -30,7 +30,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, MoreHorizontal, Mail, FileText, LayoutGrid, List as ListIcon, MapPin, Calendar, Trash2, Edit } from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Mail, FileText, LayoutGrid, List as ListIcon, MapPin, Calendar, Trash2, Edit, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { EmptyState } from '@/components/ui/empty-state';
+import { staggerContainer, staggerItem, tableRowVariants } from '@/lib/motion';
 import { useClients } from '@/hooks/use-clients';
 import { InsertClient, Client, Invoice } from '@shared/schema';
 import { useQuery } from '@tanstack/react-query';

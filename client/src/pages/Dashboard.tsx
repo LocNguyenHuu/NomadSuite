@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/use-auth';
 import { useClients } from '@/hooks/use-clients';
 import { useInvoices } from '@/hooks/use-invoices';
@@ -11,6 +12,7 @@ import { useTrips } from '@/hooks/use-trips';
 import { useProjects } from '@/hooks/use-projects';
 import { useExpenses } from '@/hooks/use-expenses';
 import { useTasks } from '@/hooks/use-projects';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   DollarSign, 
   Users, 
@@ -28,7 +30,15 @@ import {
   Target,
   PieChart,
   BarChart3,
-  Wallet
+  Wallet,
+  Sparkles,
+  Bell,
+  Shield,
+  Plane,
+  Send,
+  UserPlus,
+  MapPin,
+  Zap
 } from 'lucide-react';
 import { 
   Area, 
@@ -87,6 +97,109 @@ export default function Dashboard() {
 
   const currentTrip = trips.find(t => !t.exitDate);
   const daysInCountry = currentTrip ? differenceInDays(new Date(), new Date(currentTrip.entryDate)) : 0;
+
+  const smartActions = useMemo(() => {
+    const actions: { id: string; title: string; description: string; icon: any; href: string; priority: 'high' | 'medium' | 'low'; color: string }[] = [];
+    
+    if (overdueInvoices > 0) {
+      actions.push({
+        id: 'overdue-invoices',
+        title: 'Follow up on overdue invoices',
+        description: `${overdueInvoices} invoice${overdueInvoices > 1 ? 's' : ''} past due date`,
+        icon: AlertTriangle,
+        href: '/app/invoices',
+        priority: 'high',
+        color: 'text-red-600 bg-red-100 dark:bg-red-900/30'
+      });
+    }
+    
+    if (leadClients > 0) {
+      actions.push({
+        id: 'convert-leads',
+        title: 'Convert leads to clients',
+        description: `${leadClients} lead${leadClients > 1 ? 's' : ''} in your pipeline`,
+        icon: UserPlus,
+        href: '/app/clients',
+        priority: 'medium',
+        color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30'
+      });
+    }
+    
+    if (daysInCountry > 75 && daysInCountry < 90) {
+      actions.push({
+        id: 'visa-warning',
+        title: 'Check visa requirements',
+        description: `${90 - daysInCountry} days until 90-day limit`,
+        icon: Plane,
+        href: '/app/travel',
+        priority: 'high',
+        color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30'
+      });
+    }
+    
+    if (clients.length === 0) {
+      actions.push({
+        id: 'add-first-client',
+        title: 'Add your first client',
+        description: 'Start building your client network',
+        icon: UserPlus,
+        href: '/app/clients',
+        priority: 'medium',
+        color: 'text-primary bg-primary/10'
+      });
+    }
+    
+    if (projects.filter(p => p.status === 'In Progress').length > 0 && pendingTasks > 5) {
+      actions.push({
+        id: 'review-tasks',
+        title: 'Review pending tasks',
+        description: `${pendingTasks} tasks need attention`,
+        icon: Target,
+        href: '/app/projects',
+        priority: 'medium',
+        color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30'
+      });
+    }
+    
+    return actions.sort((a, b) => {
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    }).slice(0, 4);
+  }, [overdueInvoices, leadClients, daysInCountry, clients.length, projects, pendingTasks]);
+
+  const complianceAlerts = useMemo(() => {
+    const alerts: { id: string; title: string; description: string; type: 'warning' | 'info' | 'danger'; icon: any }[] = [];
+    
+    if (daysInCountry >= 90) {
+      alerts.push({
+        id: 'visa-limit',
+        title: 'Visa Limit Reached',
+        description: `You've been in ${currentTrip?.country || 'current country'} for ${daysInCountry} days. Check local visa requirements.`,
+        type: 'danger',
+        icon: Shield
+      });
+    } else if (daysInCountry >= 75) {
+      alerts.push({
+        id: 'visa-approaching',
+        title: 'Approaching Visa Limit',
+        description: `${90 - daysInCountry} days remaining in standard 90-day tourist visa period.`,
+        type: 'warning',
+        icon: Plane
+      });
+    }
+    
+    if (daysInCountry >= 150) {
+      alerts.push({
+        id: 'tax-residency',
+        title: 'Tax Residency Alert',
+        description: `${daysInCountry} days may trigger tax residency obligations. Consult a tax professional.`,
+        type: 'warning',
+        icon: FileText
+      });
+    }
+    
+    return alerts;
+  }, [daysInCountry, currentTrip]);
 
   const generateMonthlyData = () => {
     const months: { name: string; revenue: number; expenses: number }[] = [];
@@ -237,6 +350,118 @@ export default function Dashboard() {
             alert={overdueInvoices > 0}
           />
         </div>
+
+        {/* Compliance Alerts */}
+        <AnimatePresence>
+          {complianceAlerts.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-3"
+            >
+              {complianceAlerts.map((alert, index) => (
+                <motion.div
+                  key={alert.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Alert 
+                    className={`border-l-4 ${
+                      alert.type === 'danger' 
+                        ? 'border-l-red-500 bg-red-50/50 dark:bg-red-900/10' 
+                        : alert.type === 'warning'
+                        ? 'border-l-amber-500 bg-amber-50/50 dark:bg-amber-900/10'
+                        : 'border-l-blue-500 bg-blue-50/50 dark:bg-blue-900/10'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-lg ${
+                        alert.type === 'danger' ? 'bg-red-100 dark:bg-red-900/30' :
+                        alert.type === 'warning' ? 'bg-amber-100 dark:bg-amber-900/30' :
+                        'bg-blue-100 dark:bg-blue-900/30'
+                      }`}>
+                        <alert.icon className={`h-4 w-4 ${
+                          alert.type === 'danger' ? 'text-red-600' :
+                          alert.type === 'warning' ? 'text-amber-600' :
+                          'text-blue-600'
+                        }`} />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-sm">{alert.title}</h4>
+                        <AlertDescription className="text-sm mt-1">
+                          {alert.description}
+                        </AlertDescription>
+                      </div>
+                    </div>
+                  </Alert>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Smart Quick Actions */}
+        {smartActions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="shadow-sm border-border/50 overflow-hidden">
+              <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-violet-500/5">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <div className="p-1.5 rounded-lg bg-primary/10">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                  </div>
+                  Suggested Actions
+                  <Badge variant="secondary" className="ml-auto text-xs">
+                    {smartActions.length} action{smartActions.length > 1 ? 's' : ''}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {smartActions.map((action, index) => (
+                    <motion.div
+                      key={action.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.1 + index * 0.05 }}
+                    >
+                      <Link href={action.href}>
+                        <div 
+                          className="group p-4 rounded-xl border bg-card hover:shadow-md hover:border-primary/20 transition-all duration-200 cursor-pointer h-full"
+                          data-testid={`quick-action-${action.id}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`p-2 rounded-lg ${action.color} shrink-0`}>
+                              <action.icon className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-sm group-hover:text-primary transition-colors line-clamp-2">
+                                {action.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                {action.description}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-end mt-3 pt-2 border-t border-dashed">
+                            <span className="text-xs text-primary font-medium group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                              Take action <ArrowRight className="h-3 w-3" />
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         <div className="grid gap-4 lg:grid-cols-3">
           <Card className="lg:col-span-2 shadow-sm border-border/50">

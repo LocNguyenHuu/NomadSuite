@@ -23,7 +23,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Download, Info, Globe, Mail, Search, Filter, Edit, Trash2, Check, ChevronsUpDown } from 'lucide-react';
+import { Plus, Download, Info, Globe, Mail, Search, Filter, Edit, Trash2, Check, ChevronsUpDown, FileText } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { EmptyState } from '@/components/ui/empty-state';
+import { staggerContainer, staggerItem } from '@/lib/motion';
 import { useInvoices } from '@/hooks/use-invoices';
 import { useClients } from '@/hooks/use-clients';
 import { InsertInvoice, JurisdictionRule, User } from '@shared/schema';

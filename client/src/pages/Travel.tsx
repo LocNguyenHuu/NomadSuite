@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TravelCalendar } from '@/components/TravelCalendar';
 import { useTrips } from '@/hooks/use-trips';
 import { useQuery } from '@tanstack/react-query';
-import { MapPin, Calendar as CalendarIcon, Plus, AlertTriangle, Globe, TrendingUp } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
+import { MapPin, Calendar as CalendarIcon, Plus, AlertTriangle, Globe, TrendingUp, Plane, Clock, Flag } from 'lucide-react';
+import { format, differenceInDays, startOfYear, endOfYear } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
   Dialog,
   DialogContent,
@@ -23,6 +24,9 @@ import { useForm } from 'react-hook-form';
 import { InsertTrip } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
 import { useAppI18n } from '@/contexts/AppI18nContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { EmptyState } from '@/components/ui/empty-state';
+import { fadeInUp, staggerContainer, staggerItem } from '@/lib/motion';
 
 interface CountryDays {
   country: string;
@@ -306,50 +310,98 @@ export default function Travel() {
         )}
 
         {/* Trip Timeline */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Trip History</h3>
-          <div className="relative pl-6 border-l border-border space-y-8">
-            {trips.map((trip, i) => {
-              const days = trip.exitDate 
-                ? differenceInDays(new Date(trip.exitDate), new Date(trip.entryDate)) + 1
-                : differenceInDays(new Date(), new Date(trip.entryDate)) + 1;
+        <Card className="shadow-sm border-border/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Plane className="h-5 w-5 text-primary" />
+              Trip History
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {trips.length === 0 ? (
+              <EmptyState
+                icon={Plane}
+                title="No trips logged yet"
+                description="Start tracking your travels to see compliance calculations, tax residency insights, and visa limit warnings."
+                actionLabel="Log Your First Trip"
+                onAction={() => setOpen(true)}
+                variant="minimal"
+              />
+            ) : (
+              <motion.div 
+                className="relative pl-8 border-l-2 border-primary/20 space-y-6"
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+              >
+                {trips.map((trip, i) => {
+                  const days = trip.exitDate 
+                    ? differenceInDays(new Date(trip.exitDate), new Date(trip.entryDate)) + 1
+                    : differenceInDays(new Date(), new Date(trip.entryDate)) + 1;
+                  const isCurrentTrip = i === 0 && !trip.exitDate;
 
-              return (
-                <div key={trip.id} className="relative group">
-                  <div className="absolute -left-[29px] top-0 flex h-6 w-6 items-center justify-center rounded-full border bg-background group-hover:border-primary group-hover:text-primary transition-colors">
-                    <MapPin className="h-3 w-3" />
-                  </div>
-                  <div className="rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <h3 className="font-bold text-lg flex items-center gap-2">
-                        {trip.country}
-                        {i === 0 && !trip.exitDate && (
-                          <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Current</span>
+                  return (
+                    <motion.div 
+                      key={trip.id} 
+                      className="relative group"
+                      variants={staggerItem}
+                    >
+                      <div className={`absolute -left-[33px] top-2 flex h-8 w-8 items-center justify-center rounded-full border-2 bg-background transition-all duration-200 ${
+                        isCurrentTrip 
+                          ? 'border-emerald-500 text-emerald-500 shadow-lg shadow-emerald-500/20' 
+                          : 'border-primary/30 text-primary/50 group-hover:border-primary group-hover:text-primary'
+                      }`}>
+                        {isCurrentTrip ? (
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ repeat: Infinity, duration: 2 }}
+                          >
+                            <Flag className="h-4 w-4" />
+                          </motion.div>
+                        ) : (
+                          <MapPin className="h-4 w-4" />
                         )}
-                      </h3>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <CalendarIcon className="mr-1 h-3 w-3" />
-                        {format(new Date(trip.entryDate), 'MMM d, yyyy')} 
-                        {trip.exitDate ? ` — ${format(new Date(trip.exitDate), 'MMM d, yyyy')}` : ' — Present'}
                       </div>
-                    </div>
-                    {trip.notes && <p className="text-sm text-muted-foreground mt-2">{trip.notes}</p>}
-                    <div className="mt-3 flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                      <span className="bg-muted px-2 py-1 rounded-md">
-                        {trip.exitDate ? `${days} days` : `${days} days so far`}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-            {trips.length === 0 && (
-              <div className="text-muted-foreground text-sm">
-                No trips logged yet. Start adding your travel history to see calculations and insights!
-              </div>
+                      <div className={`rounded-xl border bg-card p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/20 ${
+                        isCurrentTrip ? 'ring-2 ring-emerald-500/20 border-emerald-200' : ''
+                      }`}>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <h3 className="font-bold text-lg flex items-center gap-2">
+                            {trip.country}
+                            {isCurrentTrip && (
+                              <Badge variant="default" className="bg-emerald-500 hover:bg-emerald-600 text-xs">
+                                Current Location
+                              </Badge>
+                            )}
+                          </h3>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <CalendarIcon className="mr-1.5 h-4 w-4" />
+                            {format(new Date(trip.entryDate), 'MMM d, yyyy')} 
+                            {trip.exitDate ? ` → ${format(new Date(trip.exitDate), 'MMM d, yyyy')}` : ' → Present'}
+                          </div>
+                        </div>
+                        {trip.notes && (
+                          <p className="text-sm text-muted-foreground mt-2 italic">"{trip.notes}"</p>
+                        )}
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <Badge variant="secondary" className="font-medium">
+                            <Clock className="mr-1 h-3 w-3" />
+                            {trip.exitDate ? `${days} days` : `${days} days so far`}
+                          </Badge>
+                          {days >= 30 && (
+                            <Badge variant="outline" className="text-amber-600 border-amber-300">
+                              Extended Stay
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );
