@@ -168,26 +168,27 @@ export default function Dashboard() {
   return (
     <AppLayout>
       <div className="space-y-6" data-testid="dashboard-page">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-heading font-bold tracking-tight" data-testid="text-dashboard-title">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="app-page-header">
+            <h1 className="app-page-title" data-testid="text-dashboard-title">
               {t('dashboard.title')}
-            </h2>
-            <p className="text-muted-foreground">
-              {t('dashboard.welcome')}, {user?.name}. {t('dashboard.overview')}.
+            </h1>
+            <p className="app-page-description">
+              {t('dashboard.welcome')}, {user?.name}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="action-button-group">
             <Link href="/app/projects">
               <Button variant="outline" size="sm" data-testid="button-new-project">
-                <Plus className="h-4 w-4 mr-1" />
-                {t('projects.createProject') || 'New Project'}
+                <Plus className="h-4 w-4 mr-1.5" />
+                New Project
               </Button>
             </Link>
             <Link href="/app/invoices">
               <Button size="sm" data-testid="button-new-invoice">
-                <Plus className="h-4 w-4 mr-1" />
-                {t('dashboard.createInvoice')}
+                <Plus className="h-4 w-4 mr-1.5" />
+                New Invoice
               </Button>
             </Link>
           </div>
@@ -666,25 +667,33 @@ function StatCard({
   alert?: boolean;
   trend?: 'up' | 'down' | 'neutral';
 }) {
+  const iconBg = alert 
+    ? 'bg-orange-100 dark:bg-orange-900/30' 
+    : trend === 'up' 
+      ? 'bg-green-100 dark:bg-green-900/30'
+      : trend === 'down'
+        ? 'bg-red-100 dark:bg-red-900/30'
+        : 'bg-muted';
+  
+  const iconColor = alert 
+    ? 'text-orange-600 dark:text-orange-400' 
+    : trend === 'up' 
+      ? 'text-green-600 dark:text-green-400'
+      : trend === 'down'
+        ? 'text-red-600 dark:text-red-400'
+        : 'text-muted-foreground';
+
   return (
-    <Card className={`shadow-sm hover:shadow-md transition-shadow border-border/50 ${
-      alert ? 'border-orange-200 bg-orange-50/30 dark:bg-orange-900/10' : ''
-    }`} data-testid={`card-stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className={`h-4 w-4 ${
-          alert ? 'text-orange-500' : 
-          trend === 'up' ? 'text-green-500' : 
-          trend === 'down' ? 'text-red-500' : 
-          'text-muted-foreground'
-        }`} />
-      </CardHeader>
-      <CardContent>
-        <div className={`text-2xl font-bold font-heading ${
-          alert ? 'text-orange-600 dark:text-orange-400' : ''
-        }`}>{value}</div>
-        <p className="text-xs text-muted-foreground mt-1">{desc}</p>
-      </CardContent>
-    </Card>
+    <div className={`stat-card ${alert ? 'border-orange-200 dark:border-orange-800/50' : ''}`} 
+         data-testid={`card-stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+      <div className={`stat-card-icon ${iconBg}`}>
+        <Icon className={`h-5 w-5 ${iconColor}`} />
+      </div>
+      <div className={`stat-card-value ${alert ? 'text-orange-600 dark:text-orange-400' : ''}`}>
+        {value}
+      </div>
+      <div className="stat-card-label">{title}</div>
+      <p className="text-xs text-muted-foreground mt-2">{desc}</p>
+    </div>
   );
 }

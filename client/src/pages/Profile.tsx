@@ -187,10 +187,11 @@ export default function Profile() {
 
   return (
     <AppLayout>
-      <div className="space-y-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{t('profile.title')}</h1>
-          <p className="text-muted-foreground">
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div className="app-page-header">
+          <h1 className="app-page-title">{t('profile.title')}</h1>
+          <p className="app-page-description">
             Manage your account settings and business information
           </p>
         </div>

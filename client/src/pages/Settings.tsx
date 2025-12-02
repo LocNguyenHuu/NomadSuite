@@ -131,10 +131,11 @@ export default function Settings() {
 
   return (
     <AppLayout>
-      <div className="space-y-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{t('settings.title')}</h1>
-          <p className="text-muted-foreground">
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div className="app-page-header">
+          <h1 className="app-page-title">{t('settings.title')}</h1>
+          <p className="app-page-description">
             Manage your preferences and default settings
           </p>
         </div>

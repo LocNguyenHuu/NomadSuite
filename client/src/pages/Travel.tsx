@@ -97,16 +97,17 @@ export default function Travel() {
 
   return (
     <AppLayout>
-      <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-heading font-bold tracking-tight">{t('travel.title')}</h2>
-            <p className="text-muted-foreground">Monitor your residency status and visa limits.</p>
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="app-page-header">
+            <h1 className="app-page-title">{t('travel.title')}</h1>
+            <p className="app-page-description">Monitor your residency status and visa limits</p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="shadow-lg shadow-primary/20" data-testid="button-add-trip">
-                <Plus className="mr-2 h-4 w-4" /> Add Trip
+              <Button data-testid="button-add-trip">
+                <Plus className="mr-1.5 h-4 w-4" /> Add Trip
               </Button>
             </DialogTrigger>
             <DialogContent>

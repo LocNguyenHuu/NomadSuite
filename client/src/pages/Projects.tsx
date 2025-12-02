@@ -231,18 +231,19 @@ export default function Projects() {
   return (
     <AppLayout>
       <div className="space-y-6" data-testid="projects-page">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold" data-testid="text-page-title">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="app-page-header">
+            <h1 className="app-page-title" data-testid="text-page-title">
               {t('nav.projects') || 'Projects'}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="app-page-description">
               {t('projects.subtitle') || 'Manage your projects and track progress'}
             </p>
           </div>
           <Button onClick={() => setCreateDialogOpen(true)} data-testid="button-create-project">
-            <Plus className="mr-2 h-4 w-4" />
-            {t('projects.createProject') || 'Create Project'}
+            <Plus className="mr-1.5 h-4 w-4" />
+            {t('projects.createProject') || 'New Project'}
           </Button>
         </div>
 

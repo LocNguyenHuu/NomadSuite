@@ -931,3 +931,206 @@
     filter: none !important;
   }
 }
+
+/* ============================================
+   APP UI/UX OPTIMIZATION STYLES
+   Clean, simple, intuitive design for nomads
+   ============================================ */
+
+/* App Page Headers */
+.app-page-header {
+  @apply mb-6;
+}
+
+.app-page-title {
+  @apply text-2xl md:text-3xl font-bold tracking-tight text-foreground;
+  letter-spacing: -0.02em;
+}
+
+.app-page-description {
+  @apply text-sm text-muted-foreground mt-1;
+}
+
+/* Clean Stat Cards */
+.stat-card {
+  @apply relative overflow-hidden rounded-xl border bg-card p-5 transition-all duration-200;
+}
+
+.stat-card:hover {
+  @apply shadow-md border-primary/20;
+}
+
+.stat-card-icon {
+  @apply h-10 w-10 rounded-lg flex items-center justify-center mb-3;
+}
+
+.stat-card-value {
+  @apply text-2xl font-bold tracking-tight;
+}
+
+.stat-card-label {
+  @apply text-xs font-medium text-muted-foreground uppercase tracking-wide mt-1;
+}
+
+/* Clean Data Tables */
+.data-table {
+  @apply rounded-xl border bg-card overflow-hidden;
+}
+
+.data-table th {
+  @apply text-xs font-semibold uppercase tracking-wider text-muted-foreground bg-muted/50 px-4 py-3;
+}
+
+.data-table td {
+  @apply px-4 py-3.5 text-sm;
+}
+
+.data-table tr {
+  @apply border-b border-border/50 last:border-0;
+}
+
+.data-table tbody tr:hover {
+  @apply bg-muted/30;
+}
+
+/* Status Badges - Clean & Minimal */
+.status-badge {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+}
+
+.status-badge-dot {
+  @apply w-1.5 h-1.5 rounded-full;
+}
+
+/* Clean Form Inputs */
+.form-section {
+  @apply space-y-4 p-5 rounded-xl border bg-card;
+}
+
+.form-section-title {
+  @apply text-base font-semibold mb-4;
+}
+
+.form-label {
+  @apply text-sm font-medium text-foreground mb-1.5 block;
+}
+
+.form-hint {
+  @apply text-xs text-muted-foreground mt-1;
+}
+
+/* Clean Action Buttons */
+.action-button-group {
+  @apply flex items-center gap-2;
+}
+
+/* Empty States */
+.empty-state {
+  @apply flex flex-col items-center justify-center py-12 text-center;
+}
+
+.empty-state-icon {
+  @apply h-12 w-12 text-muted-foreground/50 mb-4;
+}
+
+.empty-state-title {
+  @apply text-lg font-semibold text-foreground mb-1;
+}
+
+.empty-state-description {
+  @apply text-sm text-muted-foreground max-w-sm;
+}
+
+/* Quick Action Cards */
+.quick-action-card {
+  @apply flex items-center gap-3 p-4 rounded-lg border bg-card hover:bg-muted/50 hover:border-primary/30 transition-all cursor-pointer;
+}
+
+.quick-action-icon {
+  @apply h-9 w-9 rounded-lg flex items-center justify-center bg-primary/10 text-primary;
+}
+
+/* Metric Trend Indicators */
+.trend-up {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.trend-down {
+  @apply text-red-600 dark:text-red-400;
+}
+
+.trend-neutral {
+  @apply text-muted-foreground;
+}
+
+/* Clean Sidebar Navigation */
+.nav-item {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors;
+}
+
+.nav-item-active {
+  @apply bg-primary/10 text-primary;
+}
+
+.nav-item-inactive {
+  @apply text-muted-foreground hover:text-foreground hover:bg-muted/50;
+}
+
+/* Clean Alert Cards */
+.alert-card {
+  @apply flex items-start gap-3 p-4 rounded-lg border;
+}
+
+.alert-card-warning {
+  @apply bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900;
+}
+
+.alert-card-success {
+  @apply bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900;
+}
+
+.alert-card-info {
+  @apply bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-900;
+}
+
+/* Progress Indicators */
+.progress-bar {
+  @apply h-2 rounded-full bg-muted overflow-hidden;
+}
+
+.progress-fill {
+  @apply h-full rounded-full bg-primary transition-all duration-500;
+}
+
+/* Clean List Items */
+.list-item {
+  @apply flex items-center justify-between py-3 border-b border-border/50 last:border-0;
+}
+
+.list-item-title {
+  @apply text-sm font-medium text-foreground;
+}
+
+.list-item-subtitle {
+  @apply text-xs text-muted-foreground;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+  .app-page-title {
+    @apply text-xl;
+  }
+  
+  .stat-card {
+    @apply p-4;
+  }
+  
+  .stat-card-value {
+    @apply text-xl;
+  }
+  
+  .data-table th,
+  .data-table td {
+    @apply px-3 py-2.5 text-xs;
+  }
+}

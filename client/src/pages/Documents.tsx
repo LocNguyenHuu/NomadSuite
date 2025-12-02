@@ -219,17 +219,17 @@ export default function Documents() {
 
   return (
     <AppLayout>
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-heading font-bold tracking-tight">{t('documents.title')}</h2>
-            <p className="text-muted-foreground">GDPR-compliant encrypted storage for your sensitive documents.</p>
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="app-page-header">
+            <h1 className="app-page-title">{t('documents.title')}</h1>
+            <p className="app-page-description">GDPR-compliant encrypted storage for your sensitive documents</p>
           </div>
           <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
             <DialogTrigger asChild>
-              <Button className="shadow-lg shadow-primary/20" data-testid="button-upload-document">
-                <Upload className="mr-2 h-4 w-4" /> Upload
+              <Button data-testid="button-upload-document">
+                <Upload className="mr-1.5 h-4 w-4" /> Upload
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">

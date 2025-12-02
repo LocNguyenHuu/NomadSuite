@@ -494,21 +494,22 @@ export default function Expenses() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold" data-testid="text-expenses-title">Expenses</h1>
-            <p className="text-muted-foreground">Track and manage your business expenses</p>
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="app-page-header">
+            <h1 className="app-page-title" data-testid="text-expenses-title">Expenses</h1>
+            <p className="app-page-description">Track and manage your business expenses</p>
           </div>
-          <div className="flex gap-2">
+          <div className="action-button-group">
             <Button variant="outline" onClick={handleExportCSV} data-testid="button-export-expenses">
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
+              <Download className="h-4 w-4 mr-1.5" />
+              Export
             </Button>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button data-testid="button-add-expense">
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4 mr-1.5" />
                   Add Expense
                 </Button>
               </DialogTrigger>
@@ -527,62 +528,47 @@ export default function Expenses() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Expenses</p>
-                  <p className="text-2xl font-bold" data-testid="text-total-expenses">
-                    {formatAmount(stats?.totalAmount || 0, 'USD')}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2">
-                <Receipt className="h-5 w-5 text-blue-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Records</p>
-                  <p className="text-2xl font-bold" data-testid="text-expense-count">
-                    {stats?.totalExpenses || 0}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-purple-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Categories</p>
-                  <p className="text-2xl font-bold">
-                    {stats?.expensesByCategory?.length || 0}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-orange-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">This Month</p>
-                  <p className="text-2xl font-bold">
-                    {formatAmount(
-                      stats?.expensesByMonth?.find(m => m.month === format(new Date(), 'yyyy-MM'))?.total || 0,
-                      'USD'
-                    )}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Stats Grid */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <div className="stat-card">
+            <div className="stat-card-icon bg-green-100 dark:bg-green-900/30">
+              <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="stat-card-value" data-testid="text-total-expenses">
+              {formatAmount(stats?.totalAmount || 0, 'USD')}
+            </div>
+            <div className="stat-card-label">Total Expenses</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-icon bg-blue-100 dark:bg-blue-900/30">
+              <Receipt className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="stat-card-value" data-testid="text-expense-count">
+              {stats?.totalExpenses || 0}
+            </div>
+            <div className="stat-card-label">Total Records</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-icon bg-purple-100 dark:bg-purple-900/30">
+              <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            </div>
+            <div className="stat-card-value">
+              {stats?.expensesByCategory?.length || 0}
+            </div>
+            <div className="stat-card-label">Categories</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-icon bg-orange-100 dark:bg-orange-900/30">
+              <Calendar className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+            </div>
+            <div className="stat-card-value">
+              {formatAmount(
+                stats?.expensesByMonth?.find(m => m.month === format(new Date(), 'yyyy-MM'))?.total || 0,
+                'USD'
+              )}
+            </div>
+            <div className="stat-card-label">This Month</div>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

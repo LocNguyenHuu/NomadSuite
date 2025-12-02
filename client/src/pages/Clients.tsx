@@ -198,16 +198,17 @@ export default function Clients() {
 
   return (
     <AppLayout>
-      <div className="space-y-8">
+      <div className="space-y-6">
+        {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-heading font-bold tracking-tight">{t('clients.title')}</h2>
-            <p className="text-muted-foreground">Manage your relationships and pipeline.</p>
+          <div className="app-page-header">
+            <h1 className="app-page-title">{t('clients.title')}</h1>
+            <p className="app-page-description">Manage your relationships and pipeline</p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="shadow-lg shadow-primary/20">
-                <Plus className="mr-2 h-4 w-4" /> Add Client
+              <Button>
+                <Plus className="mr-1.5 h-4 w-4" /> Add Client
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -247,47 +248,40 @@ export default function Clients() {
           </Dialog>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4 mb-6">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-                    <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{conversionRate}%</div>
-                    <p className="text-xs text-muted-foreground">Leads to Active</p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Action Overdue</CardTitle>
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{actionOverdueCount}</div>
-                    <p className="text-xs text-muted-foreground">Clients require attention</p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Overdue Invoices</CardTitle>
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{clientsWithOverdue}</div>
-                    <p className="text-xs text-muted-foreground">{overdueRate}% of client base</p>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Pipeline</CardTitle>
-                    <ListIcon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{totalClients}</div>
-                    <p className="text-xs text-muted-foreground">{activeClients} Active, {leadClients} Leads</p>
-                </CardContent>
-            </Card>
+        {/* Stats Grid */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <div className="stat-card">
+            <div className="stat-card-icon bg-primary/10">
+              <LayoutGrid className="h-5 w-5 text-primary" />
+            </div>
+            <div className="stat-card-value">{conversionRate}%</div>
+            <div className="stat-card-label">Conversion Rate</div>
+            <p className="text-xs text-muted-foreground mt-2">Leads to Active</p>
+          </div>
+          <div className={`stat-card ${actionOverdueCount > 0 ? 'border-amber-200 dark:border-amber-800/50' : ''}`}>
+            <div className={`stat-card-icon ${actionOverdueCount > 0 ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-muted'}`}>
+              <Calendar className={`h-5 w-5 ${actionOverdueCount > 0 ? 'text-amber-600' : 'text-muted-foreground'}`} />
+            </div>
+            <div className={`stat-card-value ${actionOverdueCount > 0 ? 'text-amber-600 dark:text-amber-400' : ''}`}>{actionOverdueCount}</div>
+            <div className="stat-card-label">Action Overdue</div>
+            <p className="text-xs text-muted-foreground mt-2">Need attention</p>
+          </div>
+          <div className={`stat-card ${clientsWithOverdue > 0 ? 'border-red-200 dark:border-red-800/50' : ''}`}>
+            <div className={`stat-card-icon ${clientsWithOverdue > 0 ? 'bg-red-100 dark:bg-red-900/30' : 'bg-muted'}`}>
+              <FileText className={`h-5 w-5 ${clientsWithOverdue > 0 ? 'text-red-600' : 'text-muted-foreground'}`} />
+            </div>
+            <div className={`stat-card-value ${clientsWithOverdue > 0 ? 'text-red-600 dark:text-red-400' : ''}`}>{clientsWithOverdue}</div>
+            <div className="stat-card-label">Overdue Invoices</div>
+            <p className="text-xs text-muted-foreground mt-2">{overdueRate}% of clients</p>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-icon bg-muted">
+              <ListIcon className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="stat-card-value">{totalClients}</div>
+            <div className="stat-card-label">Total Clients</div>
+            <p className="text-xs text-muted-foreground mt-2">{activeClients} Active, {leadClients} Leads</p>
+          </div>
         </div>
 
         <Tabs defaultValue="list" className="space-y-6">
