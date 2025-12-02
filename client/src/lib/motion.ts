@@ -1,5 +1,16 @@
 import { Variants } from 'framer-motion';
 
+export const reducedMotionVariants: Variants = {
+  hidden: { opacity: 1 },
+  visible: { opacity: 1 }
+};
+
+export const noMotionVariants: Variants = {
+  initial: { opacity: 1 },
+  animate: { opacity: 1 },
+  exit: { opacity: 1 }
+};
+
 export const fadeIn: Variants = {
   hidden: { opacity: 0 },
   visible: { 

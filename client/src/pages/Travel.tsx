@@ -24,9 +24,9 @@ import { useForm } from 'react-hook-form';
 import { InsertTrip } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
 import { useAppI18n } from '@/contexts/AppI18nContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { EmptyState } from '@/components/ui/empty-state';
-import { fadeInUp, staggerContainer, staggerItem } from '@/lib/motion';
+import { fadeInUp, staggerContainer, staggerItem, reducedMotionVariants } from '@/lib/motion';
 
 interface CountryDays {
   country: string;
@@ -58,6 +58,7 @@ export default function Travel() {
   const [open, setOpen] = useState(false);
   const { register, handleSubmit, reset } = useForm<InsertTrip>();
   const { toast } = useToast();
+  const shouldReduceMotion = useReducedMotion();
 
   // Fetch calculations from backend
   const { data: taxResidency } = useQuery<CountryDays[]>({
@@ -330,7 +331,7 @@ export default function Travel() {
             ) : (
               <motion.div 
                 className="relative pl-8 border-l-2 border-primary/20 space-y-6"
-                variants={staggerContainer}
+                variants={shouldReduceMotion ? reducedMotionVariants : staggerContainer}
                 initial="hidden"
                 animate="visible"
               >
@@ -344,7 +345,7 @@ export default function Travel() {
                     <motion.div 
                       key={trip.id} 
                       className="relative group"
-                      variants={staggerItem}
+                      variants={shouldReduceMotion ? reducedMotionVariants : staggerItem}
                     >
                       <div className={`absolute -left-[33px] top-2 flex h-8 w-8 items-center justify-center rounded-full border-2 bg-background transition-all duration-200 ${
                         isCurrentTrip 
@@ -353,8 +354,8 @@ export default function Travel() {
                       }`}>
                         {isCurrentTrip ? (
                           <motion.div
-                            animate={{ scale: [1, 1.2, 1] }}
-                            transition={{ repeat: Infinity, duration: 2 }}
+                            animate={shouldReduceMotion ? undefined : { scale: [1, 1.2, 1] }}
+                            transition={shouldReduceMotion ? undefined : { repeat: Infinity, duration: 2 }}
                           >
                             <Flag className="h-4 w-4" />
                           </motion.div>

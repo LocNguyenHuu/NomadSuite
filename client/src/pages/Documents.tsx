@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Upload, Clock, Download, Trash2, Shield, Lock } from 'lucide-react';
+import { FileText, Upload, Clock, Download, Trash2, Shield, Lock, FolderLock } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Dialog,
@@ -32,6 +32,9 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { getCsrfToken } from '@/lib/api';
 import { useAppI18n } from '@/contexts/AppI18nContext';
+import { motion, useReducedMotion } from 'framer-motion';
+import { EmptyState } from '@/components/ui/empty-state';
+import { staggerContainer, staggerItem, reducedMotionVariants } from '@/lib/motion';
 
 interface VaultDocument {
   id: number;
@@ -68,6 +71,7 @@ export default function Documents() {
   const [selectedDoc, setSelectedDoc] = useState<VaultDocument | null>(null);
   const { register, handleSubmit, control, reset, watch } = useForm<UploadFormData>();
   const retentionPolicy = watch('retentionPolicy');
+  const shouldReduceMotion = useReducedMotion();
 
   // Fetch vault documents
   const { data: documents = [], isLoading } = useQuery<VaultDocument[]>({
@@ -385,14 +389,27 @@ export default function Documents() {
         {/* Documents Grid */}
         {isLoading ? (
           <div className="text-center py-12 text-muted-foreground">Loading documents...</div>
+        ) : documents.length === 0 ? (
+          <EmptyState
+            icon={FolderLock}
+            title="Your Document Vault is Empty"
+            description="Securely store passports, visas, contracts, tax documents, and more with AES-256 encryption."
+            actionLabel="Upload Your First Document"
+            onAction={() => setUploadOpen(true)}
+          />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={shouldReduceMotion ? reducedMotionVariants : staggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
             {documents.map((doc) => (
-              <Card 
-                key={doc.id} 
-                className="group hover:shadow-md transition-all border-border/50"
-                data-testid={`card-document-${doc.id}`}
-              >
+              <motion.div key={doc.id} variants={shouldReduceMotion ? reducedMotionVariants : staggerItem}>
+                <Card 
+                  className="group hover:shadow-md transition-all border-border/50 h-full"
+                  data-testid={`card-document-${doc.id}`}
+                >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center dark:bg-blue-900/20">
@@ -456,21 +473,23 @@ export default function Documents() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+                </Card>
+              </motion.div>
             ))}
             
             {/* Upload Placeholder */}
-            <div 
+            <motion.div 
+              variants={shouldReduceMotion ? reducedMotionVariants : staggerItem}
               onClick={() => setUploadOpen(true)}
-              className="border-2 border-dashed border-muted-foreground/20 rounded-xl flex flex-col items-center justify-center p-6 h-full min-h-[280px] hover:bg-muted/50 transition-colors cursor-pointer"
+              className="border-2 border-dashed border-muted-foreground/20 rounded-xl flex flex-col items-center justify-center p-6 h-full min-h-[280px] hover:bg-muted/50 hover:border-primary/30 transition-all cursor-pointer"
               data-testid="button-upload-placeholder"
             >
               <Upload className="h-8 w-8 text-muted-foreground mb-2" />
               <p className="font-medium text-muted-foreground">Drop files to upload</p>
               <p className="text-xs text-muted-foreground/70">PDF, JPG, PNG up to 10MB</p>
               <p className="text-xs text-muted-foreground/70 mt-1">AES-256 encrypted</p>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
 
         {/* Delete Confirmation Dialog */}

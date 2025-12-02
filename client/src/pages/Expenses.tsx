@@ -38,7 +38,8 @@ import {
   TrendingUp,
   Calendar,
   Tag,
-  X
+  X,
+  Wallet
 } from 'lucide-react';
 import { useExpenses, ExpenseWithClient } from '@/hooks/use-expenses';
 import { useClients } from '@/hooks/use-clients';
@@ -47,6 +48,9 @@ import { useForm, Controller } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { useAppI18n } from '@/contexts/AppI18nContext';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { motion, useReducedMotion } from 'framer-motion';
+import { EmptyState } from '@/components/ui/empty-state';
+import { staggerContainer, staggerItem, fadeInUp, reducedMotionVariants } from '@/lib/motion';
 
 const EXPENSE_CATEGORIES = [
   'Travel',
@@ -137,6 +141,7 @@ export default function Expenses() {
   });
   
   const { register: registerEdit, handleSubmit: handleEditSubmit, control: controlEdit, reset: resetEdit, setValue: setEditValue } = useForm<ExpenseFormData>();
+  const shouldReduceMotion = useReducedMotion();
 
   const filteredExpenses = expenses.filter(expense => {
     const matchesSearch = 
@@ -629,10 +634,23 @@ export default function Expenses() {
                         Loading expenses...
                       </TableCell>
                     </TableRow>
+                  ) : expenses.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="py-0 border-0">
+                        <EmptyState
+                          icon={Wallet}
+                          title="No Expenses Yet"
+                          description="Track your business expenses with geo-tagging, receipt uploads, and category breakdowns."
+                          actionLabel="Add Your First Expense"
+                          onAction={() => setCreateDialogOpen(true)}
+                          variant="minimal"
+                        />
+                      </TableCell>
+                    </TableRow>
                   ) : filteredExpenses.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        No expenses found. Add your first expense to get started.
+                        No expenses match your search. Try adjusting your filters.
                       </TableCell>
                     </TableRow>
                   ) : (
