@@ -9,6 +9,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
+import { TablePagination, usePagination } from '@/components/ui/table-pagination';
 import { 
   Dialog,
   DialogContent,
@@ -100,6 +101,16 @@ export default function Invoices() {
     
     return matchesSearch && matchesStatus;
   });
+
+  const {
+    currentPage,
+    pageSize,
+    totalPages,
+    totalItems,
+    paginatedItems: paginatedInvoices,
+    handlePageChange,
+    handlePageSizeChange,
+  } = usePagination(filteredInvoices, 10);
 
   const updateInvoiceMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
@@ -473,7 +484,7 @@ export default function Invoices() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredInvoices.map((invoice) => (
+              {paginatedInvoices.map((invoice) => (
                 <TableRow key={invoice.id} className="group" data-testid={`row-invoice-${invoice.id}`}>
                   <TableCell className="font-mono font-medium" data-testid={`text-invoice-number-${invoice.id}`}>{invoice.invoiceNumber}</TableCell>
                   <TableCell>
@@ -563,6 +574,16 @@ export default function Invoices() {
               )}
             </TableBody>
           </Table>
+          {filteredInvoices.length > 0 && (
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
+          )}
         </div>
       </div>
 

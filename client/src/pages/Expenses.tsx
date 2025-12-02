@@ -51,6 +51,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveCo
 import { motion, useReducedMotion } from 'framer-motion';
 import { EmptyState } from '@/components/ui/empty-state';
 import { staggerContainer, staggerItem, fadeInUp, reducedMotionVariants } from '@/lib/motion';
+import { TablePagination, usePagination } from '@/components/ui/table-pagination';
 
 const EXPENSE_CATEGORIES = [
   'Travel',
@@ -154,6 +155,16 @@ export default function Expenses() {
     
     return matchesSearch && matchesCategory;
   });
+
+  const {
+    currentPage,
+    pageSize,
+    totalPages,
+    totalItems,
+    paginatedItems: paginatedExpenses,
+    handlePageChange,
+    handlePageSizeChange,
+  } = usePagination(filteredExpenses, 10);
 
   const formatAmount = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', {
@@ -654,7 +665,7 @@ export default function Expenses() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredExpenses.map((expense) => (
+                    paginatedExpenses.map((expense) => (
                       <TableRow key={expense.id} data-testid={`row-expense-${expense.id}`}>
                         <TableCell>
                           {format(new Date(expense.date), 'MMM d, yyyy')}
@@ -726,6 +737,16 @@ export default function Expenses() {
                   )}
                 </TableBody>
               </Table>
+              {filteredExpenses.length > 0 && (
+                <TablePagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
+                  pageSize={pageSize}
+                  onPageChange={handlePageChange}
+                  onPageSizeChange={handlePageSizeChange}
+                />
+              )}
             </div>
           </TabsContent>
 

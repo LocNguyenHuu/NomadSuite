@@ -10,6 +10,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
+import { TablePagination, usePagination } from '@/components/ui/table-pagination';
 import { 
   Dialog,
   DialogContent,
@@ -98,6 +99,16 @@ export default function Clients() {
     const matchesCountry = countryFilter === 'all' || c.country === countryFilter;
     return matchesSearch && matchesStatus && matchesCountry;
   });
+
+  const {
+    currentPage,
+    pageSize,
+    totalPages,
+    totalItems,
+    paginatedItems: paginatedClients,
+    handlePageChange,
+    handlePageSizeChange,
+  } = usePagination(filteredClients, 10);
 
   const updateClientMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
@@ -344,7 +355,7 @@ export default function Clients() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredClients.map((client) => (
+                  {paginatedClients.map((client) => (
                     <TableRow key={client.id} className="group cursor-pointer hover:bg-muted/50" onClick={() => setLocation(`/app/clients/${client.id}`)}>
                       <TableCell className="font-medium">
                         <div>{client.name}</div>
@@ -399,13 +410,23 @@ export default function Clients() {
                   ))}
                   {filteredClients.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                         No clients found.
                       </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
               </Table>
+              {filteredClients.length > 0 && (
+                <TablePagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
+                  pageSize={pageSize}
+                  onPageChange={handlePageChange}
+                  onPageSizeChange={handlePageSizeChange}
+                />
+              )}
             </div>
           </TabsContent>
 

@@ -9,6 +9,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
+import { TablePagination, usePagination } from '@/components/ui/table-pagination';
 import { 
   Dialog,
   DialogContent,
@@ -123,6 +124,16 @@ export default function Projects() {
     const matchesStatus = statusFilter === 'All' || project.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const {
+    currentPage,
+    pageSize,
+    totalPages,
+    totalItems,
+    paginatedItems: paginatedProjects,
+    handlePageChange,
+    handlePageSizeChange,
+  } = usePagination(filteredProjects, 10);
 
   const handleCreate = async (data: ProjectFormData) => {
     try {
@@ -329,7 +340,7 @@ export default function Projects() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredProjects.map(project => {
+                  {paginatedProjects.map(project => {
                     const progress = project.taskCount > 0 
                       ? Math.round((project.completedTaskCount / project.taskCount) * 100) 
                       : 0;
@@ -416,6 +427,16 @@ export default function Projects() {
                   })}
                 </TableBody>
               </Table>
+            )}
+            {filteredProjects.length > 0 && (
+              <TablePagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+              />
             )}
           </CardContent>
         </Card>
