@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/use-auth';
 import { useClients } from '@/hooks/use-clients';
 import { useInvoices } from '@/hooks/use-invoices';
@@ -12,60 +11,41 @@ import { useTrips } from '@/hooks/use-trips';
 import { useProjects } from '@/hooks/use-projects';
 import { useExpenses } from '@/hooks/use-expenses';
 import { useTasks } from '@/hooks/use-projects';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   DollarSign, 
   Users, 
-  Calendar, 
   AlertTriangle, 
   FileText,
   FolderKanban,
-  Receipt,
   TrendingUp,
   TrendingDown,
   Clock,
-  CheckCircle2,
   ArrowRight,
   Plus,
-  Target,
-  PieChart,
-  BarChart3,
-  Wallet,
-  Sparkles,
-  Bell,
-  Shield,
   Plane,
-  Send,
   UserPlus,
   MapPin,
-  Zap
+  ChevronRight,
+  CalendarDays,
+  Wallet,
+  Target,
+  AlertCircle,
+  CheckCircle2,
+  Receipt,
+  Globe
 } from 'lucide-react';
 import { 
-  Area, 
-  AreaChart, 
   ResponsiveContainer, 
   Tooltip, 
   XAxis, 
   YAxis,
-  Bar,
-  BarChart,
-  Cell,
-  PieChart as RechartsPie,
-  Pie,
-  Legend
+  Area,
+  AreaChart
 } from 'recharts';
-import { differenceInDays, format, startOfMonth, subMonths, isAfter, isBefore, parseISO } from 'date-fns';
+import { differenceInDays, format, startOfMonth, subMonths } from 'date-fns';
 import { useAppI18n } from '@/contexts/AppI18nContext';
 import { Link } from 'wouter';
-
-const COLORS = ['#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#f97316', '#eab308'];
-const STATUS_COLORS: Record<string, string> = {
-  'Planning': 'bg-blue-100 text-blue-800',
-  'In Progress': 'bg-amber-100 text-amber-800',
-  'On Hold': 'bg-gray-100 text-gray-800',
-  'Completed': 'bg-green-100 text-green-800',
-  'Cancelled': 'bg-red-100 text-red-800',
-};
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -79,130 +59,31 @@ export default function Dashboard() {
 
   const activeClients = clients.filter(c => c.status === 'Active').length;
   const leadClients = clients.filter(c => c.status === 'Lead').length;
-  const pendingInvoices = invoices.filter(i => i.status === 'Sent' || i.status === 'Overdue').length;
   const totalRevenue = invoices.reduce((acc, curr) => acc + (curr.status === 'Paid' ? curr.amount : 0), 0);
-  const overdueInvoices = invoices.filter(i => i.status === 'Overdue').length;
+  const overdueInvoices = invoices.filter(i => i.status === 'Overdue');
+  const pendingInvoices = invoices.filter(i => i.status === 'Sent' || i.status === 'Overdue');
+  const outstandingAmount = pendingInvoices.reduce((acc, curr) => acc + curr.amount, 0);
 
   const activeProjects = projects.filter(p => p.status === 'In Progress').length;
   const completedProjects = projects.filter(p => p.status === 'Completed').length;
-  const planningProjects = projects.filter(p => p.status === 'Planning').length;
   
   const totalExpenses = expenses.reduce((acc, curr) => acc + curr.amount, 0);
   const netProfit = totalRevenue - totalExpenses;
   const profitMargin = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0;
 
   const pendingTasks = tasks.filter(t => t.status === 'To Do' || t.status === 'In Progress').length;
-  const completedTasks = tasks.filter(t => t.status === 'Done').length;
   const overdueTasks = tasks.filter(t => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'Done').length;
 
   const currentTrip = trips.find(t => !t.exitDate);
+  const lastTrip = !currentTrip && trips.length > 0 
+    ? trips.sort((a, b) => new Date(b.exitDate || b.entryDate).getTime() - new Date(a.exitDate || a.entryDate).getTime())[0]
+    : null;
   const daysInCountry = currentTrip ? differenceInDays(new Date(), new Date(currentTrip.entryDate)) : 0;
+  const daysRemaining = currentTrip ? Math.max(0, 90 - daysInCountry) : 90;
+  const countriesVisited = new Set(trips.map(t => t.country)).size;
 
-  const smartActions = useMemo(() => {
-    const actions: { id: string; title: string; description: string; icon: any; href: string; priority: 'high' | 'medium' | 'low'; color: string }[] = [];
-    
-    if (overdueInvoices > 0) {
-      actions.push({
-        id: 'overdue-invoices',
-        title: 'Follow up on overdue invoices',
-        description: `${overdueInvoices} invoice${overdueInvoices > 1 ? 's' : ''} past due date`,
-        icon: AlertTriangle,
-        href: '/app/invoices',
-        priority: 'high',
-        color: 'text-red-600 bg-red-100 dark:bg-red-900/30'
-      });
-    }
-    
-    if (leadClients > 0) {
-      actions.push({
-        id: 'convert-leads',
-        title: 'Convert leads to clients',
-        description: `${leadClients} lead${leadClients > 1 ? 's' : ''} in your pipeline`,
-        icon: UserPlus,
-        href: '/app/clients',
-        priority: 'medium',
-        color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30'
-      });
-    }
-    
-    if (daysInCountry > 75 && daysInCountry < 90) {
-      actions.push({
-        id: 'visa-warning',
-        title: 'Check visa requirements',
-        description: `${90 - daysInCountry} days until 90-day limit`,
-        icon: Plane,
-        href: '/app/travel',
-        priority: 'high',
-        color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30'
-      });
-    }
-    
-    if (clients.length === 0) {
-      actions.push({
-        id: 'add-first-client',
-        title: 'Add your first client',
-        description: 'Start building your client network',
-        icon: UserPlus,
-        href: '/app/clients',
-        priority: 'medium',
-        color: 'text-primary bg-primary/10'
-      });
-    }
-    
-    if (projects.filter(p => p.status === 'In Progress').length > 0 && pendingTasks > 5) {
-      actions.push({
-        id: 'review-tasks',
-        title: 'Review pending tasks',
-        description: `${pendingTasks} tasks need attention`,
-        icon: Target,
-        href: '/app/projects',
-        priority: 'medium',
-        color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30'
-      });
-    }
-    
-    return actions.sort((a, b) => {
-      const priorityOrder = { high: 0, medium: 1, low: 2 };
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
-    }).slice(0, 4);
-  }, [overdueInvoices, leadClients, daysInCountry, clients.length, projects, pendingTasks]);
-
-  const complianceAlerts = useMemo(() => {
-    const alerts: { id: string; title: string; description: string; type: 'warning' | 'info' | 'danger'; icon: any }[] = [];
-    
-    if (daysInCountry >= 90) {
-      alerts.push({
-        id: 'visa-limit',
-        title: 'Visa Limit Reached',
-        description: `You've been in ${currentTrip?.country || 'current country'} for ${daysInCountry} days. Check local visa requirements.`,
-        type: 'danger',
-        icon: Shield
-      });
-    } else if (daysInCountry >= 75) {
-      alerts.push({
-        id: 'visa-approaching',
-        title: 'Approaching Visa Limit',
-        description: `${90 - daysInCountry} days remaining in standard 90-day tourist visa period.`,
-        type: 'warning',
-        icon: Plane
-      });
-    }
-    
-    if (daysInCountry >= 150) {
-      alerts.push({
-        id: 'tax-residency',
-        title: 'Tax Residency Alert',
-        description: `${daysInCountry} days may trigger tax residency obligations. Consult a tax professional.`,
-        type: 'warning',
-        icon: FileText
-      });
-    }
-    
-    return alerts;
-  }, [daysInCountry, currentTrip]);
-
-  const generateMonthlyData = () => {
-    const months: { name: string; revenue: number; expenses: number }[] = [];
+  const monthlyData = useMemo(() => {
+    const months: { name: string; revenue: number; expenses: number; net: number }[] = [];
     for (let i = 5; i >= 0; i--) {
       const monthStart = startOfMonth(subMonths(new Date(), i));
       const monthName = format(monthStart, 'MMM');
@@ -226,50 +107,105 @@ export default function Dashboard() {
         name: monthName,
         revenue: Math.round(monthRevenue / 100),
         expenses: Math.round(monthExpenses / 100),
+        net: Math.round((monthRevenue - monthExpenses) / 100),
       });
     }
     return months;
-  };
+  }, [invoices, expenses]);
 
-  const monthlyData = generateMonthlyData();
+  const actionItems = useMemo(() => {
+    const items: { 
+      id: string; 
+      type: 'urgent' | 'warning' | 'info'; 
+      title: string; 
+      subtitle: string;
+      href: string;
+      icon: any;
+    }[] = [];
+    
+    if (overdueInvoices.length > 0) {
+      const totalOverdue = overdueInvoices.reduce((acc, inv) => acc + inv.amount, 0);
+      items.push({
+        id: 'overdue',
+        type: 'urgent',
+        title: `${overdueInvoices.length} overdue invoice${overdueInvoices.length > 1 ? 's' : ''}`,
+        subtitle: `$${(totalOverdue / 100).toLocaleString()} outstanding`,
+        href: '/app/invoices',
+        icon: AlertTriangle
+      });
+    }
+    
+    if (daysInCountry >= 75 && daysInCountry < 90) {
+      items.push({
+        id: 'visa-warning',
+        type: 'warning',
+        title: 'Visa limit approaching',
+        subtitle: `${90 - daysInCountry} days remaining`,
+        href: '/app/travel',
+        icon: Plane
+      });
+    } else if (daysInCountry >= 90) {
+      items.push({
+        id: 'visa-exceeded',
+        type: 'urgent',
+        title: 'Visa limit exceeded',
+        subtitle: `${daysInCountry} days in ${currentTrip?.country || 'country'}`,
+        href: '/app/travel',
+        icon: AlertCircle
+      });
+    }
+    
+    if (daysInCountry >= 150) {
+      items.push({
+        id: 'tax-residency',
+        type: 'warning',
+        title: 'Tax residency alert',
+        subtitle: 'May trigger tax obligations',
+        href: '/app/travel',
+        icon: FileText
+      });
+    }
+    
+    if (overdueTasks > 0) {
+      items.push({
+        id: 'overdue-tasks',
+        type: 'warning',
+        title: `${overdueTasks} overdue task${overdueTasks > 1 ? 's' : ''}`,
+        subtitle: 'Needs immediate attention',
+        href: '/app/projects',
+        icon: Target
+      });
+    }
+    
+    if (leadClients > 0) {
+      items.push({
+        id: 'leads',
+        type: 'info',
+        title: `${leadClients} lead${leadClients > 1 ? 's' : ''} to follow up`,
+        subtitle: 'Potential new business',
+        href: '/app/clients',
+        icon: UserPlus
+      });
+    }
+    
+    const clientsWithActions = clients.filter(c => 
+      c.nextActionDate && new Date(c.nextActionDate) <= new Date()
+    );
+    if (clientsWithActions.length > 0) {
+      items.push({
+        id: 'client-actions',
+        type: 'info',
+        title: `${clientsWithActions.length} client action${clientsWithActions.length > 1 ? 's' : ''} due`,
+        subtitle: 'Follow-ups pending',
+        href: '/app/clients',
+        icon: Users
+      });
+    }
+    
+    return items.slice(0, 5);
+  }, [overdueInvoices, daysInCountry, currentTrip, overdueTasks, leadClients, clients]);
 
-  const expenseCategoryData = expenseStats?.expensesByCategory?.slice(0, 6).map(cat => ({
-    name: cat.category,
-    value: Math.round(cat.total / 100),
-    count: cat.count,
-  })) || [];
-
-  const projectStatusData = [
-    { name: 'Planning', value: planningProjects, color: '#3b82f6' },
-    { name: 'In Progress', value: activeProjects, color: '#f59e0b' },
-    { name: 'Completed', value: completedProjects, color: '#22c55e' },
-    { name: 'On Hold', value: projects.filter(p => p.status === 'On Hold').length, color: '#6b7280' },
-    { name: 'Cancelled', value: projects.filter(p => p.status === 'Cancelled').length, color: '#ef4444' },
-  ].filter(item => item.value > 0);
-
-  const upcomingDeadlines = projects
-    .filter(p => p.endDate && p.status !== 'Completed' && p.status !== 'Cancelled')
-    .map(p => ({
-      id: p.id,
-      name: p.name,
-      endDate: new Date(p.endDate!),
-      status: p.status,
-      daysLeft: differenceInDays(new Date(p.endDate!), new Date()),
-    }))
-    .filter(p => p.daysLeft >= 0 && p.daysLeft <= 30)
-    .sort((a, b) => a.daysLeft - b.daysLeft)
-    .slice(0, 5);
-
-  const recentExpenses = [...expenses]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5);
-
-  const upcomingActions = clients
-    .filter(c => c.nextActionDate)
-    .sort((a, b) => new Date(a.nextActionDate!).getTime() - new Date(b.nextActionDate!).getTime())
-    .slice(0, 5);
-
-  const topProjects = projects
+  const activeProjectsList = projects
     .filter(p => p.status === 'In Progress')
     .map(p => ({
       ...p,
@@ -278,26 +214,37 @@ export default function Dashboard() {
     .sort((a, b) => b.progress - a.progress)
     .slice(0, 4);
 
+  const upcomingDeadlines = projects
+    .filter(p => p.endDate && p.status !== 'Completed' && p.status !== 'Cancelled')
+    .map(p => ({
+      id: p.id,
+      name: p.name,
+      endDate: new Date(p.endDate!),
+      daysLeft: differenceInDays(new Date(p.endDate!), new Date()),
+    }))
+    .filter(p => p.daysLeft >= 0 && p.daysLeft <= 14)
+    .sort((a, b) => a.daysLeft - b.daysLeft)
+    .slice(0, 3);
+
+  const topExpenseCategories = expenseStats?.expensesByCategory?.slice(0, 3) || [];
+
   return (
     <AppLayout>
-      <div className="space-y-6" data-testid="dashboard-page">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="app-page-header">
-            <h1 className="app-page-title" data-testid="text-dashboard-title">
-              {t('dashboard.title')}
+      <div className="space-y-8 max-w-7xl mx-auto" data-testid="dashboard-page">
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight" data-testid="text-dashboard-title">
+              {t('dashboard.welcome')}, {user?.name?.split(' ')[0] || 'there'}
             </h1>
-            <p className="app-page-description">
-              {t('dashboard.welcome')}, {user?.name}
+            <p className="text-muted-foreground mt-1" data-testid="text-dashboard-subtitle">
+              Here's your business at a glance
             </p>
           </div>
-          <div className="action-button-group">
-            <Link href="/app/projects">
-              <Button variant="outline" size="sm" data-testid="button-new-project">
-                <Plus className="h-4 w-4 mr-1.5" />
-                New Project
-              </Button>
-            </Link>
+          <div className="flex gap-2">
             <Link href="/app/invoices">
               <Button size="sm" data-testid="button-new-invoice">
                 <Plus className="h-4 w-4 mr-1.5" />
@@ -305,620 +252,425 @@ export default function Dashboard() {
               </Button>
             </Link>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-          <StatCard 
-            title={t('dashboard.totalRevenue')} 
-            value={`$${(totalRevenue / 100).toLocaleString()}`} 
-            icon={DollarSign} 
-            desc={`${invoices.filter(i => i.status === 'Paid').length} paid invoices`}
-            trend="up"
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        >
+          <KPICard
+            testId="kpi-net-profit"
+            label="Net Profit"
+            value={`$${(netProfit / 100).toLocaleString()}`}
+            subtext={`${profitMargin}% margin`}
+            trend={netProfit >= 0 ? 'up' : 'down'}
+            icon={netProfit >= 0 ? TrendingUp : TrendingDown}
           />
-          <StatCard 
-            title="Total Expenses" 
-            value={`$${(totalExpenses / 100).toLocaleString()}`} 
-            icon={Receipt} 
-            desc={`${expenses.length} expenses tracked`}
-            trend="neutral"
+          <KPICard
+            testId="kpi-outstanding"
+            label="Outstanding"
+            value={`$${(outstandingAmount / 100).toLocaleString()}`}
+            subtext={`${pendingInvoices.length} pending invoice${pendingInvoices.length !== 1 ? 's' : ''}`}
+            alert={overdueInvoices.length > 0}
+            icon={Wallet}
           />
-          <StatCard 
-            title="Net Profit" 
-            value={`$${(netProfit / 100).toLocaleString()}`} 
-            icon={netProfit >= 0 ? TrendingUp : TrendingDown} 
-            desc={`${profitMargin}% profit margin`}
-            trend={netProfit >= 0 ? "up" : "down"}
-            alert={netProfit < 0}
+          <KPICard
+            testId="kpi-active-projects"
+            label="Active Projects"
+            value={activeProjects.toString()}
+            subtext={`${completedProjects} completed`}
+            icon={FolderKanban}
           />
-          <StatCard 
-            title={t('dashboard.activeClients')} 
-            value={activeClients.toString()} 
-            icon={Users} 
-            desc={`${leadClients} leads in pipeline`}
+          <KPICard
+            testId="kpi-travel-status"
+            label="Travel Status"
+            value={currentTrip ? `${daysRemaining}d` : `${countriesVisited}`}
+            subtext={currentTrip 
+              ? `in ${currentTrip.country}` 
+              : countriesVisited > 0 
+                ? `countries visited`
+                : 'No trips yet'
+            }
+            alert={daysRemaining <= 15 && currentTrip !== undefined}
+            icon={currentTrip ? MapPin : Globe}
           />
-          <StatCard 
-            title="Active Projects" 
-            value={activeProjects.toString()} 
-            icon={FolderKanban} 
-            desc={`${planningProjects} in planning`}
-          />
-          <StatCard 
-            title={t('dashboard.pendingInvoices')} 
-            value={overdueInvoices.toString()} 
-            icon={AlertTriangle} 
-            desc={`${pendingInvoices} total pending`}
-            alert={overdueInvoices > 0}
-          />
-        </div>
+        </motion.div>
 
-        {/* Compliance Alerts */}
-        <AnimatePresence>
-          {complianceAlerts.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-3"
-            >
-              {complianceAlerts.map((alert, index) => (
-                <motion.div
-                  key={alert.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Alert 
-                    className={`border-l-4 ${
-                      alert.type === 'danger' 
-                        ? 'border-l-red-500 bg-red-50/50 dark:bg-red-900/10' 
-                        : alert.type === 'warning'
-                        ? 'border-l-amber-500 bg-amber-50/50 dark:bg-amber-900/10'
-                        : 'border-l-blue-500 bg-blue-50/50 dark:bg-blue-900/10'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`p-2 rounded-lg ${
-                        alert.type === 'danger' ? 'bg-red-100 dark:bg-red-900/30' :
-                        alert.type === 'warning' ? 'bg-amber-100 dark:bg-amber-900/30' :
-                        'bg-blue-100 dark:bg-blue-900/30'
-                      }`}>
-                        <alert.icon className={`h-4 w-4 ${
-                          alert.type === 'danger' ? 'text-red-600' :
-                          alert.type === 'warning' ? 'text-amber-600' :
-                          'text-blue-600'
-                        }`} />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-sm">{alert.title}</h4>
-                        <AlertDescription className="text-sm mt-1">
-                          {alert.description}
-                        </AlertDescription>
-                      </div>
-                    </div>
-                  </Alert>
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Smart Quick Actions */}
-        {smartActions.length > 0 && (
-          <motion.div
+        <div className="grid gap-6 lg:grid-cols-3">
+          <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
+            className="lg:col-span-2"
           >
-            <Card className="shadow-sm border-border/50 overflow-hidden">
-              <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-violet-500/5">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <div className="p-1.5 rounded-lg bg-primary/10">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                  </div>
-                  Suggested Actions
-                  <Badge variant="secondary" className="ml-auto text-xs">
-                    {smartActions.length} action{smartActions.length > 1 ? 's' : ''}
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  {smartActions.map((action, index) => (
-                    <motion.div
-                      key={action.id}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.1 + index * 0.05 }}
-                    >
-                      <Link href={action.href}>
-                        <div 
-                          className="group p-4 rounded-xl border bg-card hover:shadow-md hover:border-primary/20 transition-all duration-200 cursor-pointer h-full"
-                          data-testid={`quick-action-${action.id}`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className={`p-2 rounded-lg ${action.color} shrink-0`}>
-                              <action.icon className="h-4 w-4" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium text-sm group-hover:text-primary transition-colors line-clamp-2">
-                                {action.title}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                {action.description}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-end mt-3 pt-2 border-t border-dashed">
-                            <span className="text-xs text-primary font-medium group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                              Take action <ArrowRight className="h-3 w-3" />
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-                    </motion.div>
-                  ))}
+            <Card className="h-full" data-testid="card-financial-trend">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base font-medium">Financial Trend</CardTitle>
+                  <span className="text-xs text-muted-foreground">Last 6 months</span>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Card className="lg:col-span-2 shadow-sm border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                Revenue vs Expenses
-              </CardTitle>
-              <CardDescription>Monthly comparison for the last 6 months</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[280px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyData} barGap={8}>
-                    <XAxis 
-                      dataKey="name" 
-                      stroke="#888888" 
-                      fontSize={12} 
-                      tickLine={false} 
-                      axisLine={false}
-                    />
-                    <YAxis 
-                      stroke="#888888" 
-                      fontSize={12} 
-                      tickLine={false} 
-                      axisLine={false}
-                      tickFormatter={(value) => `$${value}`}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))', 
-                        borderRadius: '8px', 
-                        border: '1px solid hsl(var(--border))' 
-                      }}
-                      formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
-                    />
-                    <Bar dataKey="revenue" name="Revenue" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="expenses" name="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PieChart className="h-5 w-5 text-primary" />
-                Project Status
-              </CardTitle>
-              <CardDescription>{projects.length} total projects</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {projectStatusData.length > 0 ? (
+              </CardHeader>
+              <CardContent>
                 <div className="h-[240px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <RechartsPie>
-                      <Pie
-                        data={projectStatusData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={80}
-                        paddingAngle={3}
-                        dataKey="value"
-                      >
-                        {projectStatusData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
-                          borderRadius: '8px', 
-                          border: '1px solid hsl(var(--border))' 
-                        }}
-                      />
-                      <Legend />
-                    </RechartsPie>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="h-[240px] flex items-center justify-center text-muted-foreground">
-                  No projects yet
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Card className="shadow-sm border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <FolderKanban className="h-5 w-5 text-primary" />
-                  Active Projects
-                </span>
-                <Link href="/app/projects">
-                  <Button variant="ghost" size="sm">
-                    View All <ArrowRight className="ml-1 h-4 w-4" />
-                  </Button>
-                </Link>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {topProjects.map((project) => (
-                  <Link key={project.id} href={`/app/projects/${project.id}`}>
-                    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" data-testid={`card-project-${project.id}`}>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{project.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {project.completedTaskCount}/{project.taskCount} tasks
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Progress value={project.progress} className="w-16 h-2" />
-                        <span className="text-xs font-medium w-8">{project.progress}%</span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-                {topProjects.length === 0 && (
-                  <div className="text-center text-muted-foreground py-4">
-                    No active projects
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-primary" />
-                  Project Deadlines
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {upcomingDeadlines.map((project) => (
-                  <Link key={project.id} href={`/app/projects/${project.id}`}>
-                    <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                          project.daysLeft <= 3 ? 'bg-red-100 text-red-600' : 
-                          project.daysLeft <= 7 ? 'bg-amber-100 text-amber-600' : 
-                          'bg-blue-100 text-blue-600'
-                        }`}>
-                          <Calendar className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium truncate max-w-[140px]">{project.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(project.endDate, 'MMM d, yyyy')}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge variant={project.daysLeft <= 3 ? "destructive" : project.daysLeft <= 7 ? "default" : "secondary"}>
-                        {project.daysLeft === 0 ? 'Today' : `${project.daysLeft}d`}
-                      </Badge>
-                    </div>
-                  </Link>
-                ))}
-                {upcomingDeadlines.length === 0 && (
-                  <div className="text-center text-muted-foreground py-4">
-                    No upcoming deadlines
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-primary" />
-                  Task Overview
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20">
-                    <div className="text-2xl font-bold text-amber-600">{pendingTasks}</div>
-                    <div className="text-xs text-muted-foreground">Pending</div>
-                  </div>
-                  <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
-                    <div className="text-2xl font-bold text-green-600">{completedTasks}</div>
-                    <div className="text-xs text-muted-foreground">Completed</div>
-                  </div>
-                  <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20">
-                    <div className="text-2xl font-bold text-red-600">{overdueTasks}</div>
-                    <div className="text-xs text-muted-foreground">Overdue</div>
-                  </div>
-                </div>
-                {tasks.length > 0 && (
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Completion Rate</span>
-                      <span className="font-medium">{tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0}%</span>
-                    </div>
-                    <Progress value={tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0} className="h-2" />
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Card className="shadow-sm border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Wallet className="h-5 w-5 text-primary" />
-                  Expenses by Category
-                </span>
-                <Link href="/app/expenses">
-                  <Button variant="ghost" size="sm">
-                    View All <ArrowRight className="ml-1 h-4 w-4" />
-                  </Button>
-                </Link>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {expenseCategoryData.length > 0 ? (
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={expenseCategoryData} layout="vertical">
+                    <AreaChart data={monthlyData}>
+                      <defs>
+                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
                       <XAxis 
-                        type="number" 
-                        stroke="#888888" 
-                        fontSize={12} 
-                        tickLine={false} 
-                        axisLine={false}
-                        tickFormatter={(value) => `$${value}`}
-                      />
-                      <YAxis 
-                        type="category" 
                         dataKey="name" 
                         stroke="#888888" 
                         fontSize={12} 
                         tickLine={false} 
                         axisLine={false}
-                        width={100}
+                      />
+                      <YAxis 
+                        stroke="#888888" 
+                        fontSize={12} 
+                        tickLine={false} 
+                        axisLine={false}
+                        tickFormatter={(value) => `$${value}`}
+                        width={60}
                       />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--card))', 
                           borderRadius: '8px', 
-                          border: '1px solid hsl(var(--border))' 
+                          border: '1px solid hsl(var(--border))',
+                          fontSize: '12px'
                         }}
-                        formatter={(value: number, name: string, props: any) => [
-                          `$${value.toLocaleString()} (${props.payload.count} items)`,
-                          'Amount'
+                        formatter={(value: number, name: string) => [
+                          `$${value.toLocaleString()}`,
+                          name === 'revenue' ? 'Revenue' : 'Expenses'
                         ]}
                       />
-                      <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                        {expenseCategoryData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Bar>
-                    </BarChart>
+                      <Area 
+                        type="monotone" 
+                        dataKey="revenue" 
+                        stroke="#22c55e" 
+                        strokeWidth={2}
+                        fillOpacity={1} 
+                        fill="url(#colorRevenue)" 
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="expenses" 
+                        stroke="#ef4444" 
+                        strokeWidth={2}
+                        fillOpacity={1} 
+                        fill="url(#colorExpenses)" 
+                      />
+                    </AreaChart>
                   </ResponsiveContainer>
                 </div>
-              ) : (
-                <div className="h-[200px] flex items-center justify-center text-muted-foreground">
-                  No expenses recorded yet
+                <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-green-500" />
+                    <span className="text-sm text-muted-foreground">Revenue</span>
+                    <span className="text-sm font-medium" data-testid="text-total-revenue">${(totalRevenue / 100).toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500" />
+                    <span className="text-sm text-muted-foreground">Expenses</span>
+                    <span className="text-sm font-medium" data-testid="text-total-expenses">${(totalExpenses / 100).toLocaleString()}</span>
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card className="shadow-sm border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Receipt className="h-5 w-5 text-primary" />
-                  Recent Expenses
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {recentExpenses.map((expense) => (
-                  <div key={expense.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50" data-testid={`row-expense-${expense.id}`}>
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                        <Receipt className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium truncate max-w-[180px]">{expense.description}</p>
-                        <p className="text-xs text-muted-foreground">{expense.category}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium">${(expense.amount / 100).toLocaleString()}</p>
-                      <p className="text-xs text-muted-foreground">{format(new Date(expense.date), 'MMM d')}</p>
-                    </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <Card className="h-full" data-testid="card-needs-attention">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-medium">Needs Attention</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {actionItems.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center" data-testid="text-all-caught-up">
+                    <CheckCircle2 className="h-10 w-10 text-green-500 mb-3" />
+                    <p className="font-medium text-green-600">All caught up!</p>
+                    <p className="text-sm text-muted-foreground mt-1">No urgent actions needed</p>
                   </div>
-                ))}
-                {recentExpenses.length === 0 && (
-                  <div className="text-center text-muted-foreground py-4">
-                    No expenses yet
-                  </div>
+                ) : (
+                  actionItems.map((item) => (
+                    <Link key={item.id} href={item.href}>
+                      <div 
+                        className={`flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer hover:bg-muted/50 ${
+                          item.type === 'urgent' ? 'border-red-200 dark:border-red-800/50 bg-red-50/50 dark:bg-red-900/10' :
+                          item.type === 'warning' ? 'border-amber-200 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-900/10' :
+                          'border-border'
+                        }`}
+                        data-testid={`action-item-${item.id}`}
+                      >
+                        <div className={`p-2 rounded-lg shrink-0 ${
+                          item.type === 'urgent' ? 'bg-red-100 dark:bg-red-900/30 text-red-600' :
+                          item.type === 'warning' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' :
+                          'bg-muted text-muted-foreground'
+                        }`}>
+                          <item.icon className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{item.title}</p>
+                          <p className="text-xs text-muted-foreground">{item.subtitle}</p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </div>
+                    </Link>
+                  ))
                 )}
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Card className="shadow-sm border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-primary" />
-                {t('dashboard.upcomingDeadlines') || 'Upcoming Actions'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {upcomingActions.map((client) => (
-                  <div key={client.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                        new Date(client.nextActionDate!) < new Date() 
-                          ? 'bg-red-100 text-red-600' 
-                          : 'bg-amber-100 text-amber-600'
-                      }`}>
-                        <Calendar className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium leading-none">
-                          {client.nextActionDescription || "Follow up"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{client.name}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className={`text-xs font-medium ${
-                        new Date(client.nextActionDate!) < new Date() 
-                          ? 'text-red-600' 
-                          : 'text-muted-foreground'
-                      }`}>
-                        {new Date(client.nextActionDate!) < new Date() 
-                          ? 'Overdue' 
-                          : differenceInDays(new Date(client.nextActionDate!), new Date()) + ' days'}
-                      </span>
-                    </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card data-testid="card-active-projects">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base font-medium">Active Projects</CardTitle>
+                  <Link href="/app/projects">
+                    <Button variant="ghost" size="sm" className="text-xs" data-testid="button-view-all-projects">
+                      View all <ArrowRight className="ml-1 h-3 w-3" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {activeProjectsList.length === 0 ? (
+                  <div className="text-center py-6" data-testid="text-no-active-projects">
+                    <FolderKanban className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No active projects</p>
+                    <Link href="/app/projects">
+                      <Button variant="outline" size="sm" className="mt-3" data-testid="button-create-project">
+                        <Plus className="h-4 w-4 mr-1" />
+                        Create Project
+                      </Button>
+                    </Link>
                   </div>
-                ))}
-                {upcomingActions.length === 0 && (
-                  <div className="text-center text-muted-foreground py-4">
-                    No upcoming actions.
+                ) : (
+                  <div className="space-y-3">
+                    {activeProjectsList.map((project) => (
+                      <Link key={project.id} href={`/app/projects/${project.id}`}>
+                        <div 
+                          className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                          data-testid={`project-item-${project.id}`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{project.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {project.completedTaskCount}/{project.taskCount} tasks
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Progress value={project.progress} className="w-16 h-2" />
+                            <span className="text-xs font-medium w-7 text-right">{project.progress}%</span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card className="shadow-sm border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Travel & Location
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">{t('dashboard.daysInCountry')}</span>
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
+            <Card data-testid="card-deadlines-expenses">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-medium">Deadlines & Expenses</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {upcomingDeadlines.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">UPCOMING DEADLINES</p>
+                    <div className="space-y-2">
+                      {upcomingDeadlines.map((deadline) => (
+                        <Link key={deadline.id} href={`/app/projects/${deadline.id}`}>
+                          <div 
+                            className="flex items-center justify-between p-2 -mx-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                            data-testid={`deadline-item-${deadline.id}`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Clock className={`h-4 w-4 ${deadline.daysLeft <= 3 ? 'text-red-500' : 'text-amber-500'}`} />
+                              <span className="text-sm truncate max-w-[140px]">{deadline.name}</span>
+                            </div>
+                            <Badge variant={deadline.daysLeft <= 3 ? "destructive" : "secondary"} className="text-xs">
+                              {deadline.daysLeft === 0 ? 'Today' : `${deadline.daysLeft}d`}
+                            </Badge>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                  <div className="text-3xl font-bold">{daysInCountry}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {currentTrip ? currentTrip.country : "Not traveling"}
-                  </p>
-                </div>
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Total Trips</span>
+                )}
+                
+                {topExpenseCategories.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">TOP EXPENSE CATEGORIES</p>
+                    <div className="space-y-2">
+                      {topExpenseCategories.map((cat, index) => (
+                        <div 
+                          key={cat.category} 
+                          className="flex items-center justify-between"
+                          data-testid={`expense-category-${index}`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Receipt className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{cat.category}</span>
+                          </div>
+                          <span className="text-sm font-medium">${(cat.total / 100).toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="text-3xl font-bold">{trips.length}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {new Set(trips.map(t => t.country)).size} countries
-                  </p>
-                </div>
-              </div>
-              {currentTrip && (
-                <div className="mt-4 p-3 rounded-lg border bg-primary/5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Current Location</span>
-                    <Badge variant="secondary">{currentTrip.country}</Badge>
+                )}
+                
+                {upcomingDeadlines.length === 0 && topExpenseCategories.length === 0 && (
+                  <div className="text-center py-4 text-sm text-muted-foreground" data-testid="text-no-deadlines-expenses">
+                    No deadlines or expenses to show
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Since {format(new Date(currentTrip.entryDate), 'MMM d, yyyy')}
-                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card data-testid="card-business-overview">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-medium">Quick Stats</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3">
+                  <Link href="/app/clients">
+                    <div className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer" data-testid="stat-clients">
+                      <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                        <Users className="h-3.5 w-3.5" />
+                        <span className="text-xs">Clients</span>
+                      </div>
+                      <div className="text-xl font-bold">{activeClients}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {leadClients > 0 ? `+${leadClients} leads` : 'Active'}
+                      </p>
+                    </div>
+                  </Link>
+                  <Link href="/app/invoices">
+                    <div className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer" data-testid="stat-invoices">
+                      <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                        <DollarSign className="h-3.5 w-3.5" />
+                        <span className="text-xs">Paid</span>
+                      </div>
+                      <div className="text-xl font-bold">{invoices.filter(i => i.status === 'Paid').length}</div>
+                      <p className="text-xs text-muted-foreground">Invoices</p>
+                    </div>
+                  </Link>
+                  <Link href="/app/projects">
+                    <div className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer" data-testid="stat-tasks">
+                      <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                        <Target className="h-3.5 w-3.5" />
+                        <span className="text-xs">Tasks</span>
+                      </div>
+                      <div className="text-xl font-bold">{pendingTasks}</div>
+                      <p className="text-xs text-muted-foreground">Pending</p>
+                    </div>
+                  </Link>
+                  <Link href="/app/travel">
+                    <div className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer" data-testid="stat-travel">
+                      <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                        <Plane className="h-3.5 w-3.5" />
+                        <span className="text-xs">Travel</span>
+                      </div>
+                      <div className="text-xl font-bold">{trips.length}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {countriesVisited} {countriesVisited === 1 ? 'country' : 'countries'}
+                      </p>
+                    </div>
+                  </Link>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </div>
     </AppLayout>
   );
 }
 
-function StatCard({ 
-  title, 
+function KPICard({ 
+  testId,
+  label, 
   value, 
+  subtext,
   icon: Icon, 
-  desc, 
   alert,
   trend 
 }: { 
-  title: string; 
+  testId: string;
+  label: string; 
   value: string; 
+  subtext: string;
   icon: any; 
-  desc: string; 
   alert?: boolean;
-  trend?: 'up' | 'down' | 'neutral';
+  trend?: 'up' | 'down';
 }) {
-  const iconBg = alert 
-    ? 'bg-orange-100 dark:bg-orange-900/30' 
-    : trend === 'up' 
-      ? 'bg-green-100 dark:bg-green-900/30'
-      : trend === 'down'
-        ? 'bg-red-100 dark:bg-red-900/30'
-        : 'bg-muted';
-  
-  const iconColor = alert 
-    ? 'text-orange-600 dark:text-orange-400' 
-    : trend === 'up' 
-      ? 'text-green-600 dark:text-green-400'
-      : trend === 'down'
-        ? 'text-red-600 dark:text-red-400'
-        : 'text-muted-foreground';
-
   return (
-    <div className={`stat-card ${alert ? 'border-orange-200 dark:border-orange-800/50' : ''}`} 
-         data-testid={`card-stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-      <div className={`stat-card-icon ${iconBg}`}>
-        <Icon className={`h-5 w-5 ${iconColor}`} />
-      </div>
-      <div className={`stat-card-value ${alert ? 'text-orange-600 dark:text-orange-400' : ''}`}>
-        {value}
-      </div>
-      <div className="stat-card-label">{title}</div>
-      <p className="text-xs text-muted-foreground mt-2">{desc}</p>
-    </div>
+    <Card 
+      className={`relative overflow-hidden ${alert ? 'border-amber-300 dark:border-amber-700' : ''}`}
+      data-testid={testId}
+    >
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className={`text-2xl font-bold tracking-tight ${
+              alert ? 'text-amber-600 dark:text-amber-400' :
+              trend === 'up' ? 'text-green-600 dark:text-green-400' :
+              trend === 'down' ? 'text-red-600 dark:text-red-400' : ''
+            }`}>
+              {value}
+            </p>
+            <p className="text-xs text-muted-foreground">{subtext}</p>
+          </div>
+          <div className={`p-2.5 rounded-xl ${
+            alert ? 'bg-amber-100 dark:bg-amber-900/30' :
+            trend === 'up' ? 'bg-green-100 dark:bg-green-900/30' :
+            trend === 'down' ? 'bg-red-100 dark:bg-red-900/30' :
+            'bg-muted'
+          }`}>
+            <Icon className={`h-5 w-5 ${
+              alert ? 'text-amber-600 dark:text-amber-400' :
+              trend === 'up' ? 'text-green-600 dark:text-green-400' :
+              trend === 'down' ? 'text-red-600 dark:text-red-400' :
+              'text-muted-foreground'
+            }`} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
