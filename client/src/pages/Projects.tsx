@@ -247,53 +247,36 @@ export default function Projects() {
           </Button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card data-testid="card-total-projects">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {t('projects.totalProjects') || 'Total Projects'}
-              </CardTitle>
-              <FolderKanban className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalProjects}</div>
-            </CardContent>
-          </Card>
-          <Card data-testid="card-active-projects">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {t('projects.activeProjects') || 'Active Projects'}
-              </CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{activeProjects}</div>
-            </CardContent>
-          </Card>
-          <Card data-testid="card-completed-projects">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {t('projects.completedProjects') || 'Completed'}
-              </CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{completedProjects}</div>
-            </CardContent>
-          </Card>
-          <Card data-testid="card-total-budget">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {t('projects.totalBudget') || 'Total Budget'}
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                ${(totalBudget / 100).toLocaleString()}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Stats Grid */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <div className="stat-card" data-testid="card-total-projects">
+            <div className="stat-card-icon bg-blue-100 dark:bg-blue-900/30">
+              <FolderKanban className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="stat-card-value">{totalProjects}</div>
+            <div className="stat-card-label">{t('projects.totalProjects') || 'Total Projects'}</div>
+          </div>
+          <div className="stat-card" data-testid="card-active-projects">
+            <div className="stat-card-icon bg-amber-100 dark:bg-amber-900/30">
+              <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="stat-card-value">{activeProjects}</div>
+            <div className="stat-card-label">{t('projects.activeProjects') || 'Active Projects'}</div>
+          </div>
+          <div className="stat-card" data-testid="card-completed-projects">
+            <div className="stat-card-icon bg-green-100 dark:bg-green-900/30">
+              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="stat-card-value">{completedProjects}</div>
+            <div className="stat-card-label">{t('projects.completedProjects') || 'Completed'}</div>
+          </div>
+          <div className="stat-card" data-testid="card-total-budget">
+            <div className="stat-card-icon bg-purple-100 dark:bg-purple-900/30">
+              <DollarSign className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            </div>
+            <div className="stat-card-value">${(totalBudget / 100).toLocaleString()}</div>
+            <div className="stat-card-label">{t('projects.totalBudget') || 'Total Budget'}</div>
+          </div>
         </div>
 
         <Card>
