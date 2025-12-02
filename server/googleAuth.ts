@@ -36,6 +36,21 @@ export async function setupGoogleAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // IMPORTANT: Set up serialization BEFORE checking for Google OAuth credentials
+  // This ensures email/password login works even without Google OAuth
+  passport.serializeUser((user: any, done) => {
+    done(null, user.id);
+  });
+
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      const user = await storage.getUser(id);
+      done(null, user || null);
+    } catch (error) {
+      done(error);
+    }
+  });
+
   const clientID = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
@@ -72,19 +87,6 @@ export async function setupGoogleAuth(app: Express) {
       }
     )
   );
-
-  passport.serializeUser((user: any, done) => {
-    done(null, user.id);
-  });
-
-  passport.deserializeUser(async (id: number, done) => {
-    try {
-      const user = await storage.getUser(id);
-      done(null, user || null);
-    } catch (error) {
-      done(error);
-    }
-  });
 
   app.get(
     "/api/auth/google",
