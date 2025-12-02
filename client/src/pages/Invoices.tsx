@@ -30,7 +30,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { staggerContainer, staggerItem } from '@/lib/motion';
 import { useInvoices } from '@/hooks/use-invoices';
 import { useClients } from '@/hooks/use-clients';
-import { InsertInvoice, JurisdictionRule, User } from '@shared/schema';
+import { useTemplates } from '@/hooks/use-templates';
+import { InsertInvoice, JurisdictionRule, User, InvoiceTemplate } from '@shared/schema';
 import { format } from 'date-fns';
 import { useForm, Controller } from 'react-hook-form';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -46,10 +47,12 @@ export default function Invoices() {
   const { t } = useAppI18n();
   const { invoices, createInvoiceAsync } = useInvoices();
   const { clients } = useClients();
+  const { templates } = useTemplates();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [selectedCountry, setSelectedCountry] = useState<string>('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportMode, setExportMode] = useState<'pdf' | 'email'>('pdf');
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
@@ -74,16 +77,45 @@ export default function Invoices() {
 
   const selectedClient = clients.find(c => c.id.toString() === selectedClientId);
   const selectedJurisdiction = jurisdictions.find(j => j.country === selectedCountry);
+  const selectedTemplate = templates.find(t => t.id.toString() === selectedTemplateId);
+  const defaultTemplate = templates.find(t => t.isDefault);
+
+  // Auto-set template when dialog opens if there's a default template
+  useEffect(() => {
+    if (open && defaultTemplate && !selectedTemplateId) {
+      setSelectedTemplateId(defaultTemplate.id.toString());
+    }
+  }, [open, defaultTemplate, selectedTemplateId]);
+
+  // Apply template defaults when template is selected
+  useEffect(() => {
+    if (selectedTemplate) {
+      setValue('currency', selectedTemplate.defaultCurrency);
+      setValue('language', selectedTemplate.defaultLocale);
+      if (selectedTemplate.taxSettings?.reverseChargeEnabled !== undefined) {
+        setValue('reverseCharge', selectedTemplate.taxSettings.reverseChargeEnabled);
+      }
+      // Set default due date based on template payment terms
+      if (selectedTemplate.paymentSettings?.defaultTermsDays) {
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + selectedTemplate.paymentSettings.defaultTermsDays);
+        setValue('dueDate', format(dueDate, 'yyyy-MM-dd'));
+      }
+    }
+  }, [selectedTemplate, setValue]);
 
   // Auto-set country when client is selected, with user defaults as fallback
   useEffect(() => {
     if (selectedClient) {
       setSelectedCountry(selectedClient.country);
       setValue('country', selectedClient.country);
-      setValue('language', selectedJurisdiction?.defaultLanguage || user?.defaultInvoiceLanguage || 'en');
-      setValue('currency', selectedJurisdiction?.defaultCurrency || user?.defaultCurrency || 'USD');
+      // Template settings take priority if template is selected
+      if (!selectedTemplate) {
+        setValue('language', selectedJurisdiction?.defaultLanguage || user?.defaultInvoiceLanguage || 'en');
+        setValue('currency', selectedJurisdiction?.defaultCurrency || user?.defaultCurrency || 'USD');
+      }
     }
-  }, [selectedClient, setValue, selectedJurisdiction, user]);
+  }, [selectedClient, setValue, selectedJurisdiction, user, selectedTemplate]);
 
   const getClientName = (id: number) => {
     return clients.find(c => c.id === id)?.name || 'Unknown Client';
