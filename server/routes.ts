@@ -1350,6 +1350,225 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==================== Invoice Templates API ====================
+  // Get all templates for authenticated user
+  app.get("/api/templates", requireAuth, async (req, res) => {
+    try {
+      const templates = await storage.getInvoiceTemplates(req.user!.id);
+      res.json(templates);
+    } catch (error: any) {
+      console.error("Error fetching templates:", error);
+      res.status(500).json({ error: "Failed to fetch templates" });
+    }
+  });
+
+  // Get single template
+  app.get("/api/templates/:id", requireAuth, async (req, res) => {
+    try {
+      const template = await storage.getInvoiceTemplate(parseInt(req.params.id));
+      if (!template || template.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Template not found" });
+      }
+      res.json(template);
+    } catch (error: any) {
+      console.error("Error fetching template:", error);
+      res.status(500).json({ error: "Failed to fetch template" });
+    }
+  });
+
+  // Get default template
+  app.get("/api/templates/default", requireAuth, async (req, res) => {
+    try {
+      const template = await storage.getDefaultInvoiceTemplate(req.user!.id);
+      res.json(template || null);
+    } catch (error: any) {
+      console.error("Error fetching default template:", error);
+      res.status(500).json({ error: "Failed to fetch default template" });
+    }
+  });
+
+  // Create template
+  app.post("/api/templates", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const { insertInvoiceTemplateSchema } = await import("@shared/schema");
+      const parsed = insertInvoiceTemplateSchema.parse({
+        ...req.body,
+        userId: req.user!.id,
+      });
+      
+      const template = await storage.createInvoiceTemplate(parsed);
+      res.status(201).json(template);
+    } catch (error: any) {
+      console.error("Error creating template:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(500).json({ error: error.message || "Failed to create template" });
+    }
+  });
+
+  // Update template
+  app.patch("/api/templates/:id", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const existing = await storage.getInvoiceTemplate(templateId);
+      
+      if (!existing || existing.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Template not found" });
+      }
+      
+      const { updateInvoiceTemplateSchema } = await import("@shared/schema");
+      const parsed = updateInvoiceTemplateSchema.parse(req.body);
+      
+      const updated = await storage.updateInvoiceTemplate(templateId, parsed);
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Error updating template:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: error.errors[0]?.message || "Invalid input" });
+      }
+      res.status(500).json({ error: error.message || "Failed to update template" });
+    }
+  });
+
+  // Delete template
+  app.delete("/api/templates/:id", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const existing = await storage.getInvoiceTemplate(templateId);
+      
+      if (!existing || existing.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Template not found" });
+      }
+      
+      // Check if template is used by any invoices
+      const userInvoices = await storage.getInvoices(req.user!.id);
+      const templateInUse = userInvoices.some(inv => inv.templateId === templateId);
+      
+      if (templateInUse) {
+        return res.status(400).json({ 
+          error: "Cannot delete template that is in use by invoices. Please reassign invoices first." 
+        });
+      }
+      
+      await storage.deleteInvoiceTemplate(templateId);
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("Error deleting template:", error);
+      res.status(500).json({ error: "Failed to delete template" });
+    }
+  });
+
+  // Clone template
+  app.post("/api/templates/:id/clone", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const cloned = await storage.cloneInvoiceTemplate(templateId, req.user!.id);
+      res.status(201).json(cloned);
+    } catch (error: any) {
+      console.error("Error cloning template:", error);
+      if (error.message === "Template not found" || error.message === "Unauthorized") {
+        return res.status(404).json({ error: "Template not found" });
+      }
+      res.status(500).json({ error: "Failed to clone template" });
+    }
+  });
+
+  // Set template as default
+  app.post("/api/templates/:id/set-default", requireAuth, csrfProtection, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const existing = await storage.getInvoiceTemplate(templateId);
+      
+      if (!existing || existing.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Template not found" });
+      }
+      
+      await storage.setDefaultInvoiceTemplate(templateId, req.user!.id);
+      res.json({ message: "Template set as default" });
+    } catch (error: any) {
+      console.error("Error setting default template:", error);
+      res.status(500).json({ error: "Failed to set default template" });
+    }
+  });
+
+  // Get next invoice number from template
+  app.get("/api/templates/:id/next-number", requireAuth, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const existing = await storage.getInvoiceTemplate(templateId);
+      
+      if (!existing || existing.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Template not found" });
+      }
+      
+      const invoiceNumber = await storage.getNextInvoiceNumber(templateId);
+      res.json({ invoiceNumber });
+    } catch (error: any) {
+      console.error("Error getting next invoice number:", error);
+      res.status(500).json({ error: "Failed to get next invoice number" });
+    }
+  });
+
+  // Preview template with sample data
+  app.get("/api/templates/:id/preview", requireAuth, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const template = await storage.getInvoiceTemplate(templateId);
+      
+      if (!template || template.userId !== req.user!.id) {
+        return res.status(404).json({ error: "Template not found" });
+      }
+      
+      const user = await storage.getUser(req.user!.id);
+      
+      // Generate sample invoice data for preview
+      const sampleInvoice = {
+        id: 0,
+        userId: req.user!.id,
+        clientId: 0,
+        templateId: templateId,
+        invoiceNumber: await storage.getNextInvoiceNumber(templateId),
+        amount: 150000, // $1,500.00 sample
+        currency: template.defaultCurrency,
+        status: 'Draft' as const,
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        issuedAt: new Date(),
+        items: [
+          { description: 'Sample Service Item', quantity: 10, unitPrice: 10000, subtotal: 100000 },
+          { description: 'Additional Work', quantity: 5, unitPrice: 10000, subtotal: 50000 }
+        ],
+        tax: template.taxSettings?.taxRate ? Math.round(150000 * (template.taxSettings.taxRate / 100)) : 0,
+        notesToClient: template.footerSettings?.footerText || 'Thank you for your business!',
+        country: 'US',
+        language: template.defaultLocale,
+        reverseCharge: false,
+        complianceChecked: true,
+      };
+
+      const sampleClient = {
+        id: 0,
+        userId: req.user!.id,
+        name: 'Sample Client Ltd.',
+        email: 'client@example.com',
+        country: 'US',
+        status: 'Active',
+        createdAt: new Date(),
+      };
+
+      // Return preview data (the frontend will render this)
+      res.json({
+        template,
+        user,
+        invoice: sampleInvoice,
+        client: sampleClient,
+      });
+    } catch (error: any) {
+      console.error("Error generating template preview:", error);
+      res.status(500).json({ error: "Failed to generate preview" });
+    }
+  });
+
   // ==================== Projects API ====================
   // Get all projects for authenticated user
   app.get("/api/projects", requireAuth, async (req, res) => {

@@ -16,7 +16,8 @@ import {
   User,
   Briefcase,
   Receipt,
-  FolderKanban
+  FolderKanban,
+  Palette
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -49,6 +50,7 @@ const Sidebar = ({ className, onClose }: { className?: string, onClose?: () => v
   ] : [];
 
   const settingsNavItems = [
+    { href: '/app/templates', icon: Palette, label: t('nav.templates') || 'Templates' },
     { href: '/app/profile', icon: User, label: t('nav.profile') },
     { href: '/app/settings', icon: Settings, label: t('nav.settings') },
   ];

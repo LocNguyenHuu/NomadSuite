@@ -1,7 +1,7 @@
 import { 
   users, clients, invoices, trips, documents, clientNotes, workspaces, jurisdictionRules,
   vaultDocuments, vaultAuditLogs, documentRetentionJobs, securityAuditLogs,
-  waitlist, bugReports, featureRequests, expenses, projects, tasks,
+  waitlist, bugReports, featureRequests, expenses, projects, tasks, invoiceTemplates,
   type User, type InsertUser, type Client, type InsertClient,
   type Invoice, type InsertInvoice, type Trip, type InsertTrip,
   type Document, type InsertDocument, type ClientNote, type InsertClientNote,
@@ -16,6 +16,7 @@ import {
   type Expense, type InsertExpense, type UpdateExpense,
   type Project, type InsertProject, type UpdateProject,
   type Task, type InsertTask, type UpdateTask,
+  type InvoiceTemplate, type InsertInvoiceTemplate, type UpdateInvoiceTemplate,
   type UpsertOAuthUser
 } from "@shared/schema";
 import { db } from "./db";
@@ -143,6 +144,18 @@ export interface IStorage {
   updateTask(id: number, task: UpdateTask): Promise<Task>;
   deleteTask(id: number): Promise<void>;
   getUserTasks(userId: number): Promise<(Task & { projectName: string })[]>;
+
+  // Invoice Templates
+  getInvoiceTemplates(userId: number): Promise<InvoiceTemplate[]>;
+  getInvoiceTemplate(id: number): Promise<InvoiceTemplate | undefined>;
+  getDefaultInvoiceTemplate(userId: number): Promise<InvoiceTemplate | undefined>;
+  createInvoiceTemplate(template: InsertInvoiceTemplate): Promise<InvoiceTemplate>;
+  updateInvoiceTemplate(id: number, template: UpdateInvoiceTemplate): Promise<InvoiceTemplate>;
+  deleteInvoiceTemplate(id: number): Promise<void>;
+  cloneInvoiceTemplate(id: number, userId: number): Promise<InvoiceTemplate>;
+  setDefaultInvoiceTemplate(id: number, userId: number): Promise<void>;
+  getNextInvoiceNumber(templateId: number): Promise<string>;
+  incrementInvoiceNumber(templateId: number): Promise<void>;
 
   sessionStore: session.Store;
 }
@@ -873,6 +886,137 @@ export class DatabaseStorage implements IStorage {
       ...task,
       projectName: projectMap.get(task.projectId) || 'Unknown Project'
     }));
+  }
+
+  // Invoice Templates
+  async getInvoiceTemplates(userId: number): Promise<InvoiceTemplate[]> {
+    return db.select().from(invoiceTemplates).where(eq(invoiceTemplates.userId, userId)).orderBy(desc(invoiceTemplates.createdAt));
+  }
+
+  async getInvoiceTemplate(id: number): Promise<InvoiceTemplate | undefined> {
+    const [template] = await db.select().from(invoiceTemplates).where(eq(invoiceTemplates.id, id));
+    return template || undefined;
+  }
+
+  async getDefaultInvoiceTemplate(userId: number): Promise<InvoiceTemplate | undefined> {
+    const [template] = await db.select().from(invoiceTemplates).where(
+      and(
+        eq(invoiceTemplates.userId, userId),
+        eq(invoiceTemplates.isDefault, true)
+      )
+    );
+    return template || undefined;
+  }
+
+  async createInvoiceTemplate(template: InsertInvoiceTemplate): Promise<InvoiceTemplate> {
+    const [newTemplate] = await db.insert(invoiceTemplates).values(template).returning();
+    return newTemplate;
+  }
+
+  async updateInvoiceTemplate(id: number, template: UpdateInvoiceTemplate): Promise<InvoiceTemplate> {
+    const [updated] = await db
+      .update(invoiceTemplates)
+      .set({ ...template, updatedAt: new Date() })
+      .where(eq(invoiceTemplates.id, id))
+      .returning();
+    
+    if (!updated) {
+      throw new Error("Template not found");
+    }
+    return updated;
+  }
+
+  async deleteInvoiceTemplate(id: number): Promise<void> {
+    await db.delete(invoiceTemplates).where(eq(invoiceTemplates.id, id));
+  }
+
+  async cloneInvoiceTemplate(id: number, userId: number): Promise<InvoiceTemplate> {
+    const original = await this.getInvoiceTemplate(id);
+    if (!original) {
+      throw new Error("Template not found");
+    }
+    
+    // Verify ownership
+    if (original.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    // Create a copy with a new name (convert nulls to undefined for type compatibility)
+    const cloned: InsertInvoiceTemplate = {
+      userId: original.userId,
+      name: `${original.name} (Copy)`,
+      isDefault: false, // Clones are never default
+      defaultCurrency: original.defaultCurrency,
+      defaultLocale: original.defaultLocale,
+      branding: original.branding ?? undefined,
+      colorTheme: original.colorTheme ?? undefined,
+      invoiceNumberMask: original.invoiceNumberMask ?? undefined,
+      invoicePrefix: original.invoicePrefix ?? undefined,
+      nextInvoiceNumber: 1, // Reset numbering for cloned template
+      taxSettings: original.taxSettings ?? undefined,
+      paymentSettings: original.paymentSettings ?? undefined,
+      footerSettings: original.footerSettings ?? undefined,
+      defaultLineItemSettings: original.defaultLineItemSettings ?? undefined,
+    };
+
+    return this.createInvoiceTemplate(cloned);
+  }
+
+  async setDefaultInvoiceTemplate(id: number, userId: number): Promise<void> {
+    // First, unset any existing default for this user
+    await db
+      .update(invoiceTemplates)
+      .set({ isDefault: false })
+      .where(eq(invoiceTemplates.userId, userId));
+    
+    // Then set the specified template as default
+    await db
+      .update(invoiceTemplates)
+      .set({ isDefault: true, updatedAt: new Date() })
+      .where(and(
+        eq(invoiceTemplates.id, id),
+        eq(invoiceTemplates.userId, userId)
+      ));
+  }
+
+  async getNextInvoiceNumber(templateId: number): Promise<string> {
+    const template = await this.getInvoiceTemplate(templateId);
+    if (!template) {
+      throw new Error("Template not found");
+    }
+
+    const mask = template.invoiceNumberMask || '{PREFIX}{YYYY}-{####}';
+    const prefix = template.invoicePrefix || 'INV-';
+    const number = template.nextInvoiceNumber || 1;
+    const year = new Date().getFullYear().toString();
+    const paddedNumber = number.toString().padStart(4, '0');
+
+    // Replace placeholders in mask
+    let invoiceNumber = mask
+      .replace('{PREFIX}', prefix)
+      .replace('{YYYY}', year)
+      .replace('{YY}', year.slice(-2))
+      .replace('{####}', paddedNumber)
+      .replace('{###}', number.toString().padStart(3, '0'))
+      .replace('{##}', number.toString().padStart(2, '0'))
+      .replace('{#}', number.toString());
+
+    return invoiceNumber;
+  }
+
+  async incrementInvoiceNumber(templateId: number): Promise<void> {
+    const template = await this.getInvoiceTemplate(templateId);
+    if (!template) {
+      throw new Error("Template not found");
+    }
+
+    await db
+      .update(invoiceTemplates)
+      .set({ 
+        nextInvoiceNumber: (template.nextInvoiceNumber || 1) + 1,
+        updatedAt: new Date()
+      })
+      .where(eq(invoiceTemplates.id, templateId));
   }
 }
 

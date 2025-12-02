@@ -21,6 +21,7 @@ import ProjectDetail from "@/pages/ProjectDetail";
 import AuthPage from "@/pages/auth-page";
 import Settings from "@/pages/Settings";
 import Profile from "@/pages/Profile";
+import Templates from "@/pages/Templates";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminClients from "@/pages/AdminClients";
 import AdminInvoices from "@/pages/AdminInvoices";
@@ -71,6 +72,7 @@ function Router() {
       <ProtectedRoute path="/app/documents" component={Documents} />
       <ProtectedRoute path="/app/profile" component={Profile} />
       <ProtectedRoute path="/app/settings" component={Settings} />
+      <ProtectedRoute path="/app/templates" component={Templates} />
 
       {/* Admin Routes */}
       <AdminRoute path="/app/admin" component={AdminDashboard} />

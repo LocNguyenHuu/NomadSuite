@@ -168,6 +168,7 @@ export const invoices = pgTable("invoices", {
   userId: integer("user_id").notNull().references(() => users.id),
   clientId: integer("client_id").notNull().references(() => clients.id),
   projectId: integer("project_id").references(() => projects.id), // Optional project link
+  templateId: integer("template_id"), // Reference to invoice template (added later to avoid circular ref)
   invoiceNumber: text("invoice_number").notNull(),
   amount: integer("amount").notNull(), // Total amount in cents
   currency: text("currency").notNull().default("USD"),
@@ -493,6 +494,7 @@ export const insertInvoiceSchema = createInsertSchema(invoices, {
   status: InvoiceStatus,
   reverseCharge: z.boolean().optional(),
   complianceChecked: z.boolean().optional(),
+  templateId: z.number().int().optional().nullable(),
 }).omit({ id: true, issuedAt: true });
 
 export const insertJurisdictionRuleSchema = createInsertSchema(jurisdictionRules).omit({ 
@@ -592,6 +594,144 @@ export const insertFeatureRequestSchema = createInsertSchema(featureRequests).om
 
 export type FeatureRequest = typeof featureRequests.$inferSelect;
 export type InsertFeatureRequest = z.infer<typeof insertFeatureRequestSchema>;
+
+// ============================================
+// INVOICE TEMPLATES MODULE
+// ============================================
+
+// Tax Mode enum (tax-inclusive vs tax-exclusive)
+export const TaxModeEnum = pgEnum("tax_mode_enum", ['exclusive', 'inclusive']);
+
+// Branding interface for template
+export interface TemplateBranding {
+  logoUrl?: string;
+  companyName?: string;
+  address?: string;
+  contactInfo?: string;
+  vatId?: string;
+}
+
+// Tax settings interface for template
+export interface TemplateTaxSettings {
+  taxRate?: number; // e.g., 19 for 19%
+  taxLabel?: string; // e.g., "VAT", "GST", "MwSt"
+  taxMode: 'exclusive' | 'inclusive';
+  taxIdFieldVisible?: boolean;
+  reverseChargeEnabled?: boolean;
+}
+
+// Payment settings interface for template
+export interface TemplatePaymentSettings {
+  defaultTermsDays?: number; // e.g., 14, 30, 60
+  paymentMethods?: string; // Bank transfer, PayPal, etc.
+  paymentInstructions?: string;
+}
+
+// Footer settings interface for template
+export interface TemplateFooterSettings {
+  footerText?: string;
+  footerImageUrl?: string;
+}
+
+// Color theme interface for template
+export interface TemplateColorTheme {
+  primaryColor?: string; // Hex color, e.g., "#3B82F6"
+  accentColor?: string;
+  textColor?: string;
+}
+
+// Invoice Templates Table
+export const invoiceTemplates = pgTable("invoice_templates", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(), // e.g., "German B2B", "US Freelance", "EU Standard"
+  isDefault: boolean("is_default").default(false),
+  
+  // Locale & Currency
+  defaultCurrency: text("default_currency").notNull().default("USD"),
+  defaultLocale: text("default_locale").notNull().default("en"), // For date/number formatting
+  
+  // Branding (JSONB for flexibility)
+  branding: jsonb("branding").$type<TemplateBranding>(),
+  
+  // Color Theme
+  colorTheme: jsonb("color_theme").$type<TemplateColorTheme>(),
+  
+  // Invoice Numbering
+  invoiceNumberMask: text("invoice_number_mask").default("{PREFIX}{YYYY}-{####}"), // Pattern
+  invoicePrefix: text("invoice_prefix").default("INV-"),
+  nextInvoiceNumber: integer("next_invoice_number").default(1),
+  
+  // Tax Settings (JSONB)
+  taxSettings: jsonb("tax_settings").$type<TemplateTaxSettings>(),
+  
+  // Payment Settings (JSONB)
+  paymentSettings: jsonb("payment_settings").$type<TemplatePaymentSettings>(),
+  
+  // Footer Settings (JSONB)
+  footerSettings: jsonb("footer_settings").$type<TemplateFooterSettings>(),
+  
+  // Default line item settings
+  defaultLineItemSettings: jsonb("default_line_item_settings").$type<{
+    defaultQuantity?: number;
+    defaultUnitLabel?: string; // "hours", "units", "items"
+  }>(),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userNameIndex: index("invoice_templates_user_name_idx").on(table.userId, table.name),
+}));
+
+// Invoice Templates Relations
+export const invoiceTemplatesRelations = relations(invoiceTemplates, ({ one }) => ({
+  user: one(users, { fields: [invoiceTemplates.userId], references: [users.id] }),
+}));
+
+// Invoice Templates Zod schemas
+export const insertInvoiceTemplateSchema = createInsertSchema(invoiceTemplates, {
+  name: z.string().min(1, "Template name is required").max(100),
+  defaultCurrency: z.string().length(3, "Currency must be 3 characters"),
+  defaultLocale: z.string().min(2).max(5),
+  branding: z.object({
+    logoUrl: z.string().url().optional().or(z.literal('')),
+    companyName: z.string().max(200).optional(),
+    address: z.string().max(500).optional(),
+    contactInfo: z.string().max(300).optional(),
+    vatId: z.string().max(50).optional(),
+  }).optional(),
+  colorTheme: z.object({
+    primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+    accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+    textColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  }).optional(),
+  taxSettings: z.object({
+    taxRate: z.number().min(0).max(100).optional(),
+    taxLabel: z.string().max(20).optional(),
+    taxMode: z.enum(['exclusive', 'inclusive']).default('exclusive'),
+    taxIdFieldVisible: z.boolean().optional(),
+    reverseChargeEnabled: z.boolean().optional(),
+  }).optional(),
+  paymentSettings: z.object({
+    defaultTermsDays: z.number().int().min(0).max(365).optional(),
+    paymentMethods: z.string().max(500).optional(),
+    paymentInstructions: z.string().max(1000).optional(),
+  }).optional(),
+  footerSettings: z.object({
+    footerText: z.string().max(1000).optional(),
+    footerImageUrl: z.string().url().optional().or(z.literal('')),
+  }).optional(),
+  defaultLineItemSettings: z.object({
+    defaultQuantity: z.number().positive().optional(),
+    defaultUnitLabel: z.string().max(20).optional(),
+  }).optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const updateInvoiceTemplateSchema = insertInvoiceTemplateSchema.partial();
+
+export type InvoiceTemplate = typeof invoiceTemplates.$inferSelect;
+export type InsertInvoiceTemplate = z.infer<typeof insertInvoiceTemplateSchema>;
+export type UpdateInvoiceTemplate = z.infer<typeof updateInvoiceTemplateSchema>;
 
 // Expense Categories enum
 export const ExpenseCategoryEnum = pgEnum("expense_category_enum", [
