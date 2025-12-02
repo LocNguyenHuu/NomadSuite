@@ -4,6 +4,7 @@ import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
+import { sessionPool } from "./db";
 import type { User } from "@shared/schema";
 
 const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
@@ -11,13 +12,13 @@ const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
 export function getSession() {
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
+    pool: sessionPool, // Use connection pool instead of connection string for better performance
+    createTableIfMissing: true,
     ttl: sessionTtl,
-    tableName: "sessions",
+    tableName: "session",
   });
   return session({
-    secret: process.env.SESSION_SECRET!,
+    secret: process.env.SESSION_SECRET || "dev-secret-key",
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
