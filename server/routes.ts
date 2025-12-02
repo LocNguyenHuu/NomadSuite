@@ -144,6 +144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       req.login(user, (err: any) => {
         if (err) {
+          console.error("Session creation error:", err);
           return res.status(500).json({ message: "Failed to create session" });
         }
         res.json(user);
