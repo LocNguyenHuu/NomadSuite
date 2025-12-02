@@ -316,6 +316,26 @@ export default function Landing() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.5], prefersReducedMotion ? [1, 1] : [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.5], prefersReducedMotion ? [1, 1] : [1, 0.95]);
 
+  // Track scroll position for navbar styling
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Smooth scroll handler for anchor links
+  const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const targetId = href.replace('#', '');
+    const element = document.getElementById(targetId);
+    if (element) {
+      element.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
+    }
+  };
+
   const testimonials = [
     { quote: t('testimonials.quote1'), author: t('testimonials.author1'), role: t('testimonials.role1'), rating: 5 },
     { quote: t('testimonials.quote2'), author: t('testimonials.author2'), role: t('testimonials.role2'), rating: 5 },
@@ -394,12 +414,16 @@ export default function Landing() {
       <StructuredData data={softwareSchema} id="schema-software" />
       <ScrollProgress />
       
-      {/* Navbar */}
+      {/* Navbar - Fixed with scroll-aware styling */}
       <motion.nav 
         initial={prefersReducedMotion ? false : { y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: prefersReducedMotion ? 0 : 0.6, ease: "easeOut" }}
-        className="border-b bg-background/80 backdrop-blur-xl sticky top-0 z-50"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled 
+            ? 'bg-background/95 backdrop-blur-xl border-b shadow-lg shadow-black/5' 
+            : 'bg-background/80 backdrop-blur-xl border-b border-transparent'
+        }`}
       >
         <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/">
@@ -427,8 +451,9 @@ export default function Landing() {
             ].map((item) => (
               <motion.a 
                 key={item.href}
-                href={item.href} 
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+                href={item.href}
+                onClick={(e) => handleSmoothScroll(e, item.href)}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group cursor-pointer"
                 whileHover={prefersReducedMotion ? {} : { y: -2 }}
               >
                 {item.label}
@@ -460,6 +485,9 @@ export default function Landing() {
           </div>
         </div>
       </motion.nav>
+
+      {/* Spacer for fixed navbar */}
+      <div className="h-16" />
 
       {/* Hero Section */}
       <section ref={heroRef} className="relative pt-16 md:pt-24 pb-28 md:pb-40 overflow-hidden">
