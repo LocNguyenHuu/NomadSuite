@@ -52,6 +52,34 @@ export async function setupGoogleAuth(app: Express) {
     }
   });
 
+  // Logout routes - always register these regardless of OAuth config
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      req.session.destroy((err) => {
+        if (err) {
+          return res.status(500).json({ message: "Session destruction failed" });
+        }
+        res.clearCookie("connect.sid");
+        res.json({ message: "Logged out successfully" });
+      });
+    });
+  });
+
+  app.get("/api/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.redirect("/?error=logout_failed");
+      }
+      req.session.destroy((err) => {
+        res.clearCookie("connect.sid");
+        res.redirect("/");
+      });
+    });
+  });
+
   const clientID = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
@@ -106,33 +134,6 @@ export async function setupGoogleAuth(app: Express) {
       res.redirect("/app");
     }
   );
-
-  app.post("/api/auth/logout", (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).json({ message: "Logout failed" });
-      }
-      req.session.destroy((err) => {
-        if (err) {
-          return res.status(500).json({ message: "Session destruction failed" });
-        }
-        res.clearCookie("connect.sid");
-        res.json({ message: "Logged out successfully" });
-      });
-    });
-  });
-
-  app.get("/api/auth/logout", (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        return res.redirect("/auth?error=logout_failed");
-      }
-      req.session.destroy((err) => {
-        res.clearCookie("connect.sid");
-        res.redirect("/");
-      });
-    });
-  });
 }
 
 export const isAuthenticated: RequestHandler = (req, res, next) => {
