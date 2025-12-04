@@ -13,9 +13,9 @@ export function getSession() {
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     pool: sessionPool, // Use connection pool instead of connection string for better performance
-    createTableIfMissing: true,
+    createTableIfMissing: false,
     ttl: sessionTtl,
-    tableName: "session",
+    tableName: "sessions",
   });
   return session({
     secret: process.env.SESSION_SECRET || "dev-secret-key",
