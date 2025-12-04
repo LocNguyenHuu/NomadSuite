@@ -1,7 +1,10 @@
 import { defineConfig } from "drizzle-kit";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL, ensure the database is provisioned");
+// Use external Neon database URL (for Vercel deployment compatibility)
+const databaseUrl = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error("NEON_DATABASE_URL or DATABASE_URL must be set. Please configure your Neon database connection.");
 }
 
 export default defineConfig({
@@ -9,6 +12,6 @@ export default defineConfig({
   schema: "./shared/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL,
+    url: databaseUrl,
   },
 });
