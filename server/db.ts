@@ -6,20 +6,23 @@ import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-if (!process.env.DATABASE_URL) {
+// Use external Neon database URL (for Vercel deployment compatibility)
+const databaseUrl = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
+
+if (!databaseUrl) {
   throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
+    "NEON_DATABASE_URL or DATABASE_URL must be set. Please configure your Neon database connection.",
   );
 }
 
 // Neon pool for Drizzle ORM operations
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const pool = new Pool({ connectionString: databaseUrl });
 export const db = drizzle({ client: pool, schema });
 
 // Standard pg pool for session store (connect-pg-simple requires standard pg Pool)
 // Optimized pool settings for better performance
 export const sessionPool = new PgPool({ 
-  connectionString: process.env.DATABASE_URL,
+  connectionString: databaseUrl,
   ssl: { rejectUnauthorized: false },
   max: 10, // Maximum connections in pool
   min: 2,  // Minimum connections to keep ready
